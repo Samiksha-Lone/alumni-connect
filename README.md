@@ -31,27 +31,26 @@ npm run dev
 ```
 
 ## Environment Setup
-Create a `.env` file in the root directory from `.env.example`:
-```powershell
-cp .env.example .env
-```
-Then update `.env` with your values:
+Create a `.env` file in the root directory. Required variables:
 ```
 # Backend
 PORT=3000
-MONGO_URI=mongodb://localhost:27017/alumni_connect
-JWT_SECRET=your_strong_secret_key_here
+MONGO_URI=<your_mongodb_connection_string>
+JWT_SECRET=<your_strong_secret_key>
 
 # Admin credentials (optional) - server creates admin on startup if provided
-ADMIN_NAME=Main Admin
-ADMIN_EMAIL=admin@alumni.com
-ADMIN_PASSWORD=your_admin_password_here
+ADMIN_NAME=<admin_name>
+ADMIN_EMAIL=<admin_email>
+ADMIN_PASSWORD=<admin_password>
 
 # Frontend
 VITE_API_BASE=http://localhost:3000
 ```
 
-**Important:** Never commit `.env` to Git. Use `.env.example` as a template and keep real secrets in your local `.env`.
+**Important:** 
+- Never commit `.env` to Git (already ignored in `.gitignore`)
+- Keep all secrets secure and rotate them regularly
+- Use strong passwords for admin accounts
 
 ## Features
 - **Authentication:** Login/Register for alumni, students, and admins
@@ -81,7 +80,6 @@ alumni_connect/
 │   │   └── App.jsx
 │   └── vite.config.js
 ├── .env               # Environment variables (local, do not commit)
-├── .env.example       # Template for environment variables
 ├── .gitignore
 └── README.md
 ```
