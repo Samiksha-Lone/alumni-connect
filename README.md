@@ -24,21 +24,34 @@ npm start
 
 **Frontend:**
 ```powershell
-cd frontendd
+cd frontend
 npm install
 npm run dev
 # App runs on http://localhost:5173
 ```
 
 ## Environment Setup
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory from `.env.example`:
+```powershell
+cp .env.example .env
 ```
+Then update `.env` with your values:
+```
+# Backend
 PORT=3000
 MONGO_URI=mongodb://localhost:27017/alumni_connect
-JWT_SECRET=your_secret_key
+JWT_SECRET=your_strong_secret_key_here
 
+# Admin credentials (optional) - server creates admin on startup if provided
+ADMIN_NAME=Main Admin
+ADMIN_EMAIL=admin@alumni.com
+ADMIN_PASSWORD=your_admin_password_here
+
+# Frontend
 VITE_API_BASE=http://localhost:3000
 ```
+
+**Important:** Never commit `.env` to Git. Use `.env.example` as a template and keep real secrets in your local `.env`.
 
 ## Features
 - **Authentication:** Login/Register for alumni, students, and admins
@@ -60,14 +73,15 @@ alumni_connect/
 │   │   ├── middlewares/
 │   │   └── app.js
 │   └── server.js
-├── frontendd/         # React Frontend
+├── frontend/          # React Frontend (Vite)
 │   ├── src/
 │   │   ├── pages/
 │   │   ├── components/
 │   │   ├── context/
 │   │   └── App.jsx
 │   └── vite.config.js
-├── .env               # Environment variables
+├── .env               # Environment variables (local, do not commit)
+├── .env.example       # Template for environment variables
 ├── .gitignore
 └── README.md
 ```
@@ -85,15 +99,17 @@ alumni_connect/
 | GET/POST/DELETE | `/api/jobs` | Manage opportunities |
 
 ## Notes
-- Frontend uses Vite proxy to route API calls to backend
-- Admin-only operations are enforced server-side
-- Dates use HTML5 `type="date"` input
-- Passwords should never be logged or exposed
+- All sensitive configuration is in `.env` (never commit to Git)
+- Admin user is created automatically on startup if `ADMIN_EMAIL` and `ADMIN_PASSWORD` env vars are set
+- Admin-only operations are enforced server-side via role checks
 - JWT tokens stored in localStorage (frontend)
+- Console logs removed from production code for security
 
 ## Development
-- Frontend linting: `npm run lint` (in `frontendd/`)
+- Frontend linting: `npm run lint` (in `frontend/`)
+- Backend: use `npx nodemon server.js` for auto-restart on file changes
 - Restart dev servers after changing `.env` values
+- Both backend and frontend need separate terminal sessions
 
 ## License
 MIT
