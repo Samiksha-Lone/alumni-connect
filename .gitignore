@@ -54,15 +54,19 @@ pids/
 # package-lock.json
 
 # Specific folders (frontend/backend)
-/frontendd/node_modules/
+/frontend/node_modules/
 /backend/node_modules/
-/frontendd/dist/
- /frontendd/.env.local
- /backend/.env
- /frontendd/.vite
- /frontendd/.cache
- /backend/dist/
- /backend/.cache
+/frontend/dist/
+/frontend/.env.local
+/backend/.env
+/frontend/.vite
+/frontend/.cache
+/backend/dist/
+/backend/.cache
+
+# Vite and build caches
+.vite/
+.cache/
 
 # OS-specific
 ehthumbs.db

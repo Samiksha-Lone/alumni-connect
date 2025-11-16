@@ -72,16 +72,16 @@ async function updateEvent(req, res) {
 
 async function deleteEvent(req, res) {
   try {
-    console.log('DELETE /events/:id attempt by', req.user ? { id: req.user._id, role: req.user.role } : 'unauthenticated')
+    // delete event attempt
     if (!req.user || req.user.role !== "admin") {
       console.warn('Unauthorized delete event attempt', { user: req.user, params: req.params })
       return res.status(403).json({ error: "Only admin can delete events" });
     }
 
     const eventId = req.params.id;
-    console.log('deleteEvent: requested id=', eventId)
+    // requested id processed
     const event = await eventModel.findById(eventId);
-    console.log('deleteEvent: found event=', event)
+    // event loaded
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });

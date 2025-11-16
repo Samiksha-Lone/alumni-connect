@@ -67,16 +67,16 @@ exports.updateJob = async (req, res) => {
 // Delete job (Admin only)
 exports.deleteJob = async (req, res) => {
   try {
-    console.log('DELETE /jobs/:id attempt by', req.user ? { id: req.user._id, role: req.user.role } : 'unauthenticated')
+    // delete job attempt
     if (!req.user || req.user.role !== "admin") {
       console.warn('Unauthorized delete job attempt', { user: req.user, params: req.params })
       return res.status(403).json({ message: "Only admin can delete jobs" });
     }
 
     const jobId = req.params.id;
-    console.log('deleteJob: requested id=', jobId)
+    // requested id logged internally
     const job = await Job.findById(jobId);
-    console.log('deleteJob: found job=', job)
+    // found job loaded
 
     if (!job) {
       return res.status(404).json({ message: "Job not found" });

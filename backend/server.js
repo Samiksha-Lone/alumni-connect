@@ -1,11 +1,17 @@
-//start server
-const app = require('./src/app');
+// start server
 require('dotenv').config();
-
+const app = require('./src/app');
 const connectDB = require('./src/db/db');
+const { ensureAdmin } = require('./seed');
 
-connectDB();
+const port = process.env.PORT || 3000;
 
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
-})
+connectDB()
+    .then(() => ensureAdmin())
+    .catch(() => {
+        // DB connect failed; server will still attempt to start
+    });
+
+app.listen(port, () => {
+        // server started
+});

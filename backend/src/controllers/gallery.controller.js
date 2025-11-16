@@ -15,7 +15,7 @@ exports.addImage = async (req, res) => {
       const image = await Gallery.create({
         imageUrl
       });
-      console.log('Request Body:', req.body);
+      // request body processed
       return res.status(201).json({
         message: 'Image added successfully',
         image,
@@ -40,8 +40,7 @@ exports.getImages = async (req, res) => {
 // Delete image (Admin only)
 exports.deleteImage = async (req, res) => {
   try {
-    // Debug log for delete attempts
-    console.log('DELETE /gallery/:id attempt by', req.user ? { id: req.user._id, role: req.user.role } : 'unauthenticated')
+    // Debug: delete attempt
     // Only admin can delete images
     if (!req.user || req.user.role !== "admin") {
       console.warn('Unauthorized delete image attempt', { user: req.user, params: req.params })
@@ -49,9 +48,9 @@ exports.deleteImage = async (req, res) => {
     }
 
     const imageId = req.params.id;
-    console.log('deleteImage: requested id=', imageId)
+    // requested id processed
     const image = await Gallery.findById(imageId);
-    console.log('deleteImage: found image=', image)
+    // image loaded
 
     if (!image) {
       return res.status(404).json({ error: "Image not found" });

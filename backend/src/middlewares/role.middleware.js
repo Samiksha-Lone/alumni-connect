@@ -6,7 +6,6 @@ const authorizeRoles = (...allowedRoles) => {
       });
     }
     next();
-    console.log(`User role: ${req.user.role}, Allowed roles: ${allowedRoles}`);
   };
 };
 

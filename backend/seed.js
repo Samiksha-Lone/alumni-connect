@@ -4,32 +4,35 @@ require('dotenv').config();
 
 const User = require('./src/models/user.model');
 
-async function seedAdmin() {
-    try {
-        await mongoose.connect(process.env.MONGO_URI);
-        console.log('Connected to MongoDB');
+async function ensureAdmin() {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminName = process.env.ADMIN_NAME || 'Main Admin';
 
-        const existingAdmin = await User.findOne({ email: 'admin@alumni.com' });
-        if (existingAdmin) {
-            console.log('Admin already exists');
-            await mongoose.connection.close();
-            return;
+    if (!adminEmail || !adminPassword) {
+        // No admin credentials configured via env; nothing to do
+        return;
+    }
+
+    try {
+        // Connect if not already connected
+        if (mongoose.connection.readyState === 0) {
+            await mongoose.connect(process.env.MONGO_URI);
         }
 
-        const hashedPassword = await bcrypt.hash('admin123', 10);
+        const existingAdmin = await User.findOne({ email: adminEmail });
+        if (existingAdmin) return;
+
+        const hashedPassword = await bcrypt.hash(adminPassword, 10);
         await User.create({
             role: 'admin',
-            name: 'Admin User',
-            email: 'admin@alumni.com',
+            name: adminName,
+            email: adminEmail,
             password: hashedPassword,
         });
-
-        console.log('Admin user created: admin@alumni.com / admin123');
-        await mongoose.connection.close();
     } catch (err) {
-        console.error('Error seeding admin:', err);
-        await mongoose.connection.close();
+        // swallow errors here; server startup will log DB connection errors elsewhere
     }
 }
 
-seedAdmin();
+module.exports = { ensureAdmin };
