@@ -28,7 +28,6 @@ export default function App() {
             <NavBar />
             <main style={{ flex: 1, width: '100%' }}>
               <Routes>
-                {/* <Route path="/" element={<Navigate to="/about" replace />} /> */}
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/gallery" element={<Gallery />} />

@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
         type: String, 
         required: true 
     },
-    // Alumni-specific fields (optional, only required if role is alumni)
+    // Alumni-specific fields
     courseStudied: { 
         type: String 
     },
@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema(
     graduationYear: { 
         type: Number 
     },
-    // Student-specific fields (optional, only required if role is student)
+    // Student-specific fields
     yearOfStudying: { 
         type: Number 
     },

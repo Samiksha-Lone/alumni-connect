@@ -53,7 +53,6 @@ async function updateEvent(req, res) {
       return res.status(404).json({ error: "Event not found" });
     }
 
-    // Update fields
     if (title) event.title = title;
     if (description) event.description = description;
     if (eventDate) event.eventDate = eventDate;
@@ -72,16 +71,13 @@ async function updateEvent(req, res) {
 
 async function deleteEvent(req, res) {
   try {
-    // delete event attempt
     if (!req.user || req.user.role !== "admin") {
       console.warn('Unauthorized delete event attempt', { user: req.user, params: req.params })
       return res.status(403).json({ error: "Only admin can delete events" });
     }
 
     const eventId = req.params.id;
-    // requested id processed
     const event = await eventModel.findById(eventId);
-    // event loaded
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });

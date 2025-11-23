@@ -34,12 +34,9 @@ export function AuthProvider({ children }) {
   const [users, setUsers] = useState(() => readStorage('users', []))
   const [loading, setLoading] = useState(false)
 
-  // Configure axios globally
   axios.defaults.baseURL = API_BASE
-  // avoid sending cookies by default to reduce CORS/preflight complexity
   axios.defaults.withCredentials = false
 
-  // Set axios default header when token changes
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
@@ -52,12 +49,10 @@ export function AuthProvider({ children }) {
   useEffect(() => writeStorage('authToken', token), [token])
   useEffect(() => writeStorage('users', users), [users])
 
-  // On mount: validate stored token (clear if invalid/expired)
   useEffect(() => {
     try {
       if (token) {
         const payload = decodeJwt(token)
-        // if token cannot be decoded or is expired, clear it
         if (!payload) {
           setToken(null)
           setUser(null)
@@ -65,7 +60,6 @@ export function AuthProvider({ children }) {
           setToken(null)
           setUser(null)
         } else {
-          // ensure user state is in sync with token payload
           setUser((u) => u || { id: payload.id, role: payload.role, email: payload.email, name: payload.name || '' })
         }
       }
@@ -73,11 +67,8 @@ export function AuthProvider({ children }) {
       setToken(null)
       setUser(null)
     }
-    // run only once on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // If a token exists, validate it with the server and refresh user profile
   useEffect(() => {
     let mounted = true
     async function validate() {
@@ -86,19 +77,16 @@ export function AuthProvider({ children }) {
         const res = await axios.get('/auth/me')
         if (mounted && res && res.data) {
           setUser(res.data)
-          // If current user is admin, fetch full user list for dashboard
           if (res.data.role === 'admin') {
             try {
               const usersRes = await axios.get('/users')
               if (usersRes && usersRes.data) setUsers(usersRes.data)
             } catch (err) {
-              // ignore users fetch errors but log
-              // console.error('Failed to fetch users for admin dashboard', err)
+              console.error('Failed to fetch users for admin dashboard', err)
             }
           }
         }
       } catch {
-        // server rejected token — clear local state
         setToken(null)
         setUser(null)
       }
@@ -168,7 +156,7 @@ export function AuthProvider({ children }) {
     try {
       await axios.get('/auth/logout')
     } catch {
-      // ignore errors on logout
+      console.warn('Logout request failed, clearing local session anyway');
     }
     setToken(null)
     setUser(null)
@@ -182,4 +170,3 @@ export function useAuth() {
   return useContext(AuthContext)
 }
 
-// intentionally no default export - this file exports the provider component and hook only

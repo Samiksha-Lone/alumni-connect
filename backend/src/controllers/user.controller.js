@@ -1,30 +1,23 @@
 const userModel = require("../models/user.model");
 
-// Update user profile
 async function updateUser(req, res) {
   try {
     const userId = req.params.id;
     const { name, email, yearOfStudying, course, graduationYear, courseStudied, company } = req.body;
-
-    // Get the current user's ID (handle both 'id' and '_id')
     const currentUserId = req.user.id || req.user._id;
     
-    // Verify user is updating their own profile or is admin
     if (currentUserId.toString() !== userId && req.user.role !== "admin") {
       return res.status(403).json({ message: "Unauthorized to update this user" });
     }
 
-    // Find the user
     const user = await userModel.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Update allowed fields
     if (name) user.name = name;
     if (email) user.email = email;
 
-    // Update role-specific fields
     if (user.role === "student") {
       if (yearOfStudying !== undefined) user.yearOfStudying = yearOfStudying;
       if (course) user.course = course;
@@ -34,10 +27,8 @@ async function updateUser(req, res) {
       if (company) user.company = company;
     }
 
-    // Save the updated user
     const updatedUser = await user.save();
 
-    // Return updated user without password
     res.status(200).json({
       _id: updatedUser._id,
       role: updatedUser.role,
@@ -57,17 +48,14 @@ async function updateUser(req, res) {
   }
 }
 
-// Delete user (Admin only)
 async function deleteUser(req, res) {
   try {
     const userId = req.params.id;
 
-    // Only admin can delete users
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Only admin can delete users" });
     }
 
-    // Find and delete the user
     const user = await userModel.findByIdAndDelete(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -80,7 +68,6 @@ async function deleteUser(req, res) {
   }
 }
 
-// Get all users (admin only)
 async function getAllUsers(req, res) {
   try {
     if (req.user.role !== "admin") {
@@ -95,7 +82,6 @@ async function getAllUsers(req, res) {
   }
 }
 
-// Get user by ID
 async function getUserById(req, res) {
   try {
     const userId = req.params.id;

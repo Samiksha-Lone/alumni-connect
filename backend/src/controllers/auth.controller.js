@@ -94,7 +94,6 @@ function logoutUser(req, res) {
 
 async function meUser(req, res) {
   try {
-    // req.user may contain decoded token (set by verifyToken) with id
     const id = (req.user && (req.user.id || req.user._id)) || null;
     if (!id) return res.status(401).json({ message: 'Authentication required' });
     const user = await userModel.findById(id).select('-password');

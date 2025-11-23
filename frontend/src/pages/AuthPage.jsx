@@ -1,24 +1,20 @@
 import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
 
 export default function AuthPage() {
-  const [mode, setMode] = useState('login') // login | register
+  const [mode, setMode] = useState('login') 
   const { register, login } = useAuth()
   const nav = useNavigate()
 
-  // shared
   const [role, setRole] = useState('student')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
 
-  // student
   const [yearOfStudy, setYearOfStudy] = useState('')
   const [branch, setBranch] = useState('')
 
-  // alumni
   const [yearOfPassing, setYearOfPassing] = useState('')
   const [company, setCompany] = useState('')
   const [jobRole, setJobRole] = useState('')

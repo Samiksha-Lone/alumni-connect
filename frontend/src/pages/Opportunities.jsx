@@ -1,13 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
-// import { useTheme } from '../context/useTheme'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000'
 
 export default function Opportunities() {
   const { user, token } = useAuth()
-  // const { theme } = useTheme()
   const [items, setItems] = useState([])
   const [title, setTitle] = useState('')
   const [company, setCompany] = useState('')

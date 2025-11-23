@@ -36,10 +36,9 @@ app.use('/api', eventRoutes);
 app.use('/api', galleryRoutes);
 app.use('/api', jobRoutes);
 
-// Dev debug route - reports DB connection state and counts
 app.get('/debug/status', async (req, res) => {
     try {
-        const state = mongoose.connection.readyState; // 0 disconnected,1 connected
+        const state = mongoose.connection.readyState; 
         const [users, events, gallery, jobs] = await Promise.all([
             User.countDocuments(),
             Event.countDocuments(),

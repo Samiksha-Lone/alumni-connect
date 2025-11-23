@@ -10,12 +10,10 @@ async function ensureAdmin() {
     const adminName = process.env.ADMIN_NAME || 'Main Admin';
 
     if (!adminEmail || !adminPassword) {
-        // No admin credentials configured via env; nothing to do
         return;
     }
 
     try {
-        // Connect if not already connected
         if (mongoose.connection.readyState === 0) {
             await mongoose.connect(process.env.MONGO_URI);
         }
@@ -31,7 +29,7 @@ async function ensureAdmin() {
             password: hashedPassword,
         });
     } catch (err) {
-        // swallow errors here; server startup will log DB connection errors elsewhere
+        console.error('Error ensuring admin user:', err);
     }
 }
 

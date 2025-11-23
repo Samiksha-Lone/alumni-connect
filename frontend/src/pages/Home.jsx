@@ -3,7 +3,6 @@ import React from 'react'
 export default function Home() {
   return (
     <section>
-      {/* Hero Section */}
       <div style={{
         background: 'linear-gradient(135deg, var(--accent) 0%, #1e40af 100%)',
         borderRadius: '12px',
@@ -21,7 +20,6 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Features Row - single-line */}
       <div style={{ marginBottom: '40px' }}>
         <div style={{
           display: 'flex',
@@ -105,7 +103,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Info Box */}
       <div style={{
         backgroundColor: 'var(--card)',
         border: '1px solid var(--border)',

@@ -101,7 +101,6 @@ export default function Profile() {
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState(() => (user ? { ...user } : {}))
 
-  // keep form in sync when user object updates (e.g., after /auth/me)
   useEffect(() => {
     setForm(user ? { ...user } : {})
   }, [user])
@@ -115,13 +114,11 @@ export default function Profile() {
 
   async function save() {
     try {
-      // Prepare update data - only include fields that changed
       const updateData = {
         name: form.name,
         email: form.email
       }
       
-      // Add role-specific fields
       if (user.role === 'student') {
         updateData.yearOfStudying = form.yearOfStudying
         updateData.course = form.course
@@ -131,11 +128,9 @@ export default function Profile() {
         updateData.company = form.company
       }
       
-      // Call backend API to update user profile
       const res = await axios.put(`/users/${user._id}`, updateData, { headers: { Authorization: `Bearer ${token}` } })
       
       if (res.status === 200 && res.data) {
-        // Update local user context with the response from server
         setUser(res.data)
         setEditing(false)
       }

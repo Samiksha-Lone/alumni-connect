@@ -102,7 +102,6 @@ section {
   box-shadow: 0 4px 12px rgba(16,24,40,0.1);
 }
 
-/* Light theme enhancements for horizontal cards */
 .horizontal-card {
   background: color-mix(in srgb, var(--card) 98%, #f0f4f8 2%);
   box-shadow: 0 4px 16px rgba(16,24,40,0.08);
@@ -112,7 +111,6 @@ section {
   box-shadow: 0 8px 24px rgba(16,24,40,0.12);
 }
 
-/* Dark theme enhancements for horizontal cards */
 .theme-dark .horizontal-card {
   background: color-mix(in srgb, var(--card) 95%, #fff 5%);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
@@ -156,7 +154,6 @@ section {
   color: var(--muted);
 }
 
-/* Card Image Container */
 .card-image {
   width: 120px;
   height: 120px;

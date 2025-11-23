@@ -75,7 +75,6 @@ export default function Gallery() {
   }
 
   async function deleteImage(id, e) {
-    // prevent opening modal when clicking delete
     if (e) e.stopPropagation()
     if (!window.confirm('Delete this image?')) return
     try {

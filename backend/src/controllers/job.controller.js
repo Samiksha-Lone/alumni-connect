@@ -34,7 +34,6 @@ exports.getJobs = async (req, res) => {
   }
 };
 
-// Update job (Admin only)
 exports.updateJob = async (req, res) => {
   try {
     if (!req.user || req.user.role !== "admin") {
@@ -49,7 +48,6 @@ exports.updateJob = async (req, res) => {
       return res.status(404).json({ message: "Job not found" });
     }
 
-    // Update fields
     if (title) job.title = title;
     if (company) job.company = company;
     if (description) job.description = description;
@@ -64,25 +62,20 @@ exports.updateJob = async (req, res) => {
   }
 };
 
-// Delete job (Admin only)
 exports.deleteJob = async (req, res) => {
   try {
-    // delete job attempt
     if (!req.user || req.user.role !== "admin") {
       console.warn('Unauthorized delete job attempt', { user: req.user, params: req.params })
       return res.status(403).json({ message: "Only admin can delete jobs" });
     }
 
     const jobId = req.params.id;
-    // requested id logged internally
     const job = await Job.findById(jobId);
-    // found job loaded
 
     if (!job) {
       return res.status(404).json({ message: "Job not found" });
     }
 
-    // Check if closing date is near (within 7 days) or has passed
     const now = new Date();
     const closingDate = new Date(job.closingDate);
     const daysUntilClosing = Math.ceil((closingDate - now) / (1000 * 60 * 60 * 24));

@@ -19,7 +19,7 @@ export function ThemeProvider({ children }) {
     try {
       localStorage.setItem('theme', theme)
     } catch {
-      // ignore write errors
+      console.warn('Failed to save theme to localStorage');
     }
   }, [theme])
 
@@ -29,4 +29,4 @@ export function ThemeProvider({ children }) {
 
   return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>
 }
-// NOTE: this file intentionally only exports the ThemeProvider component; hook is in a separate file
+

@@ -10,9 +10,9 @@ const port = process.env.PORT || 3000;
 connectDB()
     .then(() => ensureAdmin())
     .catch(() => {
-        // DB connect failed; server will still attempt to start
+        process.exit(1);
     });
 
 app.listen(port, () => {
-        // server started
+    console.log(`Server is running on port ${port}`);
 });

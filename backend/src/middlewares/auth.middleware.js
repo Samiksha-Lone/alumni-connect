@@ -17,12 +17,9 @@ const verifyToken = async (req, res, next) => {
     }
     try {
       const decode = jwt.verify(token, process.env.JWT_SECRET);
-      // token decoded
-      // load full user document to make role and _id available consistently
       const user = await userModel.findById(decode.id);
-      // loaded user from DB
       if (!user) return res.status(401).json({ message: 'User not found' });
-      req.user = user; // attach full user document
+      req.user = user; 
       next();
     }catch(err) {
       console.warn('verifyToken: token verification error', err && err.message)
