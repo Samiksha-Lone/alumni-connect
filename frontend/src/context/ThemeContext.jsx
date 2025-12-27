@@ -6,16 +6,19 @@ export const ThemeContext = createContext(null)
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
     try {
-      return localStorage.getItem('theme') || 'light'
+      return localStorage.getItem('theme') || 'dark'
     } catch {
-      return 'light'
+      return 'dark'
     }
   })
 
   useEffect(() => {
     const el = document.documentElement
-    if (theme === 'dark') el.classList.add('theme-dark')
-    else el.classList.remove('theme-dark')
+    if (theme === 'dark') {
+      el.classList.add('dark')
+    } else {
+      el.classList.remove('dark')
+    }
     try {
       localStorage.setItem('theme', theme)
     } catch {

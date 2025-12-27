@@ -8,13 +8,21 @@ function ImageModal({ image, onClose }) {
   if (!image) return null
 
   return (
-    <div 
-      className={`modal-backdrop ${image ? 'active' : ''}`} 
+    <div
+      className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <img src={image} alt="gallery preview" />
-        <button className="close-button" onClick={onClose}>&times;</button>
+      <div
+        className="relative max-w-2xl max-h-[80vh] bg-white dark:bg-slate-900 rounded-xl overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        <img src={image} alt="gallery preview" className="w-full h-full object-contain" />
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-10 h-10 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center text-2xl font-semibold transition-colors"
+        >
+          ×
+        </button>
       </div>
     </div>
   )
@@ -91,53 +99,60 @@ export default function Gallery() {
 
   return (
     <>
-      <section>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <h2>Gallery</h2>
+      <section className="max-w-7xl mx-auto px-6 py-12">
+        <div className="flex justify-between items-start mb-8 gap-6">
+          <h2 className="text-4xl font-bold text-slate-900 dark:text-slate-100">Gallery</h2>
           {user?.role === 'admin' && (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Image URL" className="form-input" style={{ width: 260 }} />
-              <button onClick={add} disabled={loading}>{loading ? 'Adding...' : 'Add'}</button>
+            <div className="card-base p-4 w-full max-w-lg">
+              <div className="flex gap-3">
+                <input
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="Image URL"
+                  className="flex-1 px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <button onClick={add} disabled={loading} className="btn-primary">
+                  {loading ? 'Adding...' : 'Add'}
+                </button>
+              </div>
             </div>
           )}
         </div>
 
-        {error && <div style={{ color: 'red', marginBottom: 12 }}>{error}</div>}
+        {error && <div className="mb-6 p-4 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">{error}</div>}
 
-        <div className="grid">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
-            <div className="card small" style={{ textAlign: 'center' }}>Loading gallery...</div>
+            <div className="col-span-full text-center py-12">
+              <p className="text-slate-600 dark:text-slate-400">Loading gallery...</p>
+            </div>
           ) : items.length === 0 ? (
-            <div className="card small" style={{ textAlign: 'center' }}>No images yet</div>
+            <div className="col-span-full text-center py-12">
+              <p className="text-slate-600 dark:text-slate-400">No images yet</p>
+            </div>
           ) : (
             items.map((it) => (
-              <div key={it._id} className="card" style={{ position: 'relative' }} onClick={() => handleImageClick(it.imageUrl)}>
+              <div
+                key={it._id}
+                className="card-base overflow-hidden cursor-pointer relative group hover:shadow-xl transition-shadow"
+                onClick={() => handleImageClick(it.imageUrl)}
+              >
                 {user?.role === 'admin' && (
                   <button
                     aria-label="Delete image"
                     onClick={(e) => deleteImage(it._id, e)}
                     title="Delete"
-                    style={{
-                      position: 'absolute',
-                      right: 8,
-                      top: 8,
-                      background: 'rgba(255,255,255,0.9)',
-                      border: 'none',
-                      borderRadius: 12,
-                      width: 28,
-                      height: 28,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#b00'
-                    }}
+                    className="absolute right-3 top-3 w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center font-semibold transition-colors opacity-0 group-hover:opacity-100"
                   >
                     ×
                   </button>
                 )}
-                <div style={{ height: 160, overflow: 'hidden', borderRadius: 8 }}>
-                  <img src={it.imageUrl} alt="gallery" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <div className="h-48 overflow-hidden rounded-t-lg bg-slate-100 dark:bg-slate-800 group-hover:scale-110 transition-transform duration-300">
+                  <img
+                    src={it.imageUrl}
+                    alt="gallery"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               </div>
             ))

@@ -52,178 +52,170 @@ export default function AuthPage() {
     }
   }
 
-  const sectionStyle = mode === 'register'
-    ? { position: 'fixed', top: '80px', left: '50%', transform: 'translateX(-50%)', width: '360px', zIndex: 60, background: 'var(--card)', padding: '18px', borderRadius: 10, boxShadow: '0 10px 30px rgba(2,6,23,0.12)' }
-    : { maxWidth: '360px', margin: '2rem auto' }
-
   return (
-    <section style={sectionStyle}>
-      <h2 style={{ textAlign: 'center', marginBottom: '1.25rem', fontSize: '1.5rem' }}>{mode === 'login' ? 'Login' : 'Register'}</h2>
-      
-      <div style={{ 
-        display: 'flex', 
-        gap: '1rem', 
-        marginBottom: '2rem',
-        background: 'var(--card)',
-        padding: '0.25rem',
-        borderRadius: '8px',
-        border: '1px solid var(--border)'
-      }}>
-        <button 
-          onClick={() => setMode('login')} 
-          className={mode === 'login' ? 'active' : 'text-button'}
-          style={{ flex: 1, borderRadius: '6px', padding: '0.5rem' }}
-        >
-          Login
-        </button>
-        <button 
-          onClick={() => setMode('register')} 
-          className={mode === 'register' ? 'active' : 'text-button'}
-          style={{ flex: 1, borderRadius: '6px', padding: '0.5rem' }}
-        >
-          Register
-        </button>
-      </div>
-
-      {error && (
-        <div style={{ 
-          color: '#ef4444', 
-          background: 'rgba(239,68,68,0.1)', 
-          padding: '0.75rem',
-          borderRadius: '6px',
-          marginBottom: '1rem'
-        }}>
-          {error}
+    <section className="max-w-md mx-auto px-6 py-12">
+      <div className="card-base p-8">
+        <h2 className="text-3xl font-bold text-center mb-8 text-slate-900 dark:text-slate-100">
+          {mode === 'login' ? 'Login' : 'Register'}
+        </h2>
+        
+        <div className="flex gap-2 mb-8 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+          <button 
+            onClick={() => setMode('login')} 
+            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+              mode === 'login'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
+          >
+            Login
+          </button>
+          <button 
+            onClick={() => setMode('register')} 
+            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+              mode === 'register'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+            }`}
+          >
+            Register
+          </button>
         </div>
-      )}
 
-      {mode === 'login' ? (
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <select 
-            value={role} 
-            onChange={(e) => setRole(e.target.value)}
-            className="form-input"
-          >
-            <option value="" disabled>Select Role</option>
-            <option value="student">Student</option>
-            <option value="alumni">Alumni</option>
-            <option value="admin">Admin</option>
-          </select>
-          <input 
-            type="email" 
-            placeholder="Email"
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            required
-            className="form-input"
-          />
-          <input 
-            type="password"
-            placeholder="Password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            required
-            className="form-input"
-          />
-          <button type="submit">Login</button>
-        </form>
-      ) : (
-        <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <select 
-            value={role} 
-            onChange={(e) => setRole(e.target.value)}
-            className="form-input"
-          >
-            <option value="" disabled>Select Role</option>
-            <option value="student">Student</option>
-            <option value="alumni">Alumni</option>
-          </select>
-          <input 
-            type="text"
-            placeholder="Full Name" 
-            value={name} 
-            onChange={(e) => setName(e.target.value)} 
-            required
-            className="form-input"
-          />
-          <input 
-            type="email"
-            placeholder="Email" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            required
-            className="form-input"
-          />
-          <input 
-            type="password"
-            placeholder="Password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            required
-            className="form-input"
-          />
+        {error && (
+          <div className="mb-6 p-4 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-sm">
+            {error}
+          </div>
+        )}
 
-          {role === 'student' && (
-            <>
-              <input 
-                type="text"
-                placeholder="Year of Study"
-                value={yearOfStudy} 
-                onChange={(e) => setYearOfStudy(e.target.value)} 
-                required
-                className="form-input"
-              />
-              <input 
-                type="text"
-                placeholder="Branch"
-                value={branch} 
-                onChange={(e) => setBranch(e.target.value)} 
-                required
-                className="form-input"
-              />
-            </>
-          )}
+        {mode === 'login' ? (
+          <form onSubmit={handleLogin} className="space-y-4">
+            <select 
+              value={role} 
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="" disabled>Select Role</option>
+              <option value="student">Student</option>
+              <option value="alumni">Alumni</option>
+              <option value="admin">Admin</option>
+            </select>
+            <input 
+              type="email" 
+              placeholder="Email"
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required
+              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <input 
+              type="password"
+              placeholder="Password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required
+              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <button type="submit" className="btn-primary w-full">Login</button>
+          </form>
+        ) : (
+          <form onSubmit={handleRegister} className="space-y-4">
+            <select 
+              value={role} 
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="" disabled>Select Role</option>
+              <option value="student">Student</option>
+              <option value="alumni">Alumni</option>
+            </select>
+            <input 
+              type="text"
+              placeholder="Full Name" 
+              value={name} 
+              onChange={(e) => setName(e.target.value)} 
+              required
+              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <input 
+              type="email"
+              placeholder="Email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required
+              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <input 
+              type="password"
+              placeholder="Password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required
+              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
 
-          {role === 'alumni' && (
-            <>
-              <input 
-                type="text"
-                placeholder="Year of Passing"
-                value={yearOfPassing} 
-                onChange={(e) => setYearOfPassing(e.target.value)} 
-                required
-                className="form-input"
-              />
-              <input 
-                type="text"
-                placeholder="Branch"
-                value={branch} 
-                onChange={(e) => setBranch(e.target.value)} 
-                required
-                className="form-input"
-              />
-              <input 
-                type="text"
-                placeholder="Company"
-                value={company} 
-                onChange={(e) => setCompany(e.target.value)} 
-                required
-                className="form-input"
-              />
-              <input 
-                type="text"
-                placeholder="Job Role"
-                value={jobRole} 
-                onChange={(e) => setJobRole(e.target.value)} 
-                required
-                className="form-input"
-              />
-            </>
-          )}
+            {role === 'student' && (
+              <>
+                <input 
+                  type="text"
+                  placeholder="Year of Study"
+                  value={yearOfStudy} 
+                  onChange={(e) => setYearOfStudy(e.target.value)} 
+                  required
+                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input 
+                  type="text"
+                  placeholder="Branch"
+                  value={branch} 
+                  onChange={(e) => setBranch(e.target.value)} 
+                  required
+                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </>
+            )}
 
-          <button type="submit">Register</button>
-        </form>
-      )}
+            {role === 'alumni' && (
+              <>
+                <input 
+                  type="text"
+                  placeholder="Year of Passing"
+                  value={yearOfPassing} 
+                  onChange={(e) => setYearOfPassing(e.target.value)} 
+                  required
+                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input 
+                  type="text"
+                  placeholder="Branch"
+                  value={branch} 
+                  onChange={(e) => setBranch(e.target.value)} 
+                  required
+                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input 
+                  type="text"
+                  placeholder="Company"
+                  value={company} 
+                  onChange={(e) => setCompany(e.target.value)} 
+                  required
+                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input 
+                  type="text"
+                  placeholder="Job Role"
+                  value={jobRole} 
+                  onChange={(e) => setJobRole(e.target.value)} 
+                  required
+                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </>
+            )}
+
+            <button type="submit" className="btn-primary w-full">Register</button>
+          </form>
+        )}
+      </div>
     </section>
   )
 }

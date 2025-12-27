@@ -66,62 +66,71 @@ export default function Events() {
   }
 
   return (
-    <section>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <h2>Events</h2>
+    <section className="max-w-7xl mx-auto px-6 py-12">
+      <div className="flex justify-between items-start mb-8 gap-6">
+        <h2 className="text-4xl font-bold text-slate-900 dark:text-slate-100">Events</h2>
         {user?.role === 'admin' && (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="form-input" style={{ width: 160 }} />
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="form-input" style={{ width: 120 }} />
-            <input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Description" className="form-input" style={{ width: 220 }} />
-            <button onClick={add} disabled={loading}>{loading ? 'Adding...' : 'Add'}</button>
+          <div className="card-base p-4 w-full max-w-3xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Title"
+                className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <input
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+                placeholder="Description"
+                className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <button
+                onClick={add}
+                disabled={loading}
+                className="btn-primary col-span-1 sm:col-span-2 lg:col-span-1"
+              >
+                {loading ? 'Adding...' : 'Add'}
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      {error && <div style={{ color: 'red', marginBottom: 12 }}>{error}</div>}
+      {error && <div className="mb-6 p-4 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">{error}</div>}
 
-      <div className="horizontal-cards">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          <div className="horizontal-card" style={{ justifyContent: 'center' }}>
-            <div className="card-content" style={{ textAlign: 'center' }}>Loading events...</div>
+          <div className="col-span-full text-center py-12">
+            <p className="text-slate-600 dark:text-slate-400">Loading events...</p>
           </div>
         ) : items.length === 0 ? (
-          <div className="horizontal-card" style={{ justifyContent: 'center' }}>
-            <div className="card-content" style={{ textAlign: 'center' }}>No events yet</div>
+          <div className="col-span-full text-center py-12">
+            <p className="text-slate-600 dark:text-slate-400">No events yet</p>
           </div>
         ) : (
           items.map((e) => (
-            <div key={e._id} className="horizontal-card" style={{ position: 'relative' }}>
+            <div key={e._id} className="card-base p-6 relative hover:shadow-xl transition-shadow">
               {user?.role === 'admin' && (
                 <button
                   aria-label="Delete event"
                   onClick={() => deleteEvent(e._id)}
                   title="Delete"
-                  style={{
-                    position: 'absolute',
-                    right: 8,
-                    top: 8,
-                    background: 'rgba(255,255,255,0.9)',
-                    border: 'none',
-                    borderRadius: 12,
-                    width: 28,
-                    height: 28,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#b00'
-                  }}
+                  className="absolute right-3 top-3 w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center font-semibold transition-colors"
                 >
                   ×
                 </button>
               )}
-              <div className="card-content">
-                <h3 className="card-title">{e.title}</h3>
-                <div className="card-subtitle">{new Date(e.eventDate).toLocaleDateString()}</div>
-                <div className="card-description">{e.description}</div>
-              </div>
+              <h3 className="text-xl font-semibold mb-2 text-slate-900 dark:text-slate-100">{e.title}</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">
+                📅 {new Date(e.eventDate).toLocaleDateString()}
+              </p>
+              <p className="text-slate-700 dark:text-slate-300">{e.description}</p>
             </div>
           ))
         )}

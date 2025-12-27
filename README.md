@@ -1,224 +1,375 @@
-# 🎓 Alumni Connect
+# Alumni Connect
 
-Alumni Connect is a **role-based alumni management platform** designed to strengthen interaction between **students, alumni, and administrators** of an institution.  
-The platform enables secure authentication, alumni networking, job opportunity sharing, and event/gallery management.
+A full-stack web application that connects alumni with current students, facilitates networking, event management, and opportunities sharing.
 
----
+## 🎯 Project Overview
 
-## 🧱 Tech Stack
+Alumni Connect is a comprehensive platform designed to bridge the gap between alumni and students. It provides features for networking, event management, gallery sharing, job opportunities posting, and real-time chat capabilities. Built with modern web technologies, it offers a seamless user experience across desktop and mobile devices.
 
-### Backend
-- Node.js
-- Express.js
-- MongoDB (Mongoose)
-- JWT Authentication
-- bcrypt
-- dotenv
+## ✨ Key Features
 
-### Frontend
-- React
-- Vite
-- Axios
-- React Router
-
----
-
-## ✅ Implemented Features
-
-### 🔐 Authentication
-- Register (Student / Alumni)
-- Login & Logout
-- Get current logged-in user
-- JWT-based authentication (stored in cookies)
+### 🔐 Authentication & Authorization
+- User registration and login with JWT-based authentication
+- Role-based access control (Admin, Alumni, Student)
+- Secure password hashing with bcrypt
+- Cookie-based session management
 
 ### 👥 User Management
-- Get user by ID
-- Update profile (Owner or Admin)
-- Delete user (Admin only)
-- List all users (Admin)
-- List alumni users
+- User profiles with customizable information
+- Role-based user filtering
+- User discovery for networking
 
-### 📅 Events (Admin Only)
-- Create events
-- List events
-- Update events
-- Delete events
+### 📅 Event Management
+- Create, read, update, and delete events
+- Event listing and filtering
+- Real-time event updates
 
-### 🖼️ Gallery (Admin Only)
-- Upload images
-- List images
-- Delete images
+### 🎨 Gallery
+- Image/media upload and sharing
+- Gallery management capabilities
+- Media organization
 
 ### 💼 Job Opportunities
-- Add job postings (Authenticated users)
-- List job postings
-- Update job postings (Admin)
-- Delete job postings (Admin only)
-- Job deletion restricted if closing date is more than 7 days away
+- Post and browse job opportunities
+- Opportunity management
+- Career resource sharing
 
-### 🛠️ Debug & Monitoring
-- `/debug/status` endpoint
-  - Database connection state
-  - Record counts for major collections
+### 💬 Real-Time Chat
+- One-on-one messaging between users
+- Real-time notifications with Socket.IO
+- Typing indicators
+- Conversation management
+- Message search functionality
+- Unread message tracking
 
----
+### 🌓 Additional Features
+- Dark/Light theme support
+- Responsive design (Mobile, Tablet, Desktop)
+- Secure API endpoints
+- CORS enabled
+- Database validation and error handling
 
-## 🖥️ Frontend Pages
+## 🛠️ Technology Stack
 
-Located in `frontend/src/pages`:
+### Backend
+- **Runtime**: Node.js
+- **Framework**: Express.js 5.1.0
+- **Database**: MongoDB (Mongoose 8.19.2)
+- **Authentication**: JWT (jsonwebtoken 9.0.3)
+- **Real-time Communication**: Socket.IO 4.8.3
+- **Security**: bcrypt 6.0.0, CORS, Cookie-Parser
+- **HTTP Client**: Axios 1.13.2
+- **Environment Management**: dotenv 17.2.3
 
-- Home
-- About
-- AuthPage (Login / Register)
-- Alumni Directory
-- Events
-- Gallery
-- Opportunities (Jobs)
-- Profile
-
----
+### Frontend
+- **Framework**: React 19.2.0
+- **Build Tool**: Vite 7.2.2
+- **Styling**: Tailwind CSS 3.4.3
+- **HTTP Client**: Axios 1.13.2
+- **Real-time**: Socket.IO Client 4.8.3
+- **Routing**: React Router DOM 6.14.1
+- **Linting**: ESLint 9.39.1
+- **PostCSS**: 8.4.39
 
 ## 📁 Project Structure
 
 ```
 alumni_connect/
-│
-├── backend/                              # Express API Server
+├── backend/
 │   ├── src/
-│   │   ├── controllers/                  # Business logic
-│   │   ├── models/                       # Mongoose schemas
-│   │   ├── routes/                       # API route definitions
-│   │   ├── middlewares/                  # Auth & role middleware
-│   │   ├── db/                           # MongoDB connection
-│   │   ├── services/                     # Utility services
-│   │   └── app.js                        # Express app setup
-│   │
-│   ├── seed.js                           # Admin seeding
-│   ├── server.js                         # Server entry point
+│   │   ├── app.js                 # Express app setup & Socket.IO config
+│   │   ├── controllers/           # Business logic
+│   │   │   ├── auth.controller.js
+│   │   │   ├── chat.controller.js
+│   │   │   ├── event.controller.js
+│   │   │   ├── gallery.controller.js
+│   │   │   ├── job.controller.js
+│   │   │   └── user.controller.js
+│   │   ├── models/               # MongoDB schemas
+│   │   │   ├── user.model.js
+│   │   │   ├── event.model.js
+│   │   │   ├── gallery.model.js
+│   │   │   ├── job.model.js
+│   │   │   ├── message.model.js
+│   │   │   └── index.js
+│   │   ├── routes/               # API endpoints
+│   │   │   ├── auth.routes.js
+│   │   │   ├── user.routes.js
+│   │   │   ├── event.routes.js
+│   │   │   ├── gallery.routes.js
+│   │   │   ├── job.routes.js
+│   │   │   └── chat.routes.js
+│   │   ├── middlewares/          # Custom middleware
+│   │   │   ├── auth.middleware.js
+│   │   │   └── role.middleware.js
+│   │   ├── services/             # Business services
+│   │   │   └── storage.service.js
+│   │   └── db/
+│   │       └── db.js             # Database connection
+│   ├── server.js                 # Server entry point
+│   ├── seed.js                   # Database seeding
 │   └── package.json
 │
-├── frontend/                             # React (Vite)
+├── frontend/
 │   ├── src/
-│   │   ├── pages/                        # Page components
-│   │   ├── components/                   # Reusable UI components
-│   │   ├── context/                      # React Context (Auth, Theme)
-│   │   ├── App.jsx                       # Main router
-│   │   └── main.jsx                      # Vite entry point
-│   │
-│   ├── index.html
+│   │   ├── App.jsx               # Main app component
+│   │   ├── main.jsx              # React entry point
+│   │   ├── index.css             # Global styles
+│   │   ├── App.css               # App styles
+│   │   ├── components/           # Reusable components
+│   │   │   ├── NavBar.jsx
+│   │   │   ├── ChatRoom.jsx
+│   │   │   ├── ChatList.jsx
+│   │   │   ├── Footer.jsx
+│   │   │   └── Modal.css
+│   │   ├── context/              # React contexts
+│   │   │   ├── AuthContext.jsx
+│   │   │   ├── SocketContext.jsx
+│   │   │   ├── ThemeContext.jsx
+│   │   │   └── useTheme.jsx
+│   │   └── pages/                # Page components
+│   │       ├── Home.jsx
+│   │       ├── About.jsx
+│   │       ├── AuthPage.jsx
+│   │       ├── Profile.jsx
+│   │       ├── Alumni.jsx
+│   │       ├── Events.jsx
+│   │       ├── Gallery.jsx
+│   │       ├── Gallery.css
+│   │       ├── ChatPage.jsx
+│   │       └── Opportunities.jsx
+│   ├── vite.config.js
+│   ├── tailwind.config.js
+│   ├── postcss.config.cjs
+│   ├── eslint.config.js
 │   └── package.json
 │
-├── docs/                                 # Documentation
+├── docs/
 │   ├── screenshots/
 │   └── videos/
 │
-├── .env                                  # Environment variables (not committed)
+├── .env                          # Environment variables
 ├── .gitignore
-├── README.md
-└── package.json
+└── README.md
 ```
 
----
-
-## 🚀 Quick Start
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js v16+
-- npm
-- MongoDB (Local or Atlas)
+- **Node.js** (v14 or higher)
+- **MongoDB** (local or cloud instance)
+- **npm** or **yarn** package manager
 
-### Start Backend
+### Installation
+
+#### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/alumni_connect.git
+cd alumni_connect
+```
+
+#### 2. Backend Setup
 ```bash
 cd backend
+
+# Install dependencies
 npm install
+
+# Configure environment variables
+# Edit the .env file with your MongoDB URI and JWT secret
+# Example:
+# PORT=3000
+# MONGO_URI=mongodb://localhost:27017/alumni_connect
+# JWT_SECRET=your_secret_key_here
+# ADMIN_NAME=Main Admin
+# ADMIN_EMAIL=admin@alumni.com
+# ADMIN_PASSWORD=admin123
+
+# Start the backend server
 npm start
 ```
 
-### Start Frontend
+The backend will run on `http://localhost:3000`
+
+#### 3. Frontend Setup
 ```bash
 cd frontend
+
+# Install dependencies
 npm install
+
+# Configure environment variables in .env
+# VITE_API_BASE=http://localhost:3000
+
+# Start development server
 npm run dev
 ```
 
----
+The frontend will run on `http://localhost:5173`
+
+## 📚 API Endpoints
+
+### Authentication Routes (`/auth`)
+- `POST /auth/register` - Register a new user
+- `POST /auth/login` - Login user
+- `GET /auth/logout` - Logout user
+- `GET /auth/me` - Get current user info (Protected)
+
+### User Routes (`/users`)
+- `GET /users` - Get all users
+- `GET /users/:id` - Get user by ID
+- `PUT /users/:id` - Update user profile (Protected)
+- `DELETE /users/:id` - Delete user (Protected)
+
+### Event Routes (`/api/events`)
+- `GET /api/events` - Get all events
+- `POST /api/events` - Create event (Protected)
+- `PUT /api/events/:id` - Update event (Protected)
+- `DELETE /api/events/:id` - Delete event (Protected)
+
+### Gallery Routes (`/api/gallery`)
+- `GET /api/gallery` - Get all gallery items
+- `POST /api/gallery` - Upload to gallery (Protected)
+- `PUT /api/gallery/:id` - Update gallery item (Protected)
+- `DELETE /api/gallery/:id` - Delete gallery item (Protected)
+
+### Job Routes (`/api/jobs`)
+- `GET /api/jobs` - Get all job opportunities
+- `POST /api/jobs` - Post job opportunity (Protected)
+- `PUT /api/jobs/:id` - Update job posting (Protected)
+- `DELETE /api/jobs/:id` - Delete job posting (Protected)
+
+### Chat Routes (`/api/chat`)
+- `POST /api/chat/message` - Send a message (Protected)
+- `GET /api/chat/messages/:userId` - Get messages with user (Protected)
+- `GET /api/chat/conversations` - Get user conversations (Protected)
+- `GET /api/chat/users` - Get users for chat discovery (Protected)
+- `PUT /api/chat/read/:userId` - Mark conversation as read (Protected)
+- `DELETE /api/chat/conversation/:userId` - Delete conversation (Protected)
+- `GET /api/chat/search` - Search messages (Protected)
 
 ## 🔑 Environment Variables
 
-Create a `.env` file in the project root:
-
-```
+### Backend (.env)
+```env
 PORT=3000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-
-# Optional admin seeding
-ADMIN_NAME=Admin
-ADMIN_EMAIL=admin@example.com
+MONGO_URI=mongodb://localhost:27017/alumni_connect
+JWT_SECRET=your_jwt_secret_key_here
+ADMIN_NAME=Main Admin
+ADMIN_EMAIL=admin@alumni.com
 ADMIN_PASSWORD=admin123
+```
 
-# Frontend
+### Frontend (.env)
+```env
 VITE_API_BASE=http://localhost:3000
 ```
 
----
+## 🔒 Authentication
 
-## 🌐 API Endpoints
+The application uses JWT (JSON Web Token) based authentication:
 
-### Auth (`/auth`)
-- POST `/auth/register`
-- POST `/auth/login`
-- GET `/auth/logout`
-- GET `/auth/me` (protected)
+1. **Registration**: Users create an account with email and password
+2. **Login**: Users receive a JWT token on successful login
+3. **Protected Routes**: Requests to protected endpoints require a valid JWT token
+4. **Token Storage**: Tokens are stored in cookies for persistence
+5. **Socket.IO Auth**: Real-time connections authenticate via JWT tokens
 
-### Users (`/users`)
-- GET `/users` (Admin)
-- GET `/users/alumni`
-- GET `/users/:id`
-- PUT `/users/:id` (Owner/Admin)
-- DELETE `/users/:id` (Admin)
+## 📖 Available Scripts
 
-### Events (`/api/events`)
-- GET `/api/events`
-- POST `/api/events` (Admin)
-- PUT `/api/events/:id` (Admin)
-- DELETE `/api/events/:id` (Admin)
+### Backend
+```bash
+npm start          # Start the server
+npm test           # Run tests (if configured)
+```
 
-### Gallery (`/api/gallery`)
-- GET `/api/gallery`
-- POST `/api/gallery` (Admin)
-- DELETE `/api/gallery/:id` (Admin)
+### Frontend
+```bash
+npm run dev        # Start development server with hot reload
+npm run build      # Build for production
+npm run preview    # Preview production build
+npm run lint       # Run ESLint
+```
 
-### Jobs (`/api/jobs`)
-- GET `/api/jobs`
-- POST `/api/jobs` (Authenticated)
-- PUT `/api/jobs/:id` (Admin)
-- DELETE `/api/jobs/:id` (Admin with closing-date restriction)
+## 🗄️ Database Schema
 
-### Debug
-- GET `/debug/status`
+### User Model
+- Email (unique)
+- Password (hashed)
+- Name
+- Role (admin, alumni, student)
+- Profile information
+- Timestamps
 
----
+### Event Model
+- Title
+- Description
+- Date & Time
+- Location
+- Creator (User reference)
+- Attendees
+- Timestamps
 
-## 📝 Notes
+### Message Model
+- Sender & Receiver references
+- Content
+- Read status
+- Timestamps
 
-- Admin account can be auto-created at startup using environment variables.
-- JWT authentication is enforced on protected routes.
-- Sensitive credentials must never be committed to GitHub.
+### Gallery Model
+- Title
+- Description
+- Media URL
+- Uploader reference
+- Timestamps
 
----
+### Job Model
+- Title
+- Description
+- Company
+- Location
+- Requirements
+- Posted by reference
+- Timestamps
 
-## 🔮 Future Enhancements
+## 🌐 Real-Time Features
 
-- 💬 Real-time chat between Students and Alumni (Socket.IO)
-- 🔔 Notifications system
-- 🧑‍🏫 Alumni mentorship feature
-- 📎 Resume sharing
-- 📱 Responsive UI improvements
+### Socket.IO Events
+- **connection**: User connects to the server
+- **joinChat**: User joins a chat conversation
+- **typing**: Broadcasting typing status
+- **message**: Real-time message delivery
+- **disconnect**: User disconnects
 
----
+## 🎨 UI/UX Features
 
-## 👤 Author
+- **Responsive Design**: Works on all device sizes
+- **Dark Mode**: Toggle between light and dark themes
+- **Navigation**: Easy navigation with React Router
+- **Context API**: Global state management for auth, themes, and socket
+- **Tailwind CSS**: Modern, utility-first styling
+- **Modal Components**: Interactive modals for user actions
 
-**Samiksha Lone**  
-Backend & Full-Stack Developer
+## 🚨 Error Handling
+
+The application includes comprehensive error handling:
+- JWT validation errors
+- MongoDB connection errors
+- CORS handling
+- API error responses with meaningful messages
+- Client-side error boundaries
+
+## 📝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the ISC License - see the LICENSE file for details.
+
+**Last Updated**: December 27, 2025  
+**Version**: 1.0.0

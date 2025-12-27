@@ -1,85 +1,69 @@
-import React from 'react'
-import { NavLink } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import useTheme from '../context/useTheme'
-
-const active = { fontWeight: '600' }
+import React from 'react';
+import { Link, NavLink } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import useTheme from '../context/useTheme';
 
 export default function NavBar() {
-  const { user } = useAuth()
-  const { theme, toggleTheme } = useTheme() || { theme: 'light', toggleTheme: () => {} }
+  const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme() || { theme: 'dark', toggleTheme: () => {} };
+
+  const navItems = [
+    { to: '/', label: 'Home' },
+    { to: '/about', label: 'About' },
+    { to: '/gallery', label: 'Gallery' },
+    { to: '/events', label: 'Events' },
+    { to: '/alumni', label: 'Alumni' },
+    { to: '/opportunities', label: 'Opportunities' },
+  ];
 
   return (
-    <header style={{ borderBottom: '1px solid var(--border)', background: 'var(--nav-bg)' }}>
-      <nav style={{ 
-        display: 'flex', 
-        gap: '1.5rem', 
-        alignItems: 'center',
-        padding: '0.6rem 2rem',
-        height: '3.5rem'
-      }}>
-        <div style={{ 
-          fontSize: '1.25rem', 
-          fontWeight: 'bold',
-          color: 'var(--accent)',
-          marginRight: 'auto'
-        }}>
-          Alumni Connect
+    <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-50">
+      <nav className="max-w-6xl mx-auto px-4 py-3 flex items-center">
+        {/* Left: Logo */}
+        <div className="flex items-center mr-4">
+          <Link to="/" className="text-lg md:text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+            Alumni Connect
+          </Link>
         </div>
 
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-          <NavLink to="/" style={({ isActive }) => (isActive ? active : undefined)}>
-            Home
-          </NavLink>
-          <NavLink to="/about" style={({ isActive }) => (isActive ? active : undefined)}>
-            About
-          </NavLink>
-          <NavLink to="/gallery" style={({ isActive }) => (isActive ? active : undefined)}>
-            Gallery
-          </NavLink>
-          <NavLink to="/events" style={({ isActive }) => (isActive ? active : undefined)}>
-            Events
-          </NavLink>
-          <NavLink to="/alumni" style={({ isActive }) => (isActive ? active : undefined)}>
-            Alumni
-          </NavLink>
-          <NavLink to="/opportunities" style={({ isActive }) => (isActive ? active : undefined)}>
-            Opportunities
-          </NavLink>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', borderLeft: '1px solid rgba(15,23,34,0.08)', paddingLeft: '1.5rem' }}>
-          {user ? (
-            <>
-              <NavLink to="/profile" style={({ isActive }) => (isActive ? active : undefined)}>
-                {user.name}
+        {/* Center: Nav links (centered) */}
+        <div className="flex-1 flex justify-center">
+          <div className="hidden md:flex items-center space-x-6">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `nav-link ${isActive ? 'active' : ''}`
+                }
+              >
+                {item.label}
               </NavLink>
-            </>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: Auth controls + theme */}
+        <div className="flex items-center space-x-4">
+          {user ? (
+            <NavLink to="/profile" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              {user.name}
+            </NavLink>
           ) : (
-            <NavLink to="/auth" style={({ isActive }) => (isActive ? active : undefined)}>
+            <NavLink to="/auth" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               Login / Register
             </NavLink>
           )}
-          <button 
-            onClick={toggleTheme} 
-            title="Toggle theme" 
-            style={{ 
-              padding: '8px', 
-              background: 'transparent',
-              border: '1px solid rgba(15,23,34,0.08)',
-              color: 'var(--text)',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
+
+          <button
+            onClick={toggleTheme}
+            title="Toggle theme"
+            className="p-2 rounded-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
           >
             {theme === 'dark' ? '🌙' : '☀️'}
           </button>
         </div>
       </nav>
     </header>
-  )
+  );
 }

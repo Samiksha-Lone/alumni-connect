@@ -4,15 +4,9 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer style={{
-      borderTop: '1px solid var(--border)',
-      background: 'var(--nav-bg)',
-      padding: '24px 20px',
-      marginTop: 'auto',
-      textAlign: 'center'
-    }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-        <p style={{ margin: 0, color: 'var(--muted)', fontSize: '0.95rem' }}>
+    <footer className="border-t border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur py-6 mt-auto">
+      <div className="max-w-7xl mx-auto px-6">
+        <p className="m-0 text-slate-600 dark:text-slate-400 text-sm text-center">
           © {currentYear} Alumni Connect. All rights reserved.
         </p>
       </div>

@@ -72,81 +72,92 @@ export default function Opportunities() {
   const canAdd = user && (user.role === 'alumni' || user.role === 'admin')
 
   return (
-    <section>
-      <div style={{ marginBottom: 12 }}>
-        <h2>Opportunities</h2>
-        {canAdd && (
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: 8, 
-            marginTop: 12,
-            padding: '12px',
-            backgroundColor: 'var(--card)',
-            borderRadius: '8px',
-            border: '1px solid var(--border)'
-          }}>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title *" className="form-input" />
-            <input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company *" className="form-input" />
-            <input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Description *" className="form-input" />
-            <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="Apply URL" className="form-input" />
-            <input type="date" value={closingDate} onChange={(e) => setClosingDate(e.target.value)} className="form-input" />
-            <button onClick={add} disabled={loading} style={{ padding: '8px 16px' }}>{loading ? 'Posting...' : 'Post'}</button>
+    <section className="max-w-7xl mx-auto px-6 py-12">
+      <h2 className="text-4xl font-bold mb-8 text-slate-900 dark:text-slate-100">Opportunities</h2>
+
+      {canAdd && (
+        <div className="card-base p-6 mb-8">
+          <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">Post New Opportunity</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Title *"
+              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <input
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              placeholder="Company *"
+              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <input
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              placeholder="Description *"
+              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <input
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              placeholder="Apply URL"
+              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <input
+              type="date"
+              value={closingDate}
+              onChange={(e) => setClosingDate(e.target.value)}
+              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <button onClick={add} disabled={loading} className="btn-primary col-span-1 sm:col-span-2 lg:col-span-1">
+              {loading ? 'Posting...' : 'Post'}
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {error && <div style={{ color: 'red', marginBottom: 12 }}>{error}</div>}
+      {error && <div className="mb-6 p-4 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">{error}</div>}
 
-      <div className="horizontal-cards">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          <div className="horizontal-card" style={{ justifyContent: 'center' }}>
-            <div className="card-content" style={{ textAlign: 'center' }}>Loading opportunities...</div>
+          <div className="col-span-full text-center py-12">
+            <p className="text-slate-600 dark:text-slate-400">Loading opportunities...</p>
           </div>
         ) : items.length === 0 ? (
-          <div className="horizontal-card" style={{ justifyContent: 'center' }}>
-            <div className="card-content" style={{ textAlign: 'center' }}>No opportunities yet</div>
+          <div className="col-span-full text-center py-12">
+            <p className="text-slate-600 dark:text-slate-400">No opportunities yet</p>
           </div>
         ) : (
           items.map((o) => (
-            <div key={o._id} className="horizontal-card" style={{ position: 'relative' }}>
+            <div key={o._id} className="card-base p-6 relative hover:shadow-xl transition-shadow">
               {user?.role === 'admin' && (
                 <button
                   aria-label="Delete opportunity"
                   onClick={() => deleteOpportunity(o._id)}
                   title="Delete"
-                  style={{
-                    position: 'absolute',
-                    right: 8,
-                    top: 8,
-                    background: 'rgba(255,255,255,0.9)',
-                    border: 'none',
-                    borderRadius: 12,
-                    width: 28,
-                    height: 28,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#b00'
-                  }}
+                  className="absolute right-3 top-3 w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center font-semibold transition-colors"
                 >
                   ×
                 </button>
               )}
-              <div className="card-content">
-                <h3 className="card-title">{o.title}</h3>
-                <div className="card-subtitle">{o.company}</div>
-                <div className="card-description">{o.description}</div>
-                {o.closingDate && (
-                  <div className="card-subtitle">Closing: {new Date(o.closingDate).toLocaleDateString()}</div>
-                )}
-                {o.link && (
-                  <div style={{ marginTop: 8 }}>
-                    <a href={o.link} target="_blank" rel="noopener noreferrer">Apply / More info</a>
-                  </div>
-                )}
-              </div>
+              <h3 className="text-xl font-semibold mb-2 text-slate-900 dark:text-slate-100">{o.title}</h3>
+              <p className="text-sm text-primary font-medium mb-2">🏢 {o.company}</p>
+              <p className="text-slate-700 dark:text-slate-300 mb-4">{o.description}</p>
+              {o.closingDate && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                  Closing: {new Date(o.closingDate).toLocaleDateString()}
+                </p>
+              )}
+              {o.link && (
+                <a
+                  href={o.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block btn-primary text-sm mt-2"
+                >
+                  Apply / More Info
+                </a>
+              )}
             </div>
           ))
         )}

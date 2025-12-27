@@ -36,6 +36,14 @@ const userSchema = new mongoose.Schema(
     },
     course: { 
         type: String 
+    },
+    
+    isOnline: { 
+        type: Boolean, 
+        default: false 
+    },
+    lastSeen: { 
+        type: Date 
     }
   },
   { timestamps: true }
