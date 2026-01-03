@@ -1,0 +1,167 @@
+import React, { useEffect, useState, useCallback } from 'react'
+import axios from 'axios'
+import { useAuth } from '../context/AuthContext'
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000'
+
+export default function Opportunities() {
+  const { user, token } = useAuth()
+  const [items, setItems] = useState([])
+  const [title, setTitle] = useState('')
+  const [company, setCompany] = useState('')
+  const [desc, setDesc] = useState('')
+  const [link, setLink] = useState('')
+  const [closingDate, setClosingDate] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const fetchOpportunities = useCallback(async () => {
+    try {
+      setLoading(true)
+      const res = await axios.get(`${API_BASE}/api/jobs`)
+      setItems(res.data || [])
+      setError('')
+    } catch (err) {
+      console.error('Failed to fetch opportunities:', err.message)
+      setError(err.response?.data?.message || 'Failed to load opportunities')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchOpportunities()
+  }, [fetchOpportunities])
+
+  async function add() {
+    if (!title || !token) {
+      setError(token ? 'Title is required' : 'You must be logged in')
+      return
+    }
+    try {
+      setLoading(true)
+      await axios.post(`${API_BASE}/api/jobs`, { title, company, description: desc, link: link || '', closingDate: closingDate || null }, { headers: { Authorization: `Bearer ${token}` } })
+      setTitle('')
+      setCompany('')
+      setDesc('')
+      setLink('')
+      setClosingDate('')
+      setError('')
+      await fetchOpportunities()
+    } catch (err) {
+      console.error('Failed to add opportunity:', err.message)
+      setError(err.response?.data?.message || 'Failed to add opportunity')
+      setLoading(false)
+    }
+  }
+
+  async function deleteOpportunity(id) {
+    if (!window.confirm('Delete this opportunity?')) return
+    try {
+      setLoading(true)
+      await axios.delete(`${API_BASE}/api/jobs/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+      await fetchOpportunities()
+    } catch (err) {
+      console.error('Failed to delete opportunity:', err)
+      setError(err.response?.data?.message || 'Failed to delete opportunity')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const canAdd = user && (user.role === 'alumni' || user.role === 'admin')
+
+  return (
+    <section className="max-w-7xl mx-auto px-6 py-12">
+      <h2 className="text-4xl font-bold mb-8 text-slate-900 dark:text-slate-100">Opportunities</h2>
+
+      {canAdd && (
+        <div className="card-base p-6 mb-8">
+          <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">Post New Opportunity</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Title *"
+              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <input
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              placeholder="Company *"
+              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <input
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              placeholder="Description *"
+              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <input
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              placeholder="Apply URL"
+              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <input
+              type="date"
+              value={closingDate}
+              onChange={(e) => setClosingDate(e.target.value)}
+              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <button onClick={add} disabled={loading} className="btn-primary col-span-1 sm:col-span-2 lg:col-span-1">
+              {loading ? 'Posting...' : 'Post'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {error && <div className="mb-6 p-4 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">{error}</div>}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading ? (
+          <div className="col-span-full text-center py-12">
+            <p className="text-slate-600 dark:text-slate-400">Loading opportunities...</p>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="col-span-full text-center py-12">
+            <p className="text-slate-600 dark:text-slate-400">No opportunities yet</p>
+          </div>
+        ) : (
+          items.map((o) => (
+            <div key={o._id} className="card-base p-6 relative hover:shadow-xl transition-shadow">
+              {user?.role === 'admin' && (
+                <button
+                  aria-label="Delete opportunity"
+                  onClick={() => deleteOpportunity(o._id)}
+                  title="Delete"
+                  className="absolute right-3 top-3 w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center font-semibold transition-colors"
+                >
+                  ×
+                </button>
+              )}
+              <h3 className="text-xl font-semibold mb-2 text-slate-900 dark:text-slate-100">{o.title}</h3>
+              <p className="text-sm text-primary font-medium mb-2">🏢 {o.company}</p>
+              <p className="text-slate-700 dark:text-slate-300 mb-4">{o.description}</p>
+              {o.closingDate && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                  Closing: {new Date(o.closingDate).toLocaleDateString()}
+                </p>
+              )}
+              {o.link && (
+                <a
+                  href={o.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block btn-primary text-sm mt-2"
+                >
+                  Apply / More Info
+                </a>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </section>
+  )
+}
