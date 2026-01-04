@@ -5,7 +5,7 @@ import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import LazyImage from '../components/ui/LazyImage'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000'
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
 
 function ImageModal({ index, items = [], onClose, setIndex }) {
   if (index === null || index === undefined) return null
@@ -111,13 +111,13 @@ export default function Gallery() {
 
   return (
     <>
-      <section className="max-w-7xl mx-auto px-6 py-12">
-        <div className="flex justify-between items-start mb-8 gap-6">
+      <section className="px-6 py-12 mx-auto max-w-7xl">
+        <div className="flex items-start justify-between gap-6 mb-8">
           <h2 className="text-4xl font-bold text-slate-900 dark:text-slate-100">Gallery</h2>
           {user?.role === 'admin' && (
-            <Card className="p-4 w-full max-w-lg">
+            <Card className="w-full max-w-lg p-4">
               <div className="flex gap-3">
-                <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Image URL" className="form-input flex-1" />
+                <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Image URL" className="flex-1 form-input" />
                 <Button onClick={add} disabled={loading}>{loading ? 'Adding...' : 'Add'}</Button>
               </div>
             </Card>
@@ -126,18 +126,18 @@ export default function Gallery() {
 
         {error && <div className="mb-6 alert-error">{error}</div>}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {loading ? (
-            <div className="col-span-full text-center py-12">
+            <div className="py-12 text-center col-span-full">
               <p className="muted">Loading gallery...</p>
             </div>
           ) : items.length === 0 ? (
-            <div className="col-span-full text-center py-12">
+            <div className="py-12 text-center col-span-full">
               <p className="muted">No images yet</p>
             </div>
             ) : (
             items.map((it, idx) => (
-              <Card key={it._id} className="overflow-hidden cursor-pointer relative group" onClick={() => handleImageClick(idx)}>
+              <Card key={it._id} className="relative overflow-hidden cursor-pointer group" onClick={() => handleImageClick(idx)}>
                 {user?.role === 'admin' && (
                   <button aria-label="Delete image" onClick={(e) => deleteImage(it._id, e)} title="Delete" style={{position:'absolute',right:12,top:12,width:34,height:34,borderRadius:8,background:'var(--card)',border:'1px solid var(--border)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
                     ×

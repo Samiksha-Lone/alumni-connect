@@ -26,22 +26,21 @@ function AdminPanel({ users, onAddAdmin }) {
         </div>
 
         <div className="space-y-6">
-          <div className="p-6 card-base">
-            <h3 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">Member Statistics</h3>
-            <ul className="space-y-3">
+          <div className="border border-slate-200 dark:border-slate-800 rounded-lg p-6 bg-white dark:bg-slate-950">
+            <h3 className="mb-6 text-lg font-semibold text-slate-900 dark:text-slate-50">Member Statistics</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {['alumni', 'student', 'admin'].map(role => {
                 const roleUsers = users.filter(u => u.role === role)
+                const icons = { alumni: '👥', student: '📚', admin: '⚙️' }
                 return (
-                  <li key={role} className="flex items-start gap-4 pb-3 border-b border-slate-200 dark:border-slate-700 last:border-b-0 last:pb-0">
-                    <span className="text-2xl">👥</span>
-                    <div>
-                      <div className="font-medium text-slate-900 dark:text-slate-100">{roleUsers.length} {role}s registered</div>
-                      <div className="text-sm text-slate-500 dark:text-slate-400">Total members</div>
-                    </div>
-                  </li>
+                  <div key={role} className="border border-slate-200 dark:border-slate-800 rounded-lg p-5 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-150">
+                    <div className="text-3xl mb-3">{icons[role]}</div>
+                    <div className="text-2xl font-semibold text-slate-900 dark:text-slate-50 mb-1">{roleUsers.length}</div>
+                    <div className="text-sm text-slate-600 dark:text-slate-400 capitalize">{role}s registered</div>
+                  </div>
                 )
               })}
-            </ul>
+            </div>
           </div>
 
           {showAddAdmin && (

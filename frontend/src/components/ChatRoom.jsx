@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useSocket } from '../context/SocketContext';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com',
   withCredentials: true,
 });
 
@@ -82,9 +82,9 @@ const ChatRoom = ({ partnerId }) => {
   return (
     <div className="flex flex-col h-[80vh] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
       {/* header */}
-      <div className="px-6 py-4 bg-gradient-to-r from-blue-500 to-sky-500 flex items-center justify-between">
+      <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-blue-500 to-sky-500">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white font-semibold">
+          <div className="flex items-center justify-center w-10 h-10 font-semibold text-white rounded-full bg-white/10">
             {(partner?.name || 'U').charAt(0).toUpperCase()}
           </div>
           <div>
@@ -127,19 +127,19 @@ const ChatRoom = ({ partnerId }) => {
       </div>
 
       {/* input */}
-      <div className="px-4 py-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+      <div className="px-4 py-3 bg-white border-t dark:bg-slate-900 border-slate-200 dark:border-slate-800">
         <div className="flex gap-3">
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
             placeholder="Type your message..."
-            className="flex-1 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-4 py-2 text-sm border rounded-full bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             onClick={sendMessage}
             disabled={!text.trim()}
-            className="px-5 py-2 rounded-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-sm font-medium text-white shadow-lg shadow-blue-500/30"
+            className="px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-full shadow-lg hover:bg-blue-500 disabled:opacity-50 shadow-blue-500/30"
           >
             Send
           </button>

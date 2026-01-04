@@ -1,8 +1,6 @@
 import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import Card from '../components/ui/Card'
-import Button from '../components/ui/Button'
 
 export default function AuthPage() {
   const [mode, setMode] = useState('login') 
@@ -55,96 +53,214 @@ export default function AuthPage() {
   }
 
   return (
-    <section className="max-w-md mx-auto px-6 py-12">
-      <Card className="p-8">
-        <h2 className="text-3xl font-bold text-center mb-8">{mode === 'login' ? 'Login' : 'Register'}</h2>
+    <section className="max-w-md px-6 py-12 mx-auto">
+      <div className="p-8 bg-white border rounded-lg border-slate-200 dark:border-slate-800 dark:bg-slate-950">
+        <h2 className="mb-8 text-3xl font-bold text-center text-slate-900 dark:text-slate-50">{mode === 'login' ? 'Login' : 'Register'}</h2>
 
-        <div className="seg-toggle mb-6">
-          <button onClick={() => setMode('login')} className={`seg-btn ${mode === 'login' ? 'active' : ''}`}>Login</button>
-          <button onClick={() => setMode('register')} className={`seg-btn ${mode === 'register' ? 'active' : ''}`}>Register</button>
+        <div className="flex gap-2 p-1 mb-8 rounded-lg bg-slate-100 dark:bg-slate-900">
+          <button 
+            onClick={() => setMode('login')} 
+            className={`flex-1 py-2 px-3 rounded-md font-medium transition-colors duration-150 ${mode === 'login' ? 'bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}
+          >
+            Login
+          </button>
+          <button 
+            onClick={() => setMode('register')} 
+            className={`flex-1 py-2 px-3 rounded-md font-medium transition-colors duration-150 ${mode === 'register' ? 'bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}
+          >
+            Register
+          </button>
         </div>
 
         {error && (
-          <div className="mb-6 alert-error">{error}</div>
+          <div className="p-4 mb-6 text-sm text-red-700 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400">
+            {error}
+          </div>
         )}
 
         {mode === 'login' ? (
-          <form onSubmit={handleLogin} className="space-y-4">
-              <select value={role} onChange={(e) => setRole(e.target.value)} className="form-input">
-              <option value="" disabled>Select Role</option>
-              <option value="student">Student</option>
-              <option value="alumni">Alumni</option>
-              <option value="admin">Admin</option>
-            </select>
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">Role</label>
+              <select 
+                value={role} 
+                onChange={(e) => setRole(e.target.value)} 
+                className="w-full px-4 py-2 transition-colors duration-150 bg-white border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="" disabled>Select Role</option>
+                <option value="student">Student</option>
+                <option value="alumni">Alumni</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">Email</label>
               <input 
-              type="email" 
-              placeholder="Email"
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              required
-                className="form-input"
-            />
+                type="email" 
+                placeholder="your@email.com"
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                required
+                className="w-full px-4 py-2 transition-colors duration-150 bg-white border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">Password</label>
               <input 
-              type="password"
-              placeholder="Password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              required
-                className="form-input"
-            />
-              <Button type="submit" variant="primary" className="w-full">Login</Button>
+                type="password"
+                placeholder="••••••••"
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                required
+                className="w-full px-4 py-2 transition-colors duration-150 bg-white border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              className="w-full px-4 py-2 font-medium text-white transition-colors duration-150 bg-blue-600 rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+            >
+              Login
+            </button>
           </form>
         ) : (
-          <form onSubmit={handleRegister} className="space-y-4">
-              <select value={role} onChange={(e) => setRole(e.target.value)} className="form-input">
-              <option value="" disabled>Select Role</option>
-              <option value="student">Student</option>
-              <option value="alumni">Alumni</option>
-            </select>
+          <form onSubmit={handleRegister} className="space-y-5">
+            <div>
+              <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">Role</label>
+              <select 
+                value={role} 
+                onChange={(e) => setRole(e.target.value)} 
+                className="w-full px-4 py-2 transition-colors duration-150 bg-white border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="" disabled>Select Role</option>
+                <option value="student">Student</option>
+                <option value="alumni">Alumni</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">Full Name</label>
               <input 
-              type="text"
-              placeholder="Full Name" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              required
-                className="form-input"
-            />
+                type="text"
+                placeholder="John Doe"
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+                required
+                className="w-full px-4 py-2 transition-colors duration-150 bg-white border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">Email</label>
               <input 
-              type="email"
-              placeholder="Email" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              required
-                className="form-input"
-            />
+                type="email"
+                placeholder="your@email.com"
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                required
+                className="w-full px-4 py-2 transition-colors duration-150 bg-white border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">Password</label>
               <input 
-              type="password"
-              placeholder="Password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              required
-                className="form-input"
-            />
+                type="password"
+                placeholder="••••••••"
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                required
+                className="w-full px-4 py-2 transition-colors duration-150 bg-white border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
 
             {role === 'student' && (
               <>
-                <input type="text" placeholder="Year of Study" value={yearOfStudy} onChange={(e) => setYearOfStudy(e.target.value)} required className="form-input" />
-                <input type="text" placeholder="Branch" value={branch} onChange={(e) => setBranch(e.target.value)} required className="form-input" />
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">Year of Study</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g., 2024" 
+                    value={yearOfStudy} 
+                    onChange={(e) => setYearOfStudy(e.target.value)} 
+                    required 
+                    className="w-full px-4 py-2 transition-colors duration-150 bg-white border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">Branch</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g., Computer Science" 
+                    value={branch} 
+                    onChange={(e) => setBranch(e.target.value)} 
+                    required 
+                    className="w-full px-4 py-2 transition-colors duration-150 bg-white border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </>
             )}
 
             {role === 'alumni' && (
               <>
-                <input type="text" placeholder="Year of Passing" value={yearOfPassing} onChange={(e) => setYearOfPassing(e.target.value)} required className="form-input" />
-                <input type="text" placeholder="Branch" value={branch} onChange={(e) => setBranch(e.target.value)} required className="form-input" />
-                <input type="text" placeholder="Company" value={company} onChange={(e) => setCompany(e.target.value)} required className="form-input" />
-                <input type="text" placeholder="Job Role" value={jobRole} onChange={(e) => setJobRole(e.target.value)} required className="form-input" />
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">Year of Passing</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g., 2020" 
+                    value={yearOfPassing} 
+                    onChange={(e) => setYearOfPassing(e.target.value)} 
+                    required 
+                    className="w-full px-4 py-2 transition-colors duration-150 bg-white border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">Branch</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g., Computer Science" 
+                    value={branch} 
+                    onChange={(e) => setBranch(e.target.value)} 
+                    required 
+                    className="w-full px-4 py-2 transition-colors duration-150 bg-white border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">Company</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g., Tech Corp" 
+                    value={company} 
+                    onChange={(e) => setCompany(e.target.value)} 
+                    required 
+                    className="w-full px-4 py-2 transition-colors duration-150 bg-white border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">Job Role</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g., Software Engineer" 
+                    value={jobRole} 
+                    onChange={(e) => setJobRole(e.target.value)} 
+                    required 
+                    className="w-full px-4 py-2 transition-colors duration-150 bg-white border rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </>
             )}
-            <Button type="submit" variant="primary" className="w-full">Register</Button>
+
+            <button 
+              type="submit" 
+              className="w-full px-4 py-2 font-medium text-white transition-colors duration-150 bg-blue-600 rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+            >
+              Register
+            </button>
           </form>
         )}
-      </Card>
+      </div>
     </section>
   )
 }

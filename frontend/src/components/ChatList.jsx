@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com',
   withCredentials: true,
 });
 
@@ -42,7 +42,7 @@ const ChatList = ({ onSelectChat, initialPartnerId }) => {
   };
 
   return (
-    <aside className="w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+    <aside className="flex flex-col bg-white border-r w-80 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
       <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
           Conversations
@@ -62,14 +62,14 @@ const ChatList = ({ onSelectChat, initialPartnerId }) => {
                 : 'hover:bg-slate-100 dark:hover:bg-slate-800/70'
             }`}
           >
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white font-semibold text-sm">
+            <div className="flex items-center justify-center w-10 h-10 text-sm font-semibold text-white rounded-full bg-gradient-to-br from-blue-500 to-sky-500">
               {(conv.partnerName || 'U').charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+              <p className="text-sm font-medium truncate text-slate-900 dark:text-slate-100">
                 {conv.partnerName || 'User'}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+              <p className="text-xs truncate text-slate-500 dark:text-slate-400">
                 {conv.lastMessage}
               </p>
             </div>

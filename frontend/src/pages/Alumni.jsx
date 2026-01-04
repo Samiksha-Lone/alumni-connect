@@ -4,7 +4,7 @@ import Card from '../components/ui/Card'
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000';
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com';
 
 export default function AlumniPage() {
   const [alumni, setAlumni] = useState([]);
@@ -38,36 +38,36 @@ export default function AlumniPage() {
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-6 py-12">
-      <h2 className="text-4xl font-bold mb-8">Alumni</h2>
+    <section className="px-6 py-12 mx-auto max-w-7xl">
+      <h2 className="mb-8 text-4xl font-bold">Alumni</h2>
 
       {loading && (
-        <div className="text-center py-12">
-          <p className="muted text-lg">Loading alumni...</p>
+        <div className="py-12 text-center">
+          <p className="text-lg muted">Loading alumni...</p>
         </div>
       )}
 
       {error && (
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <p style={{ color: 'var(--accent)' }} className="text-lg">{error}</p>
         </div>
       )}
 
       {!loading && !error && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {alumni.length === 0 ? (
-            <div className="col-span-full text-center py-12">
-              <p className="muted text-lg">No alumni registered yet</p>
+            <div className="py-12 text-center col-span-full">
+              <p className="text-lg muted">No alumni registered yet</p>
             </div>
           ) : (
             alumni.map((a) => {
               try {
                 return (
-                  <Card key={a._id || a.id} className="p-6 flex flex-col">
-                    <h3 className="text-xl font-semibold mb-2">{a.name || 'N/A'}</h3>
-                    <p className="text-sm muted mb-3">{a.email || 'N/A'}</p>
+                  <Card key={a._id || a.id} className="flex flex-col p-6">
+                    <h3 className="mb-2 text-xl font-semibold">{a.name || 'N/A'}</h3>
+                    <p className="mb-3 text-sm muted">{a.email || 'N/A'}</p>
 
-                    <div className="text-sm muted mb-4 flex-grow">
+                    <div className="flex-grow mb-4 text-sm muted">
                       {a.graduationYear && (
                         <p>
                           Year: <span className="font-medium">{a.graduationYear}</span>

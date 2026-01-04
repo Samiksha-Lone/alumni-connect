@@ -16,7 +16,7 @@ export const SocketProvider = ({ children }) => {
     const token = tokenCookie ? tokenCookie.split('=')[1] : null;
     if (!token) return;
 
-    const s = io(import.meta.env.VITE_API_BASE || 'http://localhost:3000', {
+    const s = io(import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com', {
       auth: { token },
       withCredentials: true,
     });
