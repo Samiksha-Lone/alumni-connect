@@ -106,6 +106,13 @@ app.use(cors({
     methods: ['GET','POST','PUT','DELETE','OPTIONS']
 }));
 
+// Explicitly handle OPTIONS preflight for all routes
+app.options('*', cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET','POST','PUT','DELETE','OPTIONS']
+}));
+
 // Request logging middleware
 app.use((req, res, next) => {
   logger.debug(`${req.method} ${req.path}`, {
