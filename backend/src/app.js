@@ -33,7 +33,7 @@ const apiLimiter = rateLimit({
 // Socket.io setup FIRST
 const io = socketIo(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || process.env.ALLOWED_ORIGINS?.split(',')[0] || "http://localhost:5173",
+    origin: process.env.FRONTEND_URL || process.env.ALLOWED_ORIGINS?.split(',')[0] || "https://alumni-connect-frontend-delta.vercel.app/",
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -92,7 +92,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookierParser());
 
 // CORS configuration with environment variables
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173').split(',');
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://alumni-connect-frontend-delta.vercel.app/').split(',');
 app.use(cors({
     origin: function (origin, callback) {
       if (!origin || allowedOrigins.some(o => origin.includes(o.trim()))) {
