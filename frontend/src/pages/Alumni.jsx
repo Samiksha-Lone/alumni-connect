@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,17 +39,17 @@ export default function AlumniPage() {
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-12">
-      <h2 className="text-4xl font-bold mb-8 text-slate-900 dark:text-slate-100">Alumni</h2>
+      <h2 className="text-4xl font-bold mb-8">Alumni</h2>
 
       {loading && (
         <div className="text-center py-12">
-          <p className="text-slate-600 dark:text-slate-400 text-lg">Loading alumni...</p>
+          <p className="muted text-lg">Loading alumni...</p>
         </div>
       )}
 
       {error && (
         <div className="text-center py-12">
-          <p className="text-red-600 dark:text-red-400 text-lg">{error}</p>
+          <p style={{ color: 'var(--accent)' }} className="text-lg">{error}</p>
         </div>
       )}
 
@@ -55,24 +57,17 @@ export default function AlumniPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {alumni.length === 0 ? (
             <div className="col-span-full text-center py-12">
-              <p className="text-slate-600 dark:text-slate-400 text-lg">No alumni registered yet</p>
+              <p className="muted text-lg">No alumni registered yet</p>
             </div>
           ) : (
             alumni.map((a) => {
               try {
                 return (
-                  <div
-                    key={a._id || a.id}
-                    className="card-base p-6 hover:shadow-xl transition-all duration-300 flex flex-col"
-                  >
-                    <h3 className="text-xl font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                      {a.name || 'N/A'}
-                    </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                      {a.email || 'N/A'}
-                    </p>
+                  <Card key={a._id || a.id} className="p-6 flex flex-col">
+                    <h3 className="text-xl font-semibold mb-2">{a.name || 'N/A'}</h3>
+                    <p className="text-sm muted mb-3">{a.email || 'N/A'}</p>
 
-                    <div className="text-sm text-slate-700 dark:text-slate-300 mb-4 flex-grow">
+                    <div className="text-sm muted mb-4 flex-grow">
                       {a.graduationYear && (
                         <p>
                           Year: <span className="font-medium">{a.graduationYear}</span>
@@ -82,15 +77,10 @@ export default function AlumniPage() {
                       {a.company && <p className="mt-2">Company: <span className="font-medium">{a.company}</span></p>}
                     </div>
 
-                    {/* Message Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleMessageClick(a)}
-                      className="btn-primary w-full mt-4"
-                    >
+                    <Button className="w-full mt-4" onClick={() => handleMessageClick(a)}>
                       Message
-                    </button>
-                  </div>
+                    </Button>
+                  </Card>
                 );
               } catch (e) {
                 console.error('Error rendering alumni item:', e);

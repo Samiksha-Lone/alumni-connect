@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
 
 function AdminPanel({ users, onAddAdmin }) {
   const [showAddAdmin, setShowAddAdmin] = useState(false)
@@ -14,9 +16,9 @@ function AdminPanel({ users, onAddAdmin }) {
   }
 
   return (
-    <div className="mt-12 pt-12 border-t border-slate-200 dark:border-slate-700">
+    <div className="pt-12 mt-12 border-t border-slate-200 dark:border-slate-700">
       <div className="mb-8">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Admin Dashboard</h2>
           <button onClick={() => setShowAddAdmin(true)} className="btn-primary">
             Add Admin
@@ -24,8 +26,8 @@ function AdminPanel({ users, onAddAdmin }) {
         </div>
 
         <div className="space-y-6">
-          <div className="card-base p-6">
-            <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">Member Statistics</h3>
+          <div className="p-6 card-base">
+            <h3 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">Member Statistics</h3>
             <ul className="space-y-3">
               {['alumni', 'student', 'admin'].map(role => {
                 const roleUsers = users.filter(u => u.role === role)
@@ -43,8 +45,8 @@ function AdminPanel({ users, onAddAdmin }) {
           </div>
 
           {showAddAdmin && (
-            <div className="card-base p-6">
-              <div className="flex justify-between items-center mb-4">
+            <div className="p-6 card-base">
+              <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Add New Admin</h3>
                 <button
                   className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
@@ -55,14 +57,14 @@ function AdminPanel({ users, onAddAdmin }) {
               </div>
               <form onSubmit={handleAddAdmin} className="space-y-4">
                 <input
-                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-2 border rounded-lg bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="Full name"
                   value={newAdmin.name}
                   onChange={e => setNewAdmin(a => ({ ...a, name: e.target.value }))}
                   required
                 />
                 <input
-                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-2 border rounded-lg bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
                   type="email"
                   placeholder="Email address"
                   value={newAdmin.email}
@@ -70,22 +72,22 @@ function AdminPanel({ users, onAddAdmin }) {
                   required
                 />
                 <input
-                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-4 py-2 border rounded-lg bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
                   type="password"
                   placeholder="Password"
                   value={newAdmin.password}
                   onChange={e => setNewAdmin(a => ({ ...a, password: e.target.value }))}
                   required
                 />
-                <button type="submit" className="btn-primary w-full">
+                <button type="submit" className="w-full btn-primary">
                   Create Admin Account
                 </button>
               </form>
             </div>
           )}
 
-          <div className="card-base p-6">
-            <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">All Admins</h3>
+          <div className="p-6 card-base">
+            <h3 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">All Admins</h3>
             <div className="space-y-3">
               {users.filter(u => u.role === 'admin').map(admin => (
                 <div key={admin.id} className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800">
@@ -159,44 +161,44 @@ export default function Profile() {
   }
 
   return (
-    <section className="max-w-4xl mx-auto px-6 py-12">
-      <div className="flex justify-between items-start mb-8 gap-6">
-        <h2 className="text-4xl font-bold text-slate-900 dark:text-slate-100">Profile</h2>
+    <section className="max-w-4xl px-6 py-12 mx-auto">
+      <div className="flex items-start justify-between gap-6 mb-8">
+        <h2 className="text-4xl font-bold">Profile</h2>
         <div className="flex gap-3">
           {user.role !== 'admin' && (
             <button onClick={() => setEditing((v) => !v)} className="btn-secondary">
               {editing ? 'Cancel' : 'Edit'}
             </button>
           )}
-          <button onClick={handleLogout} className="px-4 py-2 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">
+          <Button onClick={handleLogout} className="" style={{background:'#ef4444', color:'#fff'}}>
             Logout
-          </button>
+          </Button>
         </div>
       </div>
 
       {!editing ? (
-        <div className="card-base p-8">
+        <Card className="p-8">
           <div className="space-y-6">
-            <div className="pb-6 border-b border-slate-200 dark:border-slate-700 last:border-b-0">
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Name</p>
+            <div className="pb-6 border-b border-slate-200 dark:border-slate-700">
+              <p className="mb-1 text-sm text-slate-500 dark:text-slate-400">Name</p>
               <p className="text-lg font-medium text-slate-900 dark:text-slate-100">{user.name}</p>
             </div>
-            <div className="pb-6 border-b border-slate-200 dark:border-slate-700 last:border-b-0">
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Email</p>
+            <div className="pb-6 border-b border-slate-200 dark:border-slate-700">
+              <p className="mb-1 text-sm text-slate-500 dark:text-slate-400">Email</p>
               <p className="text-lg font-medium text-slate-900 dark:text-slate-100">{user.email}</p>
             </div>
-            <div className="pb-6 border-b border-slate-200 dark:border-slate-700 last:border-b-0">
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Role</p>
-              <p className="text-lg font-medium text-primary capitalize">{user.role}</p>
+            <div className="pb-6 border-b border-slate-200 dark:border-slate-700">
+              <p className="mb-1 text-sm text-slate-500 dark:text-slate-400">Role</p>
+              <p className="text-lg font-medium capitalize text-slate-900 dark:text-slate-100">{user.role}</p>
             </div>
             {user.role === 'student' && (
               <>
                 <div className="pb-6 border-b border-slate-200 dark:border-slate-700">
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Year of Study</p>
+                  <p className="mb-1 text-sm text-slate-500 dark:text-slate-400">Year of Study</p>
                   <p className="text-lg font-medium text-slate-900 dark:text-slate-100">{user.yearOfStudying}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Course</p>
+                  <p className="mb-1 text-sm text-slate-500 dark:text-slate-400">Course</p>
                   <p className="text-lg font-medium text-slate-900 dark:text-slate-100">{user.course}</p>
                 </div>
               </>
@@ -204,93 +206,90 @@ export default function Profile() {
             {user.role === 'alumni' && (
               <>
                 <div className="pb-6 border-b border-slate-200 dark:border-slate-700">
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Graduation Year</p>
+                  <p className="mb-1 text-sm text-slate-500 dark:text-slate-400">Graduation Year</p>
                   <p className="text-lg font-medium text-slate-900 dark:text-slate-100">{user.graduationYear}</p>
                 </div>
                 <div className="pb-6 border-b border-slate-200 dark:border-slate-700">
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Course Studied</p>
+                  <p className="mb-1 text-sm text-slate-500 dark:text-slate-400">Course Studied</p>
                   <p className="text-lg font-medium text-slate-900 dark:text-slate-100">{user.courseStudied}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Company</p>
+                  <p className="mb-1 text-sm text-slate-500 dark:text-slate-400">Company</p>
                   <p className="text-lg font-medium text-slate-900 dark:text-slate-100">{user.company}</p>
                 </div>
               </>
             )}
           </div>
-        </div>
+        </Card>
       ) : (
-        <div className="card-base p-8">
+        <Card className="p-8">
           <div className="space-y-4">
-            <input
-              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-              name="name"
-              placeholder="Full name"
-              value={form.name || ''}
-              onChange={handleChange}
+            <input 
+              name="name" 
+              placeholder="Full name" 
+              value={form.name || ''} 
+              onChange={handleChange} 
+              className="w-full px-4 py-2 border rounded-lg bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary" 
             />
-            <input
-              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-              name="email"
-              placeholder="Email"
-              value={form.email || ''}
-              onChange={handleChange}
+            <input 
+              name="email" 
+              type="email"
+              placeholder="Email" 
+              value={form.email || ''} 
+              onChange={handleChange} 
+              className="w-full px-4 py-2 border rounded-lg bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary" 
             />
             {user.role === 'student' && (
               <>
-                <input
-                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-                  name="yearOfStudying"
-                  placeholder="Year of studying"
-                  type="number"
-                  value={form.yearOfStudying || ''}
-                  onChange={handleChange}
+                <input 
+                  name="yearOfStudying" 
+                  placeholder="Year of studying" 
+                  type="number" 
+                  value={form.yearOfStudying || ''} 
+                  onChange={handleChange} 
+                  className="w-full px-4 py-2 border rounded-lg bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary" 
                 />
-                <input
-                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-                  name="course"
-                  placeholder="Course"
-                  value={form.course || ''}
-                  onChange={handleChange}
+                <input 
+                  name="course" 
+                  placeholder="Course" 
+                  value={form.course || ''} 
+                  onChange={handleChange} 
+                  className="w-full px-4 py-2 border rounded-lg bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary" 
                 />
               </>
             )}
             {user.role === 'alumni' && (
               <>
-                <input
-                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-                  name="graduationYear"
-                  placeholder="Graduation Year"
-                  type="number"
-                  value={form.graduationYear || ''}
-                  onChange={handleChange}
+                <input 
+                  name="graduationYear" 
+                  placeholder="Graduation Year" 
+                  type="number" 
+                  value={form.graduationYear || ''} 
+                  onChange={handleChange} 
+                  className="w-full px-4 py-2 border rounded-lg bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary" 
                 />
-                <input
-                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-                  name="courseStudied"
-                  placeholder="Course Studied"
-                  value={form.courseStudied || ''}
-                  onChange={handleChange}
+                <input 
+                  name="courseStudied" 
+                  placeholder="Course Studied" 
+                  value={form.courseStudied || ''} 
+                  onChange={handleChange} 
+                  className="w-full px-4 py-2 border rounded-lg bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary" 
                 />
-                <input
-                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-                  name="company"
-                  placeholder="Company"
-                  value={form.company || ''}
-                  onChange={handleChange}
+                <input 
+                  name="company" 
+                  placeholder="Company" 
+                  value={form.company || ''} 
+                  onChange={handleChange} 
+                  className="w-full px-4 py-2 border rounded-lg bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary" 
                 />
               </>
             )}
             <div className="flex gap-3 pt-4">
-              <button onClick={save} className="btn-primary flex-1">
-                Save Changes
-              </button>
-              <button onClick={() => setEditing(false)} className="btn-secondary flex-1">
-                Cancel
-              </button>
+              <Button onClick={save} className="flex-1">Save Changes</Button>
+              <Button variant="secondary" onClick={() => setEditing(false)} className="flex-1">Cancel</Button>
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
       {user.role === 'admin' && (

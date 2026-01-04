@@ -1,28 +1,40 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import LazyImage from '../components/ui/LazyImage'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000'
 
-function ImageModal({ image, onClose }) {
-  if (!image) return null
+function ImageModal({ index, items = [], onClose, setIndex }) {
+  if (index === null || index === undefined) return null
+  const item = items[index]
+  if (!item) return null
+
+  useEffect(() => {
+    const kb = (e) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowLeft') setIndex((i) => (i - 1 + items.length) % items.length)
+      if (e.key === 'ArrowRight') setIndex((i) => (i + 1) % items.length)
+    }
+    window.addEventListener('keydown', kb)
+    return () => window.removeEventListener('keydown', kb)
+  }, [items.length, onClose, setIndex])
+
+  const prev = (e) => { e?.stopPropagation(); setIndex((i) => (i - 1 + items.length) % items.length) }
+  const next = (e) => { e?.stopPropagation(); setIndex((i) => (i + 1) % items.length) }
 
   return (
-    <div
-      className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50"
-      onClick={onClose}
-    >
-      <div
-        className="relative max-w-2xl max-h-[80vh] bg-white dark:bg-slate-900 rounded-xl overflow-hidden"
-        onClick={e => e.stopPropagation()}
-      >
-        <img src={image} alt="gallery preview" className="w-full h-full object-contain" />
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 w-10 h-10 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center text-2xl font-semibold transition-colors"
-        >
-          ×
-        </button>
+    <div className="modal-backdrop active" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()} style={{maxWidth: '1200px', width: '90vw'}}>
+        <button aria-label="Previous image" className="modal-nav-button prev" onClick={prev}>❮</button>
+        <div style={{position:'relative', background:'var(--card)'}}>
+          <LazyImage src={item.imageUrl} alt={item.description || 'gallery image'} style={{width:'100%',height:'80vh',objectFit:'contain'}} />
+          {item.description && <div style={{padding:'12px',color:'var(--muted)',fontSize:'.95rem'}}>{item.description}</div>}
+        </div>
+        <button aria-label="Next image" className="modal-nav-button next" onClick={next}>❯</button>
+        <button onClick={onClose} className="modal-close">×</button>
       </div>
     </div>
   )
@@ -54,8 +66,8 @@ export default function Gallery() {
     fetchGallery()
   }, [fetchGallery])
 
-  function handleImageClick(url) {
-    setSelectedImage(url)
+  function handleImageClick(index) {
+    setSelectedImage(index)
     document.body.style.overflow = 'hidden'
   }
 
@@ -103,63 +115,43 @@ export default function Gallery() {
         <div className="flex justify-between items-start mb-8 gap-6">
           <h2 className="text-4xl font-bold text-slate-900 dark:text-slate-100">Gallery</h2>
           {user?.role === 'admin' && (
-            <div className="card-base p-4 w-full max-w-lg">
+            <Card className="p-4 w-full max-w-lg">
               <div className="flex gap-3">
-                <input
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="Image URL"
-                  className="flex-1 px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <button onClick={add} disabled={loading} className="btn-primary">
-                  {loading ? 'Adding...' : 'Add'}
-                </button>
+                <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Image URL" className="form-input flex-1" />
+                <Button onClick={add} disabled={loading}>{loading ? 'Adding...' : 'Add'}</Button>
               </div>
-            </div>
+            </Card>
           )}
         </div>
 
-        {error && <div className="mb-6 p-4 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">{error}</div>}
+        {error && <div className="mb-6 alert-error">{error}</div>}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {loading ? (
             <div className="col-span-full text-center py-12">
-              <p className="text-slate-600 dark:text-slate-400">Loading gallery...</p>
+              <p className="muted">Loading gallery...</p>
             </div>
           ) : items.length === 0 ? (
             <div className="col-span-full text-center py-12">
-              <p className="text-slate-600 dark:text-slate-400">No images yet</p>
+              <p className="muted">No images yet</p>
             </div>
-          ) : (
-            items.map((it) => (
-              <div
-                key={it._id}
-                className="card-base overflow-hidden cursor-pointer relative group hover:shadow-xl transition-shadow"
-                onClick={() => handleImageClick(it.imageUrl)}
-              >
+            ) : (
+            items.map((it, idx) => (
+              <Card key={it._id} className="overflow-hidden cursor-pointer relative group" onClick={() => handleImageClick(idx)}>
                 {user?.role === 'admin' && (
-                  <button
-                    aria-label="Delete image"
-                    onClick={(e) => deleteImage(it._id, e)}
-                    title="Delete"
-                    className="absolute right-3 top-3 w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center font-semibold transition-colors opacity-0 group-hover:opacity-100"
-                  >
+                  <button aria-label="Delete image" onClick={(e) => deleteImage(it._id, e)} title="Delete" style={{position:'absolute',right:12,top:12,width:34,height:34,borderRadius:8,background:'var(--card)',border:'1px solid var(--border)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
                     ×
                   </button>
                 )}
-                <div className="h-48 overflow-hidden rounded-t-lg bg-slate-100 dark:bg-slate-800 group-hover:scale-110 transition-transform duration-300">
-                  <img
-                    src={it.imageUrl}
-                    alt="gallery"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="h-48 overflow-hidden rounded-t-lg" style={{background:'color-mix(in srgb, var(--card) 95%, transparent 5%)'}}>
+                  <LazyImage src={it.imageUrl} alt={it.description || 'gallery'} style={{width:'100%',height:'100%',objectFit:'cover'}} />
                 </div>
-              </div>
+              </Card>
             ))
           )}
         </div>
       </section>
-      <ImageModal image={selectedImage} onClose={handleCloseModal} />
+      <ImageModal index={selectedImage} items={items} onClose={handleCloseModal} setIndex={setSelectedImage} />
     </>
   )
 }

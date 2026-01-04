@@ -1,4 +1,7 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
 
 export default function Home() {
   const features = [
@@ -17,8 +20,8 @@ export default function Home() {
           <p className="max-w-2xl mx-auto text-lg opacity-90 mb-6">Connect with alumni, discover opportunities, and stay engaged with your community.</p>
 
           <div className="flex justify-center gap-4">
-            <a href="/alumni" className="btn-primary inline-block px-5 py-2 rounded-md font-medium">Browse Alumni</a>
-            <a href="/auth" className="btn-secondary inline-block px-5 py-2 rounded-md font-medium">Get Started</a>
+            <Link to="/alumni"><Button variant="primary">Browse Alumni</Button></Link>
+            <Link to="/auth"><Button variant="secondary">Get Started</Button></Link>
           </div>
         </div>
       </section>
@@ -28,11 +31,11 @@ export default function Home() {
         <h2 className="text-2xl md:text-3xl font-semibold mb-4 text-slate-900 dark:text-slate-100">Explore</h2>
         <div className="grid gap-6 md:grid-cols-3">
           {features.map((feature, idx) => (
-            <article key={idx} className="card-base p-6 text-center">
+            <Card key={idx} className="p-6 text-center">
               <div className="text-4xl mb-3">{feature.icon}</div>
               <h3 className="font-semibold text-lg mb-2 text-slate-900 dark:text-slate-100">{feature.title}</h3>
               <p className="text-sm text-slate-600 dark:text-slate-400">{feature.description}</p>
-            </article>
+            </Card>
           ))}
         </div>
       </section>
@@ -42,8 +45,8 @@ export default function Home() {
         <h3 className="text-xl font-semibold mb-2 text-slate-900 dark:text-slate-100">Ready to reconnect?</h3>
         <p className="text-slate-600 dark:text-slate-400 mb-4">Sign up or log in to start building your alumni network.</p>
         <div className="flex justify-center gap-3">
-          <a href="/auth" className="btn-primary px-4 py-2 rounded-md">Sign up</a>
-          <a href="/alumni" className="btn-secondary px-4 py-2 rounded-md">Browse Directory</a>
+          <Link to="/auth"><Button variant="primary">Sign up</Button></Link>
+          <Link to="/alumni"><Button variant="secondary">Browse Directory</Button></Link>
         </div>
       </section>
     </div>

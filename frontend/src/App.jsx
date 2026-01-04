@@ -14,7 +14,8 @@ import Opportunities from './pages/Opportunities';
 import AuthPage from './pages/AuthPage';
 import Profile from './pages/Profile';
 import ChatPage from './pages/ChatPage';
-import './index.css';
+import './styles/common.css';
+import Footer from './components/Footer';
 
 function PrivateRoute({ children }) {
   const { user } = useAuth();
@@ -27,9 +28,9 @@ export default function App() {
       <ThemeProvider>
         <AuthProvider>
           <SocketProvider>
-            <div className="min-h-screen bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-50">
+            <div className="min-h-screen">
               <NavBar />
-              <main className="max-w-6xl mx-auto px-4 py-8">
+              <main className="max-w-6xl px-4 py-8 mx-auto">
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/about" element={<About />} />
@@ -61,11 +62,7 @@ export default function App() {
                 </Routes>
               </main>
 
-              <footer className="border-t border-slate-200 dark:border-slate-800 mt-8">
-                <div className="max-w-6xl mx-auto px-4 py-4 text-sm text-slate-500 dark:text-slate-400">
-                  © 2025 Alumni Connect. All rights reserved.
-                </div>
-              </footer>
+              <Footer />
             </div>
           </SocketProvider>
         </AuthProvider>

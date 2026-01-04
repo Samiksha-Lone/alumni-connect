@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
 
 export default function AuthPage() {
   const [mode, setMode] = useState('login') 
@@ -54,168 +56,95 @@ export default function AuthPage() {
 
   return (
     <section className="max-w-md mx-auto px-6 py-12">
-      <div className="card-base p-8">
-        <h2 className="text-3xl font-bold text-center mb-8 text-slate-900 dark:text-slate-100">
-          {mode === 'login' ? 'Login' : 'Register'}
-        </h2>
-        
-        <div className="flex gap-2 mb-8 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-          <button 
-            onClick={() => setMode('login')} 
-            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-              mode === 'login'
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-            }`}
-          >
-            Login
-          </button>
-          <button 
-            onClick={() => setMode('register')} 
-            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-              mode === 'register'
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-            }`}
-          >
-            Register
-          </button>
+      <Card className="p-8">
+        <h2 className="text-3xl font-bold text-center mb-8">{mode === 'login' ? 'Login' : 'Register'}</h2>
+
+        <div className="seg-toggle mb-6">
+          <button onClick={() => setMode('login')} className={`seg-btn ${mode === 'login' ? 'active' : ''}`}>Login</button>
+          <button onClick={() => setMode('register')} className={`seg-btn ${mode === 'register' ? 'active' : ''}`}>Register</button>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-sm">
-            {error}
-          </div>
+          <div className="mb-6 alert-error">{error}</div>
         )}
 
         {mode === 'login' ? (
           <form onSubmit={handleLogin} className="space-y-4">
-            <select 
-              value={role} 
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary"
-            >
+              <select value={role} onChange={(e) => setRole(e.target.value)} className="form-input">
               <option value="" disabled>Select Role</option>
               <option value="student">Student</option>
               <option value="alumni">Alumni</option>
               <option value="admin">Admin</option>
             </select>
-            <input 
+              <input 
               type="email" 
               placeholder="Email"
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
               required
-              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="form-input"
             />
-            <input 
+              <input 
               type="password"
               placeholder="Password" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
               required
-              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="form-input"
             />
-            <button type="submit" className="btn-primary w-full">Login</button>
+              <Button type="submit" variant="primary" className="w-full">Login</Button>
           </form>
         ) : (
           <form onSubmit={handleRegister} className="space-y-4">
-            <select 
-              value={role} 
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary"
-            >
+              <select value={role} onChange={(e) => setRole(e.target.value)} className="form-input">
               <option value="" disabled>Select Role</option>
               <option value="student">Student</option>
               <option value="alumni">Alumni</option>
             </select>
-            <input 
+              <input 
               type="text"
               placeholder="Full Name" 
               value={name} 
               onChange={(e) => setName(e.target.value)} 
               required
-              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="form-input"
             />
-            <input 
+              <input 
               type="email"
               placeholder="Email" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
               required
-              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="form-input"
             />
-            <input 
+              <input 
               type="password"
               placeholder="Password" 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
               required
-              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="form-input"
             />
 
             {role === 'student' && (
               <>
-                <input 
-                  type="text"
-                  placeholder="Year of Study"
-                  value={yearOfStudy} 
-                  onChange={(e) => setYearOfStudy(e.target.value)} 
-                  required
-                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <input 
-                  type="text"
-                  placeholder="Branch"
-                  value={branch} 
-                  onChange={(e) => setBranch(e.target.value)} 
-                  required
-                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                <input type="text" placeholder="Year of Study" value={yearOfStudy} onChange={(e) => setYearOfStudy(e.target.value)} required className="form-input" />
+                <input type="text" placeholder="Branch" value={branch} onChange={(e) => setBranch(e.target.value)} required className="form-input" />
               </>
             )}
 
             {role === 'alumni' && (
               <>
-                <input 
-                  type="text"
-                  placeholder="Year of Passing"
-                  value={yearOfPassing} 
-                  onChange={(e) => setYearOfPassing(e.target.value)} 
-                  required
-                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <input 
-                  type="text"
-                  placeholder="Branch"
-                  value={branch} 
-                  onChange={(e) => setBranch(e.target.value)} 
-                  required
-                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <input 
-                  type="text"
-                  placeholder="Company"
-                  value={company} 
-                  onChange={(e) => setCompany(e.target.value)} 
-                  required
-                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <input 
-                  type="text"
-                  placeholder="Job Role"
-                  value={jobRole} 
-                  onChange={(e) => setJobRole(e.target.value)} 
-                  required
-                  className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                <input type="text" placeholder="Year of Passing" value={yearOfPassing} onChange={(e) => setYearOfPassing(e.target.value)} required className="form-input" />
+                <input type="text" placeholder="Branch" value={branch} onChange={(e) => setBranch(e.target.value)} required className="form-input" />
+                <input type="text" placeholder="Company" value={company} onChange={(e) => setCompany(e.target.value)} required className="form-input" />
+                <input type="text" placeholder="Job Role" value={jobRole} onChange={(e) => setJobRole(e.target.value)} required className="form-input" />
               </>
             )}
-
-            <button type="submit" className="btn-primary w-full">Register</button>
+            <Button type="submit" variant="primary" className="w-full">Register</Button>
           </form>
         )}
-      </div>
+      </Card>
     </section>
   )
 }

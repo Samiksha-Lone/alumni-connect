@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3000'
 
@@ -73,92 +75,49 @@ export default function Opportunities() {
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-12">
-      <h2 className="text-4xl font-bold mb-8 text-slate-900 dark:text-slate-100">Opportunities</h2>
+      <h2 className="text-4xl font-bold mb-8">Opportunities</h2>
 
       {canAdd && (
-        <div className="card-base p-6 mb-8">
-          <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-slate-100">Post New Opportunity</h3>
+        <Card className="p-6 mb-8">
+          <h3 className="text-lg font-semibold mb-4">Post New Opportunity</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Title *"
-              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <input
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              placeholder="Company *"
-              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <input
-              value={desc}
-              onChange={(e) => setDesc(e.target.value)}
-              placeholder="Description *"
-              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <input
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              placeholder="Apply URL"
-              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <input
-              type="date"
-              value={closingDate}
-              onChange={(e) => setClosingDate(e.target.value)}
-              className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <button onClick={add} disabled={loading} className="btn-primary col-span-1 sm:col-span-2 lg:col-span-1">
-              {loading ? 'Posting...' : 'Post'}
-            </button>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title *" className="form-input" />
+            <input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company *" className="form-input" />
+            <input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Description *" className="form-input" />
+            <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="Apply URL" className="form-input" />
+            <input type="date" value={closingDate} onChange={(e) => setClosingDate(e.target.value)} className="form-input" />
+            <Button onClick={add} disabled={loading} className="col-span-1 sm:col-span-2 lg:col-span-1">{loading ? 'Posting...' : 'Post'}</Button>
           </div>
-        </div>
+        </Card>
       )}
 
-      {error && <div className="mb-6 p-4 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">{error}</div>}
+      {error && <div className="mb-6 alert-error">{error}</div>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
           <div className="col-span-full text-center py-12">
-            <p className="text-slate-600 dark:text-slate-400">Loading opportunities...</p>
+            <p className="muted">Loading opportunities...</p>
           </div>
         ) : items.length === 0 ? (
           <div className="col-span-full text-center py-12">
-            <p className="text-slate-600 dark:text-slate-400">No opportunities yet</p>
+            <p className="muted">No opportunities yet</p>
           </div>
         ) : (
           items.map((o) => (
-            <div key={o._id} className="card-base p-6 relative hover:shadow-xl transition-shadow">
+            <Card key={o._id} className="p-6 relative">
               {user?.role === 'admin' && (
-                <button
-                  aria-label="Delete opportunity"
-                  onClick={() => deleteOpportunity(o._id)}
-                  title="Delete"
-                  className="absolute right-3 top-3 w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center font-semibold transition-colors"
-                >
-                  ×
-                </button>
+                <button aria-label="Delete opportunity" onClick={() => deleteOpportunity(o._id)} title="Delete" style={{position:'absolute',right:12,top:12,width:34,height:34,borderRadius:8,background:'var(--card)',border:'1px solid var(--border)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>×</button>
               )}
-              <h3 className="text-xl font-semibold mb-2 text-slate-900 dark:text-slate-100">{o.title}</h3>
-              <p className="text-sm text-primary font-medium mb-2">🏢 {o.company}</p>
-              <p className="text-slate-700 dark:text-slate-300 mb-4">{o.description}</p>
+              <h3 className="text-xl font-semibold mb-2">{o.title}</h3>
+              <p className="text-sm muted font-medium mb-2">🏢 {o.company}</p>
+              <p className="muted mb-4">{o.description}</p>
               {o.closingDate && (
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-                  Closing: {new Date(o.closingDate).toLocaleDateString()}
-                </p>
+                <p className="text-xs muted mb-3">Closing: {new Date(o.closingDate).toLocaleDateString()}</p>
               )}
               {o.link && (
-                <a
-                  href={o.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block btn-primary text-sm mt-2"
-                >
-                  Apply / More Info
-                </a>
+                <a href={o.link} target="_blank" rel="noopener noreferrer"><Button variant="primary" className="text-sm mt-2">Apply / More Info</Button></a>
               )}
-            </div>
+            </Card>
           ))
         )}
       </div>

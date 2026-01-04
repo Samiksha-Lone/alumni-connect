@@ -15,7 +15,7 @@ const ChatPage = () => {
   }, [initialPartnerId]);
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex">
+    <div className="min-h-[calc(100vh-64px)] flex" style={{background:'var(--bg)', color:'var(--text)'}}>
       <ChatList onSelectChat={setSelectedChat} initialPartnerId={initialPartnerId} />
       <main className="flex-1 flex items-center justify-center p-6">
         {selectedChat ? (

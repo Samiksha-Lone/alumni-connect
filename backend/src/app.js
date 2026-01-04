@@ -6,13 +6,34 @@ const http = require('http');
 const socketIo = require('socket.io');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const logger = require('./utils/logger');
+const { errorHandler, notFoundHandler, asyncHandler } = require('./middlewares/error.middleware');
+
 const app = express();
 const server = http.createServer(app);
+
+// Rate limiting
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 requests per windowMs
+  message: 'Too many login attempts, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Socket.io setup FIRST
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:5173",  // Vite port
+    origin: process.env.FRONTEND_URL || process.env.ALLOWED_ORIGINS?.split(',')[0] || "http://localhost:5173",
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -32,12 +53,13 @@ io.use((socket, next) => {
     socket.role = decoded.role || 'student';
     next();
   } catch (error) {
+    logger.warn('Socket authentication failed', { error: error.message });
     next(new Error('Invalid token'));
   }
 });
 
 io.on('connection', (socket) => {
-  console.log(`User ${socket.userId} connected`);
+  logger.info(`User ${socket.userId} connected via Socket.IO`);
   socket.join(socket.userId); // Personal room
   
   socket.on('joinChat', (chatId) => socket.join(chatId));
@@ -49,22 +71,49 @@ io.on('connection', (socket) => {
   });
   
   socket.on('disconnect', () => {
-    console.log(`User ${socket.userId} disconnected`);
+    logger.info(`User ${socket.userId} disconnected from Socket.IO`);
+  });
+
+  // Handle connection errors
+  socket.on('error', (error) => {
+    logger.error('Socket error', { userId: socket.userId, error: error.message });
   });
 });
 
 // Pass io to app (for routes)
 app.set('io', io);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Security middleware
+app.use(helmet());
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookierParser());
+
+// CORS configuration with environment variables
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173').split(',');
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.some(o => origin.includes(o.trim()))) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET','POST','PUT','DELETE','OPTIONS']
 }));
+
+// Request logging middleware
+app.use((req, res, next) => {
+  logger.debug(`${req.method} ${req.path}`, {
+    userId: req.user?.id,
+    ip: req.ip,
+  });
+  next();
+});
 
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
@@ -72,6 +121,7 @@ const eventRoutes = require('./routes/event.routes');
 const galleryRoutes = require('./routes/gallery.routes');  
 const jobRoutes = require('./routes/job.routes'); 
 const chatRoutes = require('./routes/chat.routes');
+const docsRoutes = require('./routes/docs.routes');
 
 const Event = require('./models/event.model');
 const User = require('./models/user.model');
@@ -80,37 +130,46 @@ const Job = require('./models/job.model');
 
 require('./models/index');
 
+// API Routes with rate limiting
 app.get('/', (req, res) => {
-    res.send('Hello World!');
-})
-
-app.use('/auth', authRoutes);
-app.use('/users', userRoutes);
-app.use('/api', eventRoutes);
-app.use('/api', galleryRoutes);
-app.use('/api', jobRoutes);
-app.use('/api/chat', chatRoutes);
-
-app.get('/debug/status', async (req, res) => {
-  try {
-    const state = mongoose.connection.readyState;
-    const Message = require('./models/message.model'); // ADD THIS LINE
-    const [users, events, gallery, jobs, messages] = await Promise.all([
-      User.countDocuments(),
-      Event.countDocuments(),
-      Gallery.countDocuments(),
-      Job.countDocuments(),
-      Message.countDocuments() // ADD THIS LINE
-    ]);
-    res.json({ 
-      state, 
-      counts: { users, events, gallery, jobs, messages } // ADD messages
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    res.json({ message: 'Alumni Connect API - Server running' });
 });
 
-// module.exports = app;
+// Auth routes with stricter rate limiting
+app.use('/auth/login', loginLimiter);
+app.use('/auth/register', loginLimiter);
+app.use('/auth', authRoutes);
 
-module.exports = server;  // Export SERVER, not app
+// API docs (Swagger)
+app.use('/docs', docsRoutes);
+ 
+// Other routes with standard rate limiting
+app.use('/users', apiLimiter, userRoutes);
+app.use('/api', apiLimiter, eventRoutes);
+app.use('/api', apiLimiter, galleryRoutes);
+app.use('/api', apiLimiter, jobRoutes);
+app.use('/api/chat', apiLimiter, chatRoutes);
+
+app.get('/debug/status', asyncHandler(async (req, res) => {
+  const state = mongoose.connection.readyState;
+  const Message = require('./models/message.model');
+  const [users, events, gallery, jobs, messages] = await Promise.all([
+    User.countDocuments(),
+    Event.countDocuments(),
+    Gallery.countDocuments(),
+    Job.countDocuments(),
+    Message.countDocuments()
+  ]);
+  res.json({ 
+    state, 
+    counts: { users, events, gallery, jobs, messages }
+  });
+}));
+
+// 404 handler
+app.use(notFoundHandler);
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
+
+module.exports = server;
