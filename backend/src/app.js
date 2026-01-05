@@ -151,16 +151,44 @@ app.use(cookierParser());
 // }));
 
 // Clean the origins by removing trailing slashes and whitespace
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://alumni-connect-frontend-delta.vercel.app')
+// const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,https://alumni-connect-frontend-delta.vercel.app')
+//   .split(',')
+//   .map(origin => origin.trim().replace(/\/$/, "")); 
+
+// app.use(cors({
+//     origin: function (origin, callback) {
+//         // 1. Allow internal requests (like Postman or mobile apps) where origin is undefined
+//         if (!origin) return callback(null, true);
+        
+//         // 2. Check if the incoming origin is in our allowed list
+//         if (allowedOrigins.indexOf(origin) !== -1) {
+//             callback(null, true);
+//         } else {
+//             console.error(`CORS Blocked for origin: ${origin}`);
+//             callback(new Error('Not allowed by CORS'));
+//         }
+//     },
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type', 'Authorization']
+// }));
+
+// // Explicitly handle OPTIONS preflight for all routes
+// app.options('*', cors({
+//   origin: allowedOrigins,
+//   credentials: true,
+//   methods: ['GET','POST','PUT','DELETE','OPTIONS']
+// }));
+
+// 1. DEFINE THIS FIRST
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,https://alumni-connect-frontend-delta.vercel.app')
   .split(',')
   .map(origin => origin.trim().replace(/\/$/, "")); 
 
+// 2. NOW USE IT
 app.use(cors({
     origin: function (origin, callback) {
-        // 1. Allow internal requests (like Postman or mobile apps) where origin is undefined
         if (!origin) return callback(null, true);
-        
-        // 2. Check if the incoming origin is in our allowed list
         if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
@@ -173,12 +201,12 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Explicitly handle OPTIONS preflight for all routes
+// 3. Pre-flight
 app.options('*', cors({
   origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET','POST','PUT','DELETE','OPTIONS']
+  credentials: true
 }));
+
 
 // Request logging middleware
 app.use((req, res, next) => {
