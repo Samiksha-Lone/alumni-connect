@@ -31,31 +31,67 @@ const apiLimiter = rateLimit({
 });
 
 // Socket.io setup FIRST
+// const io = socketIo(server, {
+//   cors: {
+//     origin: process.env.FRONTEND_URL || process.env.ALLOWED_ORIGINS?.split(',')[0] || "https://alumni-connect-frontend-delta.vercel.app/",
+//     methods: ["GET", "POST"],
+//     credentials: true
+//   }
+// });
+
 const io = socketIo(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || process.env.ALLOWED_ORIGINS?.split(',')[0] || "https://alumni-connect-frontend-delta.vercel.app/",
+    origin: allowedOrigins, // Uses the cleaned array you created below
     methods: ["GET", "POST"],
     credentials: true
   }
 });
 
 // Socket JWT Auth (for your cookie-based JWT)
+// io.use((socket, next) => {
+//   try {
+//     // Extract token from cookies or auth header
+//     const token = socket.handshake.auth.token || 
+//                   socket.handshake.headers.cookie?.split('token=')[1]?.split(';')[0];
+    
+//     if (!token) return next(new Error('No token provided'));
+    
+//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+//     socket.userId = decoded.id;
+//     socket.role = decoded.role || 'student';
+//     next();
+//   } catch (error) {
+//     logger.warn('Socket authentication failed', { error: error.message });
+//     next(new Error('Invalid token'));
+//   }
+// });
+
+// Socket JWT Auth
 io.use((socket, next) => {
-  try {
-    // Extract token from cookies or auth header
-    const token = socket.handshake.auth.token || 
-                  socket.handshake.headers.cookie?.split('token=')[1]?.split(';')[0];
-    
-    if (!token) return next(new Error('No token provided'));
-    
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    socket.userId = decoded.id;
-    socket.role = decoded.role || 'student';
-    next();
-  } catch (error) {
-    logger.warn('Socket authentication failed', { error: error.message });
-    next(new Error('Invalid token'));
-  }
+    try {
+        // 1. Check handshake auth first
+        let token = socket.handshake.auth.token;
+
+        // 2. If not in auth, check headers.cookie
+        if (!token && socket.handshake.headers.cookie) {
+            // This Regex finds the word 'token', followed by '=', and captures everything 
+            // until the next ';' or the end of the string.
+            const match = socket.handshake.headers.cookie.match(/(?:^|; )token=([^;]*)/);
+            token = match ? match[1] : null;
+        }
+        
+        if (!token) {
+            return next(new Error('No token provided'));
+        }
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        socket.userId = decoded.id;
+        socket.role = decoded.role || 'student';
+        next();
+    } catch (error) {
+        logger.warn('Socket authentication failed', { error: error.message });
+        next(new Error('Invalid token'));
+    }
 });
 
 io.on('connection', (socket) => {
@@ -92,18 +128,49 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookierParser());
 
 // CORS configuration with environment variables
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://alumni-connect-frontend-delta.vercel.app/').split(',');
+// Remove trailing slashes from all origins to ensure a perfect match
+// const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://alumni-connect-frontend-delta.vercel.app')
+//   .split(',')
+//   .map(origin => origin.trim().replace(/\/$/, "")); 
+
+// app.use(cors({
+//     origin: function (origin, callback) {
+//         // Allow requests with no origin (like mobile apps or curl)
+//         if (!origin) return callback(null, true);
+        
+//         if (allowedOrigins.indexOf(origin) !== -1) {
+//             callback(null, true);
+//         } else {
+//             logger.error(`CORS Blocked: ${origin}`); // Log which origin is failing
+//             callback(new Error('Not allowed by CORS'));
+//         }
+//     },
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+// }));
+
+// Clean the origins by removing trailing slashes and whitespace
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://alumni-connect-frontend-delta.vercel.app')
+  .split(',')
+  .map(origin => origin.trim().replace(/\/$/, "")); 
+
 app.use(cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.some(o => origin.includes(o.trim()))) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+        // 1. Allow internal requests (like Postman or mobile apps) where origin is undefined
+        if (!origin) return callback(null, true);
+        
+        // 2. Check if the incoming origin is in our allowed list
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.error(`CORS Blocked for origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
     },
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    methods: ['GET','POST','PUT','DELETE','OPTIONS']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Explicitly handle OPTIONS preflight for all routes
@@ -143,8 +210,7 @@ app.get('/', (req, res) => {
 });
 
 // Auth routes with stricter rate limiting
-app.use('/auth/login', loginLimiter);
-app.use('/auth/register', loginLimiter);
+app.use('/auth/', loginLimiter);
 app.use('/auth', authRoutes);
 
 // API docs (Swagger)
