@@ -1,6 +1,5 @@
-//create server
 const express = require('express');
-const cookierParser = require('cookie-parser');
+const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -14,90 +13,54 @@ const { errorHandler, notFoundHandler, asyncHandler } = require('./middlewares/e
 const app = express();
 const server = http.createServer(app);
 
-// Rate limiting
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 5,
   message: 'Too many login attempts, please try again later',
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// Socket.io setup FIRST
-// const io = socketIo(server, {
-//   cors: {
-//     origin: process.env.FRONTEND_URL || process.env.ALLOWED_ORIGINS?.split(',')[0] || "https://alumni-connect-frontend-delta.vercel.app/",
-//     methods: ["GET", "POST"],
-//     credentials: true
-//   }
-// });
+var allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,https://alumni-connect-frontend-delta.vercel.app')
+  .split(',')
+  .map(origin => origin.trim().replace(/\/$/, ""));
 
 const io = socketIo(server, {
   cors: {
-    origin: allowedOrigins, // Uses the cleaned array you created below
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true
   }
 });
 
-// Socket JWT Auth (for your cookie-based JWT)
-// io.use((socket, next) => {
-//   try {
-//     // Extract token from cookies or auth header
-//     const token = socket.handshake.auth.token || 
-//                   socket.handshake.headers.cookie?.split('token=')[1]?.split(';')[0];
-    
-//     if (!token) return next(new Error('No token provided'));
-    
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-//     socket.userId = decoded.id;
-//     socket.role = decoded.role || 'student';
-//     next();
-//   } catch (error) {
-//     logger.warn('Socket authentication failed', { error: error.message });
-//     next(new Error('Invalid token'));
-//   }
-// });
-
-// Socket JWT Auth
 io.use((socket, next) => {
-    try {
-        // 1. Check handshake auth first
-        let token = socket.handshake.auth.token;
-
-        // 2. If not in auth, check headers.cookie
-        if (!token && socket.handshake.headers.cookie) {
-            // This Regex finds the word 'token', followed by '=', and captures everything 
-            // until the next ';' or the end of the string.
-            const match = socket.handshake.headers.cookie.match(/(?:^|; )token=([^;]*)/);
-            token = match ? match[1] : null;
-        }
-        
-        if (!token) {
-            return next(new Error('No token provided'));
-        }
-        
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        socket.userId = decoded.id;
-        socket.role = decoded.role || 'student';
-        next();
-    } catch (error) {
-        logger.warn('Socket authentication failed', { error: error.message });
-        next(new Error('Invalid token'));
+  try {
+    let token = socket.handshake.auth.token;
+    if (!token && socket.handshake.headers.cookie) {
+      const match = socket.handshake.headers.cookie.match(/(?:^|; )token=([^;]*)/);
+      token = match ? match[1] : null;
     }
+    if (!token) return next(new Error('No token provided'));
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.id;
+    socket.role = decoded.role || 'student';
+    next();
+  } catch (error) {
+    logger.warn('Socket authentication failed', { error: error.message });
+    next(new Error('Invalid token'));
+  }
 });
 
 io.on('connection', (socket) => {
   logger.info(`User ${socket.userId} connected via Socket.IO`);
-  socket.join(socket.userId); // Personal room
-  
+  socket.join(socket.userId);
   socket.on('joinChat', (chatId) => socket.join(chatId));
   socket.on('typing', (data) => {
     socket.to(data.chatId).emit('typing', { 
@@ -105,110 +68,41 @@ io.on('connection', (socket) => {
       isTyping: data.isTyping 
     });
   });
-  
   socket.on('disconnect', () => {
     logger.info(`User ${socket.userId} disconnected from Socket.IO`);
   });
-
-  // Handle connection errors
   socket.on('error', (error) => {
     logger.error('Socket error', { userId: socket.userId, error: error.message });
   });
 });
 
-// Pass io to app (for routes)
 app.set('io', io);
 
-// Security middleware
 app.use(helmet());
-
-// Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cookierParser());
+app.use(cookieParser());
 
-// CORS configuration with environment variables
-// Remove trailing slashes from all origins to ensure a perfect match
-// const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://alumni-connect-frontend-delta.vercel.app')
-//   .split(',')
-//   .map(origin => origin.trim().replace(/\/$/, "")); 
-
-// app.use(cors({
-//     origin: function (origin, callback) {
-//         // Allow requests with no origin (like mobile apps or curl)
-//         if (!origin) return callback(null, true);
-        
-//         if (allowedOrigins.indexOf(origin) !== -1) {
-//             callback(null, true);
-//         } else {
-//             logger.error(`CORS Blocked: ${origin}`); // Log which origin is failing
-//             callback(new Error('Not allowed by CORS'));
-//         }
-//     },
-//     credentials: true,
-//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-// }));
-
-// Clean the origins by removing trailing slashes and whitespace
-// const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,https://alumni-connect-frontend-delta.vercel.app')
-//   .split(',')
-//   .map(origin => origin.trim().replace(/\/$/, "")); 
-
-// app.use(cors({
-//     origin: function (origin, callback) {
-//         // 1. Allow internal requests (like Postman or mobile apps) where origin is undefined
-//         if (!origin) return callback(null, true);
-        
-//         // 2. Check if the incoming origin is in our allowed list
-//         if (allowedOrigins.indexOf(origin) !== -1) {
-//             callback(null, true);
-//         } else {
-//             console.error(`CORS Blocked for origin: ${origin}`);
-//             callback(new Error('Not allowed by CORS'));
-//         }
-//     },
-//     credentials: true,
-//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//     allowedHeaders: ['Content-Type', 'Authorization']
-// }));
-
-// // Explicitly handle OPTIONS preflight for all routes
-// app.options('*', cors({
-//   origin: allowedOrigins,
-//   credentials: true,
-//   methods: ['GET','POST','PUT','DELETE','OPTIONS']
-// }));
-
-// 1. DEFINE THIS FIRST
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,https://alumni-connect-frontend-delta.vercel.app')
-  .split(',')
-  .map(origin => origin.trim().replace(/\/$/, "")); 
-
-// 2. NOW USE IT
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            console.error(`CORS Blocked for origin: ${origin}`);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.error(`CORS Blocked for origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// 3. Pre-flight
 app.options('*', cors({
   origin: allowedOrigins,
   credentials: true
 }));
 
-
-// Request logging middleware
 app.use((req, res, next) => {
   logger.debug(`${req.method} ${req.path}`, {
     userId: req.user?.id,
@@ -220,8 +114,8 @@ app.use((req, res, next) => {
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const eventRoutes = require('./routes/event.routes');
-const galleryRoutes = require('./routes/gallery.routes');  
-const jobRoutes = require('./routes/job.routes'); 
+const galleryRoutes = require('./routes/gallery.routes');
+const jobRoutes = require('./routes/job.routes');
 const chatRoutes = require('./routes/chat.routes');
 const docsRoutes = require('./routes/docs.routes');
 
@@ -232,19 +126,15 @@ const Job = require('./models/job.model');
 
 require('./models/index');
 
-// API Routes with rate limiting
 app.get('/', (req, res) => {
-    res.json({ message: 'Alumni Connect API - Server running' });
+  res.json({ message: 'Alumni Connect API - Server running' });
 });
 
-// Auth routes with stricter rate limiting
 app.use('/auth/', loginLimiter);
 app.use('/auth', authRoutes);
 
-// API docs (Swagger)
 app.use('/docs', docsRoutes);
- 
-// Other routes with standard rate limiting
+
 app.use('/users', apiLimiter, userRoutes);
 app.use('/api', apiLimiter, eventRoutes);
 app.use('/api', apiLimiter, galleryRoutes);
@@ -267,10 +157,12 @@ app.get('/debug/status', asyncHandler(async (req, res) => {
   });
 }));
 
-// 404 handler
 app.use(notFoundHandler);
-
-// Error handling middleware (must be last)
 app.use(errorHandler);
+
+const PORT = process.env.PORT || 10000;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server + Socket.IO running on port ${PORT}`);
+});
 
 module.exports = server;
