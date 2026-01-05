@@ -98,10 +98,11 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.options('*', cors({
+app.options('/*splat', cors({
   origin: allowedOrigins,
   credentials: true
 }));
+
 
 app.use((req, res, next) => {
   logger.debug(`${req.method} ${req.path}`, {
