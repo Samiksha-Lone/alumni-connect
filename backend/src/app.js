@@ -28,7 +28,7 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-var allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,https://alumni-connect-frontend-delta.vercel.app')
+var allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173, https://alumni-connect-frontendd.vercel.app')
   .split(',')
   .map(origin => origin.trim().replace(/\/$/, ""));
 
@@ -83,22 +83,15 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
+
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.error(`CORS Blocked for origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.options('/*splat', cors({
+app.options('*', cors({
   origin: allowedOrigins,
   credentials: true
 }));
