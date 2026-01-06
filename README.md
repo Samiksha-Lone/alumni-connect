@@ -253,17 +253,23 @@ The frontend will run on `http://localhost:5173`
 ### Backend (.env)
 ```env
 PORT=3000
-MONGO_URI=mongodb://localhost:27017/alumni_connect
+MONGO_URI=mongodb+srv://event_user:event_user@cluster0.9okzyvg.mongodb.net/alumni_connect?retryWrites=true&w=majority
 JWT_SECRET=your_jwt_secret_key_here
-ADMIN_NAME=Main Admin
-ADMIN_EMAIL=admin@alumni.com
-ADMIN_PASSWORD=admin123
+VITE_API_BASE=https://alumni-connect-backend-hrsc.onrender.com
+FRONTEND_URL=https://alumni-connect-frontend-delta.vercel.app
+ALLOWED_ORIGINS=https://alumni-connect-frontend-delta.vercel.app,http://localhost:5173,http://localhost:3000
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-### Frontend (.env)
+### Frontend (.env / Vercel Environment Variables)
 ```env
-VITE_API_BASE=http://localhost:3000
+VITE_API_BASE=https://alumni-connect-backend-hrsc.onrender.com
 ```
+
+**Important**: For Vercel deployment, add `VITE_API_BASE` environment variable:
+1. Vercel Dashboard → Project Settings → Environment Variables
+2. Add: `VITE_API_BASE` = `https://alumni-connect-backend-hrsc.onrender.com`
+3. Select "Production", "Preview", and "Development" environments
 
 ## 🔒 Authentication
 
@@ -359,6 +365,12 @@ The application includes comprehensive error handling:
 - API error responses with meaningful messages
 - Client-side error boundaries
 
+## 🌐 Deployment
+
+### Live URLs
+- **Frontend**: https://alumni-connect-frontend-delta.vercel.app
+- **Backend API**: https://alumni-connect-backend-hrsc.onrender.com
+
 ## 📝 Contributing
 
 1. Fork the repository
@@ -371,5 +383,5 @@ The application includes comprehensive error handling:
 
 This project is licensed under the ISC License - see the LICENSE file for details.
 
-**Last Updated**: December 27, 2025  
+**Last Updated**: January 6, 2026  
 **Version**: 1.0.0
