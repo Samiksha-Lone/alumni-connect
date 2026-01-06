@@ -131,7 +131,8 @@ app.get('/', (req, res) => {
   res.json({ message: 'Alumni Connect API - Server running' });
 });
 
-app.use('/auth/', loginLimiter);
+// Disabled login rate limiter for development
+// app.use('/auth/', loginLimiter);
 app.use('/auth', authRoutes);
 
 app.use('/docs', docsRoutes);

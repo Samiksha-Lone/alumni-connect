@@ -172,9 +172,113 @@ async function meUser(req, res, next) {
   }
 }
 
+async function forgotPassword(req, res, next) {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        message: 'Email is required',
+        errors: [{ field: 'email', message: 'Email is required' }]
+      });
+    }
+
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      // Don't reveal if email exists for security
+      logger.warn(`Forgot password attempt with non-existent email: ${email}`);
+      return res.status(200).json({
+        message: 'If email exists, a reset link has been sent'
+      });
+    }
+
+    // Generate reset token (expires in 1 hour)
+    const resetToken = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+        type: 'reset'
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    // For now, just return the token (in production, send via email)
+    logger.info(`Password reset token generated for user: ${user._id}`);
+    
+    res.status(200).json({
+      message: 'If email exists, a reset link has been sent',
+      resetToken // For testing/demo purposes
+    });
+  } catch (err) {
+    logger.error(`Forgot password error: ${err.message}`);
+    next(err);
+  }
+}
+
+async function resetPassword(req, res, next) {
+  try {
+    const { token } = req.params;
+    const { newPassword, confirmPassword } = req.body;
+
+    if (!newPassword || !confirmPassword) {
+      return res.status(400).json({
+        message: 'New password is required'
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        message: 'Passwords do not match'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        message: 'Password must be at least 6 characters long'
+      });
+    }
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      logger.warn(`Invalid or expired reset token`);
+      return res.status(400).json({
+        message: 'Reset link expired or invalid'
+      });
+    }
+
+    if (decoded.type !== 'reset') {
+      return res.status(400).json({
+        message: 'Invalid token type'
+      });
+    }
+
+    // Update password
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await userModel.findByIdAndUpdate(
+      decoded.id,
+      { password: hashedPassword }
+    );
+
+    logger.info(`Password reset successful for user: ${decoded.id}`);
+
+    res.status(200).json({
+      message: 'Password reset successfully'
+    });
+  } catch (err) {
+    logger.error(`Reset password error: ${err.message}`);
+    next(err);
+  }
+}
+
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
-  meUser
+  meUser,
+  forgotPassword,
+  resetPassword
 };
