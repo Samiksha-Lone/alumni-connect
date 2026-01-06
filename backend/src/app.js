@@ -91,10 +91,10 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.options('/(.*)', cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
+// app.options('/(.*)', cors({
+//   origin: allowedOrigins,
+//   credentials: true
+// }));
 
 
 app.use((req, res, next) => {
