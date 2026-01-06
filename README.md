@@ -368,7 +368,7 @@ The application includes comprehensive error handling:
 ## 🌐 Deployment
 
 ### Live URLs
-- **Frontend**: https://alumni-connect-frontend-delta.vercel.app
+- **Frontend**: https://alumni-connect-frontendd.vercel.app
 - **Backend API**: https://alumni-connect-backend-hrsc.onrender.com
 
 ## 📝 Contributing
