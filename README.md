@@ -239,9 +239,6 @@ Making this project, I learned:
 
 **Samiksha Balaji Lone**
 - Final year B.Tech IT student
-- **Previous Internships:**
-  - BeyondChats (MERN Stack)
-  - SoftCADD (Web Development)
 - **Skills:** MERN, Tailwind CSS, Socket.io, Express, MongoDB, Vercel, Render
 
 **Contact me:**
