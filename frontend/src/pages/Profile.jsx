@@ -37,8 +37,8 @@ function AdminPanel({ users, fetchAllUsers }) {
     <div className="pt-12 mt-12 border-t border-slate-200 dark:border-slate-800">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl font-bold dark:text-white">Management Console</h2>
-        <button 
-          onClick={() => setShowAddAdmin(!showAddAdmin)} 
+        <button
+          onClick={() => setShowAddAdmin(!showAddAdmin)}
           className="px-4 py-2 font-medium text-white transition-opacity rounded-lg bg-slate-900 dark:bg-slate-100 dark:text-slate-900 hover:opacity-90"
         >
           {showAddAdmin ? 'Close Form' : 'Add New Admin'}
@@ -60,9 +60,9 @@ function AdminPanel({ users, fetchAllUsers }) {
       {showAddAdmin && (
         <Card className="p-6 mb-8 animate-in fade-in slide-in-from-top-4">
           <form onSubmit={handleAddAdmin} className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <input className="form-input" placeholder="Full Name" value={newAdmin.name} onChange={e => setNewAdmin({...newAdmin, name: e.target.value})} required />
-            <input className="form-input" type="email" placeholder="Email" value={newAdmin.email} onChange={e => setNewAdmin({...newAdmin, email: e.target.value})} required />
-            <input className="form-input" type="password" placeholder="Password" value={newAdmin.password} onChange={e => setNewAdmin({...newAdmin, password: e.target.value})} required />
+            <input className="form-input" placeholder="Full Name" value={newAdmin.name} onChange={e => setNewAdmin({ ...newAdmin, name: e.target.value })} required />
+            <input className="form-input" type="email" placeholder="Email" value={newAdmin.email} onChange={e => setNewAdmin({ ...newAdmin, email: e.target.value })} required />
+            <input className="form-input" type="password" placeholder="Password" value={newAdmin.password} onChange={e => setNewAdmin({ ...newAdmin, password: e.target.value })} required />
             <Button disabled={loading} className="sm:col-span-3">{loading ? 'Creating...' : 'Register Admin Account'}</Button>
           </form>
         </Card>
@@ -83,25 +83,15 @@ export default function Profile() {
 
   if (!user) return <div className="p-20 text-center text-slate-500">Authentication required...</div>
 
-  // async function handleSave() {
-  //   setLoading(true)
-  //   try {
-  //     const res = await axios.put(`${API_BASE}/users/${user._id}`, form)
-  //     setUser(res.data)
-  //     setEditing(false)
-  //     alert("Profile updated successfully!")
-  //   } catch (error) {
-  //     alert(error.response?.data?.message || "Update failed")
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
-
   async function handleSave() {
+  if (!user?._id || !token) {
+    alert('Please refresh and log in again.');
+    return;
+  }
   setLoading(true)
   try {
     const res = await axios.put(
-      `/users/${user._id}`,
+      `${API_BASE}/users/${user._id}`,
       form,
       { headers: { Authorization: `Bearer ${token}` } }
     )
@@ -109,11 +99,13 @@ export default function Profile() {
     setEditing(false)
     alert("Profile updated successfully!")
   } catch (error) {
+    console.error('Update error:', error.response?.data || error.message)
     alert(error.response?.data?.message || "Update failed")
   } finally {
     setLoading(false)
   }
 }
+
 
   return (
     <section className="max-w-4xl px-6 py-12 mx-auto">
@@ -140,14 +132,40 @@ export default function Profile() {
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             <ProfileField label="Full Name" name="name" value={form.name} editing={editing} onChange={setForm} />
             <ProfileField label="Email Address" name="email" value={form.email} editing={editing} onChange={setForm} type="email" />
-            
-            {user.role === 'student' && (
+
+            {/* {user.role === 'student' && (
               <>
-                <ProfileField label="Year of Study" name="yearOfStudying" value={form.yearOfStudying} editing={editing} onChange={setForm} type="number" />
+                <ProfileField 
+                label="Year of Study" 
+                name="yearOfStudying" 
+                value={form.yearOfStudying} 
+                editing={editing} 
+                onChange={setForm} type="number" max="4" />
                 <ProfileField label="Course Name" name="course" value={form.course} editing={editing} onChange={setForm} />
               </>
-            )}
+            )} */}
 
+            {user.role === 'student' && (
+  <>
+    <ProfileSelectField  // ← This is CORRECT
+      label="Year of Study"
+      name="yearOfStudying"
+      value={form.yearOfStudying}
+      editing={editing}
+      onChange={setForm}
+      options={[
+        { value: '', label: 'Select Year' },
+        { value: '1', label: '1st Year' },
+        { value: '2', label: '2nd Year' },
+        { value: '3', label: '3rd Year' },
+        { value: '4', label: '4th Year' }
+      ]}
+    />
+    <ProfileField label="Course Name" name="course" value={form.course} editing={editing} onChange={setForm} />
+  </>
+)}
+
+            
             {user.role === 'alumni' && (
               <>
                 <ProfileField label="Graduation Year" name="graduationYear" value={form.graduationYear} editing={editing} onChange={setForm} type="number" />
@@ -178,7 +196,7 @@ function ProfileField({ label, name, value, editing, onChange, type = "text", cl
     <div className={className}>
       <label className="block mb-2 text-xs font-bold tracking-wider uppercase text-slate-400">{label}</label>
       {editing ? (
-        <input 
+        <input
           type={type}
           className="w-full p-3 transition-all border outline-none rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500"
           value={value || ''}
@@ -186,6 +204,32 @@ function ProfileField({ label, name, value, editing, onChange, type = "text", cl
         />
       ) : (
         <p className="text-lg font-semibold text-slate-800 dark:text-slate-200">{value || 'Not provided'}</p>
+      )}
+    </div>
+  )
+}
+
+// ADD THIS NEW COMPONENT RIGHT HERE - AFTER ProfileField
+function ProfileSelectField({ label, name, value, editing, onChange, options, className = "" }) {
+  return (
+    <div className={className}>
+      <label className="block mb-2 text-xs font-bold tracking-wider uppercase text-slate-400">{label}</label>
+      {editing ? (
+        <select 
+          className="w-full p-3 transition-all border outline-none rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500"
+          value={value || ''}
+          onChange={(e) => onChange(prev => ({ ...prev, [name]: e.target.value }))}
+        >
+          {options.map(opt => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <p className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+          {options.find(o => o.value === value)?.label || 'Not provided'}
+        </p>
       )}
     </div>
   )

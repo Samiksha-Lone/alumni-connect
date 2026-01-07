@@ -4,11 +4,13 @@ const router = express.Router();
 const eventController = require('../controllers/event.controller');
 const authenticate = require('../middlewares/auth.middleware');
 
-router.post('/events', authenticate, eventController.createEvent);
-router.get('/events', eventController.getEvents);
+router.post('/', authenticate, eventController.createEvent);
+router.get('/', eventController.getEvents);
 
-router.put('/events/:id', authenticate, eventController.updateEvent);
+router.put('/:id', authenticate, eventController.updateEvent);
 
-router.delete('/events/:id', authenticate, eventController.deleteEvent);
+router.delete('/:id', authenticate, eventController.deleteEvent);
+
+router.post('/:id/rsvp', authenticate, eventController.rsvpEvent);
 
 module.exports = router;

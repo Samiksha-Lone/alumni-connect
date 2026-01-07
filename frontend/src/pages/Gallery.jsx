@@ -231,7 +231,7 @@ export default function Gallery() {
   const fetchGallery = useCallback(async () => {
     try {
       setLoading(true)
-      const res = await axios.get(`${API_BASE}/api/gallery`)
+      const res = await axios.get(`${API_BASE}/gallery`)
       setItems(res.data || [])
       setError('')
     } catch (err) {
@@ -259,7 +259,7 @@ export default function Gallery() {
     if (!url) return setError('Please provide an image URL')
     try {
       setLoading(true)
-      await axios.post(`${API_BASE}/api/gallery`, { imageUrl: url, description: 'Campus Life' })
+      await axios.post(`${API_BASE}/gallery`, { imageUrl: url, description: 'Campus Life' })
       setUrl('')
       setError('')
       await fetchGallery()
@@ -275,7 +275,7 @@ export default function Gallery() {
     if (!window.confirm('Remove this image from gallery?')) return
     try {
       setLoading(true)
-      await axios.delete(`${API_BASE}/api/gallery/${id}`)
+      await axios.delete(`${API_BASE}/gallery/${id}`)
       await fetchGallery()
     } catch (err) {
       setError(err.response?.data?.message || 'Delete failed')

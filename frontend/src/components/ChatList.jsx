@@ -14,7 +14,7 @@ const ChatList = ({ onSelectChat, initialPartnerId }) => {
   useEffect(() => {
     const fetchConversations = async () => {
       try {
-        const res = await api.get('/api/chat/conversations');
+        const res = await api.get('/chat/conversations');
         const data = res.data || [];
         setConversations(data);
 

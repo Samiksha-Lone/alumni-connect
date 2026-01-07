@@ -1,139 +1,10 @@
-// import React, { useEffect, useState, useCallback } from 'react'
-// import axios from 'axios'
-// import { useAuth } from '../context/AuthContext'
-// import Card from '../components/ui/Card'
-// import Button from '../components/ui/Button'
-
-// const API_BASE = import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
-
-// export default function Events() {
-//   const { user, token } = useAuth()
-//   const [items, setItems] = useState([])
-//   const [title, setTitle] = useState('')
-//   const [date, setDate] = useState('')
-//   const [desc, setDesc] = useState('')
-//   const [loading, setLoading] = useState(false)
-//   const [error, setError] = useState('')
-
-//   const fetchEvents = useCallback(async () => {
-//     try {
-//       setLoading(true)
-//       const res = await axios.get(`${API_BASE}/api/events`)
-//       setItems(res.data || [])
-//       setError('')
-//     } catch (err) {
-//       console.error('Failed to fetch events:', err.message)
-//       setError(err.response?.data?.message || 'Failed to load events')
-//     } finally {
-//       setLoading(false)
-//     }
-//   }, [])
-
-//   useEffect(() => {
-//     fetchEvents()
-//   }, [fetchEvents])
-
-//   async function add() {
-//     if (!title || !token) {
-//       setError(token ? 'Title is required' : 'You must be logged in')
-//       return
-//     }
-//     try {
-//       setLoading(true)
-//       await axios.post(`${API_BASE}/api/events`, { title, description: desc, eventDate: date }, { headers: { Authorization: `Bearer ${token}` } })
-//       setTitle('')
-//       setDate('')
-//       setDesc('')
-//       setError('')
-//       await fetchEvents()
-//     } catch (err) {
-//       console.error('Failed to add event:', err.message)
-//       setError(err.response?.data?.message || 'Failed to add event')
-//       setLoading(false)
-//     }
-//   }
-
-//   async function deleteEvent(id) {
-//     if (!window.confirm('Delete this event?')) return
-//     try {
-//       setLoading(true)
-//       await axios.delete(`${API_BASE}/api/events/${id}`, { headers: { Authorization: `Bearer ${token}` } })
-//       await fetchEvents()
-//     } catch (err) {
-//       console.error('Failed to delete event:', err)
-//       setError(err.response?.data?.message || 'Failed to delete event')
-//     } finally {
-//       setLoading(false)
-//     }
-//   }
-
-//   return (
-//     <section className="px-6 py-12 mx-auto max-w-7xl">
-//       <div className="flex items-start justify-between gap-6 mb-8">
-//         <h2 className="text-4xl font-bold">Events</h2>
-//         {user?.role === 'admin' && (
-//           <Card className="w-full max-w-3xl p-4">
-//             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-//               <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="form-input" />
-//               <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="form-input" />
-//               <input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Description" className="form-input" />
-//               <Button onClick={add} disabled={loading} className="col-span-1 sm:col-span-2 lg:col-span-1">{loading ? 'Adding...' : 'Add'}</Button>
-//             </div>
-//           </Card>
-//         )}
-//       </div>
-
-//       {error && <div className="mb-6 alert-error">{error}</div>}
-
-//       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-//         {loading ? (
-//           <div className="py-12 text-center col-span-full">
-//             <p className="muted">Loading events...</p>
-//           </div>
-//         ) : items.length === 0 ? (
-//           <div className="py-12 text-center col-span-full">
-//             <p className="muted">No events yet</p>
-//           </div>
-//         ) : (
-//           items.map((e) => (
-//             <div key={e._id} className="relative flex flex-col h-full p-6 transition-colors duration-150 bg-white border rounded-lg border-slate-200 dark:border-slate-800 dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900">
-//               {user?.role === 'admin' && (
-//                 <button 
-//                   aria-label="Delete event" 
-//                   onClick={() => deleteEvent(e._id)} 
-//                   title="Delete"
-//                   className="absolute flex items-center justify-center w-8 h-8 text-red-600 transition-colors duration-150 bg-white border rounded-lg cursor-pointer top-4 right-4 border-slate-200 dark:border-slate-700 dark:bg-slate-950 hover:bg-red-50 dark:hover:bg-red-950 dark:text-red-400"
-//                 >
-//                   ×
-//                 </button>
-//               )}
-              
-//               <div className="flex-grow pr-8">
-//                 <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-50">{e.title}</h3>
-//                 <p className="mb-3 text-sm text-slate-600 dark:text-slate-400">📅 {new Date(e.eventDate).toLocaleDateString()}</p>
-//                 <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">{e.description}</p>
-//               </div>
-              
-//               <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-800">
-//                 <a href="#" className="text-sm font-medium text-blue-600 transition-colors duration-150 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
-//                   View details →
-//                 </a>
-//               </div>
-//             </div>
-//           ))
-//         )}
-//       </div>
-//     </section>
-//   )
-// }
-
-
-
 import React, { useEffect, useState, useCallback } from 'react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
+import { useNavigate } from 'react-router-dom'; 
+import { toast } from 'react-hot-toast';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
 
@@ -145,12 +16,15 @@ export default function Events() {
   const [desc, setDesc] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [rsvpStatus, setRsvpStatus] = useState({});
+
+  const navigate = useNavigate();
 
   const fetchEvents = useCallback(async () => {
     try {
       setLoading(true)
       // withCredentials is true by default in our global axios config
-      const res = await axios.get(`${API_BASE}/api/events`)
+      const res = await axios.get(`${API_BASE}/events`)
       setItems(res.data || [])
       setError('')
     } catch (err) {
@@ -169,16 +43,16 @@ export default function Events() {
       setError('Event title is required')
       return
     }
-    
+
     try {
       setLoading(true)
       // Headers are removed because cookies handle Auth automatically
-      await axios.post(`${API_BASE}/api/events`, { 
-        title, 
-        description: desc, 
-        eventDate: date 
+      await axios.post(`${API_BASE}/events`, {
+        title,
+        description: desc,
+        eventDate: date
       })
-      
+
       setTitle('')
       setDate('')
       setDesc('')
@@ -195,7 +69,7 @@ export default function Events() {
     if (!window.confirm('Are you sure you want to delete this event?')) return
     try {
       setLoading(true)
-      await axios.delete(`${API_BASE}/api/events/${id}`)
+      await axios.delete(`${API_BASE}/events/${id}`)
       await fetchEvents()
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete event')
@@ -203,6 +77,24 @@ export default function Events() {
       setLoading(false)
     }
   }
+
+  const handleRsvp = async (eventId, title) => {
+  if (!user) {
+    navigate('/auth');
+    return;
+  }
+  try {
+    setLoading(true);  // ← Add
+    await axios.post(`${API_BASE}/events/${eventId}/rsvp`);
+    setRsvpStatus(prev => ({...prev, [eventId]: true}));
+    toast.success(`RSVP'd for ${title}!`);
+    fetchEvents();  // ← Refresh list (capacity updates)
+  } catch(err) {
+    toast.error(err.response?.data?.message || 'Event full');
+  } finally {
+    setLoading(false);  // ← Add
+  }
+};
 
   return (
     <section className="px-6 py-12 mx-auto max-w-7xl">
@@ -248,10 +140,10 @@ export default function Events() {
         ) : (
           items.map((e) => (
             <div key={e._id} className="relative flex flex-col h-full overflow-hidden transition-all duration-300 bg-white border group dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl hover:shadow-xl">
-              
+
               {user?.role === 'admin' && (
-                <button 
-                  onClick={() => deleteEvent(e._id)} 
+                <button
+                  onClick={() => deleteEvent(e._id)}
                   className="absolute z-10 p-2 text-red-500 transition-opacity rounded-full opacity-0 top-3 right-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm group-hover:opacity-100 hover:bg-red-50"
                   title="Delete Event"
                 >
@@ -260,24 +152,41 @@ export default function Events() {
                   </svg>
                 </button>
               )}
-              
+
               <div className="flex-grow p-6">
                 <div className="flex items-center gap-2 mb-4">
-                   <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded">Upcoming</span>
-                   <span className="text-xs text-slate-500">📅 {new Date(e.eventDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                  <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded">Upcoming</span>
+                  <span className="text-xs text-slate-500">📅 {new Date(e.eventDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                 </div>
-                
+
                 <h3 className="mb-3 text-xl font-bold transition-colors text-slate-900 dark:text-white group-hover:text-blue-600">{e.title}</h3>
                 <p className="mb-4 text-sm leading-relaxed text-slate-600 dark:text-slate-400 line-clamp-3">
                   {e.description}
                 </p>
               </div>
-              
-              <div className="px-6 py-4 border-t bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800">
+
+              {/* <div className="px-6 py-4 border-t bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800">
                 <button className="flex items-center text-sm font-semibold text-blue-600 transition-all dark:text-blue-400 hover:gap-2">
                   Register for Event <span className="ml-1">→</span>
                 </button>
+              </div> */}
+
+              <div className="px-6 py-4 border-t bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800">
+                {rsvpStatus[e._id] ? (
+                  <span className="flex items-center text-sm font-semibold text-green-600 dark:text-green-400">
+                    ✓ RSVP Confirmed
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => handleRsvp(e._id, e.title)}
+                    disabled={loading || e.isFull}
+                    className="flex items-center text-sm font-semibold text-blue-600 transition-all dark:text-blue-400 hover:gap-2 disabled:opacity-50"
+                  >
+                    Register for Event <span className="ml-1">→</span>
+                  </button>
+                )}
               </div>
+
             </div>
           ))
         )}

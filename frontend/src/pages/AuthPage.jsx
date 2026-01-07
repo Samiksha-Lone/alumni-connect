@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { useToast } from '../context/useToast'
 import axios from 'axios'
 
 const API_BASE =
@@ -10,6 +11,7 @@ const API_BASE =
 export default function AuthPage() {
   const [mode, setMode] = useState('login')
   const { register, login, loading } = useAuth()
+  const { success: showSuccess, error: showError } = useToast()
   const nav = useNavigate()
 
   // Form States
@@ -22,8 +24,6 @@ export default function AuthPage() {
   const [yearOfPassing, setYearOfPassing] = useState('')
   const [company, setCompany] = useState('')
   const [jobRole, setJobRole] = useState('')
-  const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(null)
 
   // Forgot Password States
   const [showForgotModal, setShowForgotModal] = useState(false)
@@ -36,7 +36,32 @@ export default function AuthPage() {
 
   async function handleRegister(e) {
     e.preventDefault()
-    setError(null)
+
+    // Validation
+    if (!name.trim()) {
+      showError('Please enter your full name')
+      return
+    }
+
+    if (!email.trim()) {
+      showError('Please enter your email address')
+      return
+    }
+
+    if (password.length < 6) {
+      showError('Password must be at least 6 characters long')
+      return
+    }
+
+    if (role === 'student' && !yearOfStudy) {
+      showError('Please enter your year of study')
+      return
+    }
+
+    if (role === 'alumni' && !yearOfPassing) {
+      showError('Please enter your year of passing')
+      return
+    }
 
     const payload = { name, email, password, role }
 
@@ -52,43 +77,58 @@ export default function AuthPage() {
 
     const res = await register(payload)
     if (!res.ok) {
-      setError(res.error)
+      showError(res.error || 'Registration failed. Please try again.')
     } else {
-      nav('/profile')
+      showSuccess('Account created successfully! Welcome aboard 🎉')
+      setTimeout(() => nav('/profile'), 1500)
     }
   }
 
   async function handleLogin(e) {
     e.preventDefault()
-    setError(null)
+
+    if (!email.trim()) {
+      showError('Please enter your email address')
+      return
+    }
+
+    if (!password) {
+      showError('Please enter your password')
+      return
+    }
 
     const res = await login({ email, password, role })
 
     if (!res.ok) {
-      setError(res.error)
+      showError(res.error || 'Login failed. Please check your credentials.')
     } else {
-      nav('/profile')
+      showSuccess('Login successful! Redirecting...')
+      setTimeout(() => nav('/profile'), 1500)
     }
   }
 
   async function handleForgotPassword(e) {
     e.preventDefault()
     setForgotLoading(true)
-    setError(null)
-    setSuccess(null)
+
+    if (!forgotEmail.trim()) {
+      showError('Please enter your email address')
+      setForgotLoading(false)
+      return
+    }
 
     try {
       const response = await axios.post(`${API_BASE}/auth/forgot-password`, {
         email: forgotEmail,
       })
-      setSuccess('If email exists, a reset link has been sent')
+      showSuccess('Reset link sent to your email if account exists')
       if (response.data.resetToken) {
         setResetToken(response.data.resetToken)
         setShowResetForm(true)
         setForgotEmail('')
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send reset link')
+      showError(err.response?.data?.message || 'Failed to send reset link. Please try again.')
     } finally {
       setForgotLoading(false)
     }
@@ -96,16 +136,14 @@ export default function AuthPage() {
 
   async function handleResetPassword(e) {
     e.preventDefault()
-    setError(null)
-    setSuccess(null)
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match')
+      showError('Passwords do not match')
       return
     }
 
     if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters')
+      showError('Password must be at least 6 characters')
       return
     }
 
@@ -116,15 +154,18 @@ export default function AuthPage() {
         newPassword,
         confirmPassword,
       })
-      setSuccess('Password reset successful! You can now login.')
-      setShowForgotModal(false)
-      setShowResetForm(false)
-      setResetToken('')
-      setNewPassword('')
-      setConfirmPassword('')
-      setForgotEmail('')
+      showSuccess('Password reset successful! You can now login.')
+      setTimeout(() => {
+        setShowForgotModal(false)
+        setShowResetForm(false)
+        setResetToken('')
+        setNewPassword('')
+        setConfirmPassword('')
+        setForgotEmail('')
+        setMode('login')
+      }, 1500)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to reset password')
+      showError(err.response?.data?.message || 'Failed to reset password. Please try again.')
     } finally {
       setForgotLoading(false)
     }
@@ -143,7 +184,6 @@ export default function AuthPage() {
             disabled={loading}
             onClick={() => {
               setMode('login')
-              setError(null)
             }}
             className={`flex-1 py-2 px-3 rounded-md font-medium transition-all ${
               mode === 'login'
@@ -157,7 +197,6 @@ export default function AuthPage() {
             disabled={loading}
             onClick={() => {
               setMode('register')
-              setError(null)
             }}
             className={`flex-1 py-2 px-3 rounded-md font-medium transition-all ${
               mode === 'register'
@@ -168,18 +207,6 @@ export default function AuthPage() {
             Register
           </button>
         </div>
-
-        {error && (
-          <div className="p-4 mb-6 text-sm text-red-600 border border-red-200 rounded-lg bg-red-50 animate-pulse">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="p-4 mb-6 text-sm text-green-600 border border-green-200 rounded-lg bg-green-50 animate-pulse">
-            {success}
-          </div>
-        )}
 
         {/* Login / Register Form */}
         <form
@@ -337,18 +364,6 @@ export default function AuthPage() {
               Reset Password
             </h3>
 
-            {error && (
-              <div className="p-3 mb-4 text-sm text-red-600 border border-red-200 rounded-lg bg-red-50">
-                {error}
-              </div>
-            )}
-
-            {success && (
-              <div className="p-3 mb-4 text-sm text-green-600 border border-green-200 rounded-lg bg-green-50">
-                {success}
-              </div>
-            )}
-
             {!showResetForm ? (
               <form onSubmit={handleForgotPassword} className="space-y-4">
                 <div>
@@ -377,8 +392,6 @@ export default function AuthPage() {
                     type="button"
                     onClick={() => {
                       setShowForgotModal(false)
-                      setError(null)
-                      setSuccess(null)
                       setShowResetForm(false)
                       setResetToken('')
                       setNewPassword('')

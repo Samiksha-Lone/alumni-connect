@@ -28,7 +28,7 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-var allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173, https://alumni-connect-frontendd.vercel.app')
+var allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173, https://alumni-connect-frontendd.vercel.app', 'http://localhost:5173', 'http://localhost:3000' )
   .split(',')
   .map(origin => origin.trim().replace(/\/$/, ""));
 
@@ -131,10 +131,10 @@ app.use('/auth', authRoutes);
 app.use('/docs', docsRoutes);
 
 app.use('/users', apiLimiter, userRoutes);
-app.use('/api', apiLimiter, eventRoutes);
-app.use('/api', apiLimiter, galleryRoutes);
-app.use('/api', apiLimiter, jobRoutes);
-app.use('/api/chat', apiLimiter, chatRoutes);
+app.use('/events', apiLimiter, eventRoutes);
+app.use('/gallery', apiLimiter, galleryRoutes);
+app.use('/jobs', apiLimiter, jobRoutes);
+app.use('/chat', apiLimiter, chatRoutes);
 
 app.get('/debug/status', asyncHandler(async (req, res) => {
   const state = mongoose.connection.readyState;

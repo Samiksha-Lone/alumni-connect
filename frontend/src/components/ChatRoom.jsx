@@ -32,7 +32,7 @@ const ChatRoom = ({ partnerId }) => {
   useEffect(() => {
     const loadMessages = async () => {
       try {
-        const res = await api.get(`/api/chat/messages/${partnerId}`);
+        const res = await api.get(`/chat/messages/${partnerId}`);
         setMessages(res.data || []);
       } catch (e) {
         console.error('loadMessages error', e);
@@ -69,7 +69,7 @@ const ChatRoom = ({ partnerId }) => {
   const sendMessage = async () => {
     if (!text.trim()) return;
     try {
-      await api.post('/api/chat/message', {
+      await api.post('/chat/message', {
         receiverId: partnerId,
         content: text.trim(),
       });

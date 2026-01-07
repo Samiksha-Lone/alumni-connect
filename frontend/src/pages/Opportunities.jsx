@@ -165,7 +165,7 @@ export default function Opportunities() {
     try {
       setLoading(true)
       // Defaults to withCredentials: true from your axios config
-      const res = await axios.get(`${API_BASE}/api/jobs`)
+      const res = await axios.get(`${API_BASE}/jobs`)
       setItems(res.data || [])
       setError('')
     } catch (err) {
@@ -186,7 +186,7 @@ export default function Opportunities() {
     }
     try {
       setLoading(true)
-      await axios.post(`${API_BASE}/api/jobs`, { 
+      await axios.post(`${API_BASE}/jobs`, { 
         title, 
         company, 
         description: desc, 
@@ -209,7 +209,7 @@ export default function Opportunities() {
     if (!window.confirm('Delete this opportunity?')) return
     try {
       setLoading(true)
-      await axios.delete(`${API_BASE}/api/jobs/${id}`)
+      await axios.delete(`${API_BASE}/jobs/${id}`)
       await fetchOpportunities()
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete')

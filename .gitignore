@@ -62,6 +62,8 @@ temp/
 # IDE & Editor Files (NEVER COMMIT)
 # ============================================
 .vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
 .idea/
 *.sublime-project
 *.sublime-workspace
@@ -74,6 +76,9 @@ temp/
 .project
 .classpath
 .c9/
+.DS_Store
+.AppleDouble
+.LSOverride
 
 # ============================================
 # OS-Specific Files
@@ -114,3 +119,28 @@ desktop.ini
 .parcel-cache/
 dist-ssr/
 *.tsbuildinfo
+.eslintcache
+.sass-cache
+.cacache/
+.next/
+
+# ============================================
+# Socket.IO & Real-time
+# ============================================
+.io/
+
+# ============================================
+# Backend Specific
+# ============================================
+backend/logs/
+backend/.env.local
+backend/.env.production
+backend/uploads/
+backend/temp/
+
+# ============================================
+# Frontend Specific
+# ============================================
+frontend/.env.local
+frontend/.env.production
+frontend/.eslintcache

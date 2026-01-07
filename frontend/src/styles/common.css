@@ -110,57 +110,59 @@ main {
 
 /* ===== COMPONENTS ===== */
 
-/* High-Fidelity Cards */
-.card, .card-base {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-md);
-  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
-}
+@layer components {
+  /* High-Fidelity Cards */
+  .card, .card-base {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+  }
 
-.card:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-xl);
-  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
-}
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-xl);
+    border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  }
 
-/* Refined Buttons */
-.btn, .btn-primary, .btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition-base);
-  border: none;
-  font-size: 0.95rem;
-}
+  /* Refined Buttons */
+  .btn, .btn-primary, .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-base);
+    border: none;
+    font-size: 0.95rem;
+  }
 
-.btn-primary {
-  background: var(--accent);
-  color: white;
-  box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.3);
-}
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.3);
+  }
 
-.btn-primary:hover {
-  background: var(--accent-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
-}
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+  }
 
-.btn-secondary {
-  background: var(--accent-soft);
-  color: var(--accent);
-  border: 1px solid transparent;
-}
+  .btn-secondary {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid transparent;
+  }
 
-.btn-secondary:hover {
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
-  border-color: var(--accent);
+  .btn-secondary:hover {
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+    border-color: var(--accent);
+  }
 }
 
 /* Modern Inputs */
@@ -231,6 +233,25 @@ main {
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+/* ===== FOOTER ===== */
+.app-footer {
+  width: 100%;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.app-footer .inner {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.app-footer p {
+  font-size: 0.95rem;
+}
+
 /* ===== MOBILE OPTIMIZATION ===== */
 @media (max-width: 768px) {
   main {
@@ -247,8 +268,12 @@ main {
   }
 
   .app-footer {
-    bottom: 1rem;
+    width: 100%;
+  }
+
+  .app-footer .inner {
     width: 90%;
+    margin: 0 auto;
   }
 }
 

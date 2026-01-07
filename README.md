@@ -1,387 +1,267 @@
-# Alumni Connect
+# 🎓 Alumni Connect
 
-A full-stack web application that connects alumni with current students, facilitates networking, event management, and opportunities sharing.
+My final year **B.Tech IT project** - connecting students with alumni for networking, events, and jobs.
 
-## 🎯 Project Overview
+**Live Links:**
+- 🌐 **Frontend**: https://alumni-connect-frontendd.vercel.app/
+- 🔌 **Backend API**: https://alumni-connect-backend-hrsc.onrender.com
+- 💻 **GitHub**: https://github.com/Samiksha-Lone/alumni-connect
 
-Alumni Connect is a comprehensive platform designed to bridge the gap between alumni and students. It provides features for networking, event management, gallery sharing, job opportunities posting, and real-time chat capabilities. Built with modern web technologies, it offers a seamless user experience across desktop and mobile devices.
+---
 
-## ✨ Key Features
+## 📱 What I Built
 
-### 🔐 Authentication & Authorization
-- User registration and login with JWT-based authentication
-- Role-based access control (Admin, Alumni, Student)
-- Secure password hashing with bcrypt
-- Cookie-based session management
+A full-stack platform where:
+- ✅ **Login/Register** with roles (admin, student, alumni)
+- 📅 **Events page** - admin creates events, students RSVP
+- 💼 **Jobs board** - alumni post opportunities
+- 💬 **Real-time Chat** - message between users using Socket.IO
+- 👤 **Profile editing** - customize your profile
+- 🌓 **Dark/Light theme** - toggle between modes
+- 📱 **Mobile responsive** - works on all devices
 
-### 👥 User Management
-- User profiles with customizable information
-- Role-based user filtering
-- User discovery for networking
+**Tech Stack:**
+- **Frontend**: React 19 + Tailwind CSS + Vite
+- **Backend**: Node.js + Express + MongoDB
+- **Real-time**: Socket.IO
+- **Auth**: JWT + bcrypt
+- **Deployed**: Vercel (frontend) + Render (backend)
 
-### 📅 Event Management
-- Create, read, update, and delete events
-- Event listing and filtering
-- Real-time event updates
+---
 
-### 🎨 Gallery
-- Image/media upload and sharing
-- Gallery management capabilities
-- Media organization
+## 🛠️ How to Run Locally
 
-### 💼 Job Opportunities
-- Post and browse job opportunities
-- Opportunity management
-- Career resource sharing
+Works on Windows, Mac, and Linux! ✨
 
-### 💬 Real-Time Chat
-- One-on-one messaging between users
-- Real-time notifications with Socket.IO
-- Typing indicators
-- Conversation management
-- Message search functionality
-- Unread message tracking
+### Backend Setup
+```bash
+cd backend
+npm install
 
-### 🌓 Additional Features
-- Dark/Light theme support
-- Responsive design (Mobile, Tablet, Desktop)
-- Secure API endpoints
-- CORS enabled
-- Database validation and error handling
+# Create .env file with:
+# MONGO_URI=your_mongodb_atlas_uri
+# JWT_SECRET=anything_you_want
+# PORT=10000
 
-## 🛠️ Technology Stack
+npm start  # runs on http://localhost:10000
+```
 
-### Backend
-- **Runtime**: Node.js
-- **Framework**: Express.js 5.1.0
-- **Database**: MongoDB (Mongoose 8.19.2)
-- **Authentication**: JWT (jsonwebtoken 9.0.3)
-- **Real-time Communication**: Socket.IO 4.8.3
-- **Security**: bcrypt 6.0.0, CORS, Cookie-Parser
-- **HTTP Client**: Axios 1.13.2
-- **Environment Management**: dotenv 17.2.3
+### Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev  # runs on http://localhost:5173
+```
 
-### Frontend
-- **Framework**: React 19.2.0
-- **Build Tool**: Vite 7.2.2
-- **Styling**: Tailwind CSS 3.4.3
-- **HTTP Client**: Axios 1.13.2
-- **Real-time**: Socket.IO Client 4.8.3
-- **Routing**: React Router DOM 6.14.1
-- **Linting**: ESLint 9.39.1
-- **PostCSS**: 8.4.39
+**Test Accounts:**
+```
+Admin:   admin@test.com / password123
+Student: student@test.com / password123
+Alumni:  alumni@test.com / password123
+```
 
-## 📁 Project Structure
+---
+
+## 📡 Main APIs I Made
+
+Tested with Postman ✅
+
+### Auth
+```
+POST   /auth/register          → Create new account
+POST   /auth/login             → Login
+GET    /auth/logout            → Logout
+GET    /auth/me                → Get current user
+POST   /auth/forgot-password   → Reset password
+```
+
+### Events
+```
+GET    /events                 → See all events
+POST   /events                 → Admin: create event
+PUT    /events/:id             → Admin: edit event
+DELETE /events/:id             → Admin: delete event
+POST   /events/:id/rsvp        → Student: RSVP for event
+```
+
+### Jobs
+```
+GET    /jobs                   → See all job postings
+POST   /jobs                   → Alumni: post job
+PUT    /jobs/:id               → Alumni: edit job
+DELETE /jobs/:id               → Alumni: delete job
+```
+
+### Chat
+```
+GET    /chat/conversations     → Get your chats
+POST   /chat/message           → Send message
+GET    /chat/messages/:userId  → Get chat history
+DELETE /chat/conversation/:userId → Delete chat
+```
+
+### Users
+```
+GET    /users                  → Get all users
+GET    /users/alumni           → Get all alumni
+GET    /users/:id              → Get specific user
+PUT    /users/:id              → Update profile
+```
+
+---
+
+## 📂 Folder Structure
 
 ```
-alumni_connect/
-├── backend/
-│   ├── src/
-│   │   ├── app.js                 # Express app setup & Socket.IO config
-│   │   ├── controllers/           # Business logic
-│   │   │   ├── auth.controller.js
-│   │   │   ├── chat.controller.js
-│   │   │   ├── event.controller.js
-│   │   │   ├── gallery.controller.js
-│   │   │   ├── job.controller.js
-│   │   │   └── user.controller.js
-│   │   ├── models/               # MongoDB schemas
-│   │   │   ├── user.model.js
-│   │   │   ├── event.model.js
-│   │   │   ├── gallery.model.js
-│   │   │   ├── job.model.js
-│   │   │   ├── message.model.js
-│   │   │   └── index.js
-│   │   ├── routes/               # API endpoints
-│   │   │   ├── auth.routes.js
-│   │   │   ├── user.routes.js
-│   │   │   ├── event.routes.js
-│   │   │   ├── gallery.routes.js
-│   │   │   ├── job.routes.js
-│   │   │   └── chat.routes.js
-│   │   ├── middlewares/          # Custom middleware
-│   │   │   ├── auth.middleware.js
-│   │   │   └── role.middleware.js
-│   │   ├── services/             # Business services
-│   │   │   └── storage.service.js
-│   │   └── db/
-│   │       └── db.js             # Database connection
-│   ├── server.js                 # Server entry point
-│   ├── seed.js                   # Database seeding
-│   └── package.json
-│
+alumni-connect/
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx               # Main app component
-│   │   ├── main.jsx              # React entry point
-│   │   ├── index.css             # Global styles
-│   │   ├── App.css               # App styles
-│   │   ├── components/           # Reusable components
-│   │   │   ├── NavBar.jsx
-│   │   │   ├── ChatRoom.jsx
-│   │   │   ├── ChatList.jsx
-│   │   │   ├── Footer.jsx
-│   │   │   └── Modal.css
-│   │   ├── context/              # React contexts
-│   │   │   ├── AuthContext.jsx
-│   │   │   ├── SocketContext.jsx
-│   │   │   ├── ThemeContext.jsx
-│   │   │   └── useTheme.jsx
-│   │   └── pages/                # Page components
-│   │       ├── Home.jsx
-│   │       ├── About.jsx
-│   │       ├── AuthPage.jsx
-│   │       ├── Profile.jsx
-│   │       ├── Alumni.jsx
-│   │       ├── Events.jsx
-│   │       ├── Gallery.jsx
-│   │       ├── Gallery.css
-│   │       ├── ChatPage.jsx
-│   │       └── Opportunities.jsx
-│   ├── vite.config.js
-│   ├── tailwind.config.js
-│   ├── postcss.config.cjs
-│   ├── eslint.config.js
-│   └── package.json
+│   │   ├── components/      # Reusable UI components
+│   │   ├── pages/           # Home, Events, Jobs, Chat, etc
+│   │   ├── context/         # Auth, Theme, Socket context
+│   │   ├── App.jsx          # Main app component
+│   │   └── main.jsx         # Entry point
+│   ├── package.json
+│   └── vite.config.js
 │
-├── docs/
-│   ├── screenshots/
-│   └── videos/
+├── backend/
+│   ├── src/
+│   │   ├── controllers/     # Business logic
+│   │   │   ├── auth.controller.js
+│   │   │   ├── event.controller.js
+│   │   │   ├── job.controller.js
+│   │   │   ├── chat.controller.js
+│   │   │   └── user.controller.js
+│   │   ├── routes/          # API endpoints
+│   │   │   ├── auth.routes.js
+│   │   │   ├── event.routes.js
+│   │   │   ├── job.routes.js
+│   │   │   ├── chat.routes.js
+│   │   │   └── user.routes.js
+│   │   ├── models/          # MongoDB schemas
+│   │   │   ├── User.js
+│   │   │   ├── Event.js
+│   │   │   ├── Job.js
+│   │   │   ├── Message.js
+│   │   │   └── Gallery.js
+│   │   └── app.js           # Express setup + Socket.IO
+│   ├── package.json
+│   └── server.js            # Start file
 │
-├── .env                          # Environment variables
-├── .gitignore
 └── README.md
 ```
 
-## 🚀 Getting Started
+---
 
-### Prerequisites
-- **Node.js** (v14 or higher)
-- **MongoDB** (local or cloud instance)
-- **npm** or **yarn** package manager
+## 🚀 How I Deployed
 
-### Installation
+### Frontend → Vercel
+1. Push to GitHub
+2. Connect Vercel to repo (auto-deploys on push!)
+3. Set `VITE_API_BASE` environment variable
+4. Done! ✅
 
-#### 1. Clone the Repository
+### Backend → Render
+1. Create Render account
+2. Add GitHub repo
+3. Set environment variables (MONGO_URI, JWT_SECRET)
+4. Auto-deploys on GitHub push ✅
+
+**Commands used:**
 ```bash
-git clone https://github.com/yourusername/alumni_connect.git
-cd alumni_connect
+git push                # Both frontend and backend auto-deploy
+# No manual deployment needed - just push and it's live!
 ```
 
-#### 2. Backend Setup
-```bash
-cd backend
+---
 
-# Install dependencies
-npm install
+## 👥 User Roles
 
-# Configure environment variables
-# Edit the .env file with your MongoDB URI and JWT secret
-# Example:
-# PORT=3000
-# MONGO_URI=mongodb://localhost:27017/alumni_connect
-# JWT_SECRET=your_secret_key_here
-# ADMIN_NAME=Main Admin
-# ADMIN_EMAIL=admin@alumni.com
-# ADMIN_PASSWORD=admin123
+### Admin
+- Create events
+- Delete events/jobs
+- See all users
 
-# Start the backend server
-npm start
-```
+### Student
+- View events
+- RSVP for events
+- Browse jobs
+- Chat with alumni
 
-The backend will run on `http://localhost:3000`
+### Alumni
+- Post job opportunities
+- Edit their jobs
+- Chat with students
+- Access networking features
 
-#### 3. Frontend Setup
-```bash
-cd frontend
+**To test:** Login as admin → click "Publish Event" button on /events page
 
-# Install dependencies
-npm install
+---
 
-# Configure environment variables in .env
-# VITE_API_BASE=http://localhost:3000
+## 🎯 Features I'm Proud Of
 
-# Start development server
-npm run dev
-```
+✨ **Real-time Chat** - Uses Socket.IO, so messages appear instantly!
+🎨 **Dark Mode** - Toggle theme with context API
+📱 **Fully Responsive** - Tested on mobile, tablet, desktop
+🔐 **Secure Auth** - Passwords hashed with bcrypt, JWT tokens
+🎯 **Toast Notifications** - User-friendly error/success messages
+⚡ **Fast Deployment** - Auto-deploy on GitHub push
 
-The frontend will run on `http://localhost:5173`
+---
 
-## 📚 API Endpoints
+## 🚨 Known Issues & Fixes
 
-### Authentication Routes (`/auth`)
-- `POST /auth/register` - Register a new user
-- `POST /auth/login` - Login user
-- `GET /auth/logout` - Logout user
-- `GET /auth/me` - Get current user info (Protected)
+**Issue:** Backend won't start
+- **Fix:** Check MongoDB Atlas connection string in .env
 
-### User Routes (`/users`)
-- `GET /users` - Get all users
-- `GET /users/:id` - Get user by ID
-- `PUT /users/:id` - Update user profile (Protected)
-- `DELETE /users/:id` - Delete user (Protected)
+**Issue:** Frontend can't connect to backend
+- **Fix:** Verify `VITE_API_BASE` in .env.local matches backend URL
 
-### Event Routes (`/api/events`)
-- `GET /api/events` - Get all events
-- `POST /api/events` - Create event (Protected)
-- `PUT /api/events/:id` - Update event (Protected)
-- `DELETE /api/events/:id` - Delete event (Protected)
+**Issue:** Chat messages not appearing
+- **Fix:** Clear browser cache, ensure Socket.IO is connected
 
-### Gallery Routes (`/api/gallery`)
-- `GET /api/gallery` - Get all gallery items
-- `POST /api/gallery` - Upload to gallery (Protected)
-- `PUT /api/gallery/:id` - Update gallery item (Protected)
-- `DELETE /api/gallery/:id` - Delete gallery item (Protected)
+---
 
-### Job Routes (`/api/jobs`)
-- `GET /api/jobs` - Get all job opportunities
-- `POST /api/jobs` - Post job opportunity (Protected)
-- `PUT /api/jobs/:id` - Update job posting (Protected)
-- `DELETE /api/jobs/:id` - Delete job posting (Protected)
+## 💡 What I Learned
 
-### Chat Routes (`/api/chat`)
-- `POST /api/chat/message` - Send a message (Protected)
-- `GET /api/chat/messages/:userId` - Get messages with user (Protected)
-- `GET /api/chat/conversations` - Get user conversations (Protected)
-- `GET /api/chat/users` - Get users for chat discovery (Protected)
-- `PUT /api/chat/read/:userId` - Mark conversation as read (Protected)
-- `DELETE /api/chat/conversation/:userId` - Delete conversation (Protected)
-- `GET /api/chat/search` - Search messages (Protected)
+Making this project, I learned:
+- Full-stack MERN development
+- Real-time communication with Socket.IO
+- JWT authentication & role-based access
+- MongoDB schema design
+- Deployment on Vercel & Render
+- Error handling & validation
+- Responsive design with Tailwind CSS
 
-## 🔑 Environment Variables
+---
 
-### Backend (.env)
-```env
-PORT=3000
-MONGO_URI=mongodb+srv://event_user:event_user@cluster0.9okzyvg.mongodb.net/alumni_connect?retryWrites=true&w=majority
-JWT_SECRET=your_jwt_secret_key_here
-VITE_API_BASE=https://alumni-connect-backend-hrsc.onrender.com
-FRONTEND_URL=https://alumni-connect-frontend-delta.vercel.app
-ALLOWED_ORIGINS=https://alumni-connect-frontend-delta.vercel.app,http://localhost:5173,http://localhost:3000
-GEMINI_API_KEY=your_gemini_api_key_here
-```
+## 🙌 About Me
 
-### Frontend (.env / Vercel Environment Variables)
-```env
-VITE_API_BASE=https://alumni-connect-backend-hrsc.onrender.com
-```
+**Samiksha Balaji Lone**
+- Final year B.Tech IT student
+- **Previous Internships:**
+  - BeyondChats (MERN Stack)
+  - SoftCADD (Web Development)
+- **Skills:** MERN, Tailwind CSS, Socket.io, Express, MongoDB, Vercel, Render
 
-**Important**: For Vercel deployment, add `VITE_API_BASE` environment variable:
-1. Vercel Dashboard → Project Settings → Environment Variables
-2. Add: `VITE_API_BASE` = `https://alumni-connect-backend-hrsc.onrender.com`
-3. Select "Production", "Preview", and "Development" environments
+**Contact me:**
+- 📧 Email: samiksha@gmail.com
+- 💼 LinkedIn: [Your LinkedIn]
+- 🐙 GitHub: [Your GitHub]
 
-## 🔒 Authentication
+---
 
-The application uses JWT (JSON Web Token) based authentication:
+## 🌟 Feedback & Contributions
 
-1. **Registration**: Users create an account with email and password
-2. **Login**: Users receive a JWT token on successful login
-3. **Protected Routes**: Requests to protected endpoints require a valid JWT token
-4. **Token Storage**: Tokens are stored in cookies for persistence
-5. **Socket.IO Auth**: Real-time connections authenticate via JWT tokens
+Found a bug? Want to contribute? Feel free to:
+1. Open an issue
+2. Submit a pull request
+3. Drop me an email!
 
-## 📖 Available Scripts
+**Feedback is welcome!** ⭐ If you found this helpful, a star would be appreciated!
 
-### Backend
-```bash
-npm start          # Start the server
-npm test           # Run tests (if configured)
-```
+---
 
-### Frontend
-```bash
-npm run dev        # Start development server with hot reload
-npm run build      # Build for production
-npm run preview    # Preview production build
-npm run lint       # Run ESLint
-```
-
-## 🗄️ Database Schema
-
-### User Model
-- Email (unique)
-- Password (hashed)
-- Name
-- Role (admin, alumni, student)
-- Profile information
-- Timestamps
-
-### Event Model
-- Title
-- Description
-- Date & Time
-- Location
-- Creator (User reference)
-- Attendees
-- Timestamps
-
-### Message Model
-- Sender & Receiver references
-- Content
-- Read status
-- Timestamps
-
-### Gallery Model
-- Title
-- Description
-- Media URL
-- Uploader reference
-- Timestamps
-
-### Job Model
-- Title
-- Description
-- Company
-- Location
-- Requirements
-- Posted by reference
-- Timestamps
-
-## 🌐 Real-Time Features
-
-### Socket.IO Events
-- **connection**: User connects to the server
-- **joinChat**: User joins a chat conversation
-- **typing**: Broadcasting typing status
-- **message**: Real-time message delivery
-- **disconnect**: User disconnects
-
-## 🎨 UI/UX Features
-
-- **Responsive Design**: Works on all device sizes
-- **Dark Mode**: Toggle between light and dark themes
-- **Navigation**: Easy navigation with React Router
-- **Context API**: Global state management for auth, themes, and socket
-- **Tailwind CSS**: Modern, utility-first styling
-- **Modal Components**: Interactive modals for user actions
-
-## 🚨 Error Handling
-
-The application includes comprehensive error handling:
-- JWT validation errors
-- MongoDB connection errors
-- CORS handling
-- API error responses with meaningful messages
-- Client-side error boundaries
-
-## 🌐 Deployment
-
-### Live URLs
-- **Frontend**: https://alumni-connect-frontendd.vercel.app
-- **Backend API**: https://alumni-connect-backend-hrsc.onrender.com
-
-## 📝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the ISC License - see the LICENSE file for details.
-
-**Last Updated**: January 6, 2026  
-**Version**: 1.0.0
+**Last Updated:** January 7, 2026  
+**Version:** 1.0.0  
+**Status:** Complete ✅
