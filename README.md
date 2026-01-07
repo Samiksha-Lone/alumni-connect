@@ -3,7 +3,7 @@
 My final year **B.Tech IT project** - connecting students with alumni for networking, events, and jobs.
 
 **Live Links:**
-- 🌐 **Frontend**: https://alumni-connect-frontendd.vercel.app/
+- 🌐 **Frontend**: https://alumni-connect-frontendd.vercel.app
 - 🔌 **Backend API**: https://alumni-connect-backend-hrsc.onrender.com
 - 💻 **GitHub**: https://github.com/Samiksha-Lone/alumni-connect
 
