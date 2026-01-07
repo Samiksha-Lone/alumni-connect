@@ -28,9 +28,12 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-var allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173, https://alumni-connect-frontendd.vercel.app', 'http://localhost:5173', 'http://localhost:3000' )
-  .split(',')
-  .map(origin => origin.trim().replace(/\/$/, ""));
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',           
+  'https://alumni-connect-frontendd.vercel.app', 
+  'https://alumni-connect-frontend.vercel.app'    
+];
 
 const io = socketIo(server, {
   cors: {
@@ -90,21 +93,22 @@ app.use(cookieParser());
 //   allowedHeaders: ['Content-Type', 'Authorization']
 // }));
 
-const allowedOrigins = [
-  'http://localhost:5173',           
-  'https://alumni-connect-frontendd.vercel.app', 
-  'https://alumni-connect-frontend.vercel.app'    
-];
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('CORS blocked'));
+//     }
+//   },
+//   credentials: true, 
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// }));
 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('CORS blocked'));
-    }
-  },
-  credentials: true, 
+  origin: allowedOrigins,
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
