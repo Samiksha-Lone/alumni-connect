@@ -32,7 +32,7 @@ axios.defaults.withCredentials = true;
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="flex items-center justify-center min-h-[200px]">Loading...</div>;
   return user ? children : <Navigate to="/auth" replace />;
 }
 
@@ -40,9 +40,9 @@ export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ThemeProvider>
-        <AuthProvider>
-          <SocketProvider>
-            <ToastProvider>
+        <ToastProvider>          {/* ✅ #1: EARLY - all hooks need this */}
+          <AuthProvider>         {/* ✅ #2: AFTER Toast - uses useToast safely */}
+            <SocketProvider>     {/* ✅ #3: AFTER Auth - uses loaded user */}
               <div className="flex flex-col min-h-screen">
                 <NavBar />
                 <main className="flex-grow w-full max-w-6xl px-4 py-8 mx-auto">
@@ -77,11 +77,11 @@ export default function App() {
                   </Routes>
                 </main>
                 <Footer />
-                <ToastContainer />
+                <ToastContainer />     {/* ✅ Direct child of ToastProvider */}
               </div>
-            </ToastProvider>
-          </SocketProvider>
-        </AuthProvider>
+            </SocketProvider>
+          </AuthProvider>
+        </ToastProvider>
       </ThemeProvider>
     </BrowserRouter>
   );

@@ -1,94 +1,63 @@
-// /* eslint-disable react-refresh/only-export-components */
-// // src/context/SocketContext.jsx
-// import React, { createContext, useContext, useEffect, useState } from 'react';
-// import io from 'socket.io-client';
-
-// const SocketContext = createContext(null);
-// export const useSocket = () => useContext(SocketContext);
-
-// export const SocketProvider = ({ children }) => {
-//   const [socket, setSocket] = useState(null);
-
-//   useEffect(() => {
-//     const tokenCookie = document.cookie
-//       .split('; ')
-//       .find(row => row.startsWith('token='));
-//     const token = tokenCookie ? tokenCookie.split('=')[1] : null;
-//     if (!token) return;
-
-//     const s = io(import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com', {
-//       auth: { token },
-//       withCredentials: true,
-//     });
-
-//     s.on('connect', () => console.log('✅ socket connected'));
-//     setSocket(s);
-
-//     return () => {
-//       s.disconnect();
-//     };
-//   }, []);
-
-//   return (
-//     <SocketContext.Provider value={socket}>
-//       {children}
-//     </SocketContext.Provider>
-//   );
-// };
-
-
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import io from 'socket.io-client';
-import { useAuth } from './AuthContext'; // Import your auth hook
+import { useAuth } from './AuthContext';
 
 const SocketContext = createContext(null);
 export const useSocket = () => useContext(SocketContext);
 
-export const SocketProvider = ({ children }) => {
-  const [socket, setSocket] = useState(null);
-  const { user } = useAuth(); // Listen for user login/logout
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com';
 
+export function SocketProvider({ children }) {
+  // ✅ ALL HOOKS FIRST - Never conditional
+  const [socket, setSocket] = useState(null);
+  const { user, loading } = useAuth();
+  const socketRef = useRef(null);
+
+  // ✅ Socket logic ALWAYS runs (safe guards inside)
   useEffect(() => {
-    // Only attempt connection if a user is actually logged in
-    if (!user) {
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
-      }
+    // Guard: Skip if still loading
+    if (loading) return;
+
+    // Disconnect existing
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+
+    // Guard: No user = no socket
+    if (!user?.id) {
+      setSocket(null);
       return;
     }
 
-    // 1. Extract token using the robust regex we discussed for the backend
-    const match = document.cookie.match(/(?:^|; )token=([^;]*)/);
-    const token = match ? match[1] : null;
+    // Extract token from cookie
+    const tokenMatch = document.cookie.match(/(?:^|; )token=([^;]*)/);
+    const token = tokenMatch ? tokenMatch[1] : null;
 
-    // 2. Initialize connection
-    const s = io(import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com', {
-      auth: { token },
+    const newSocket = io(API_BASE, {
+      auth: { token, userId: user.id },
       withCredentials: true,
-      transports: ['websocket', 'polling'] // Ensures compatibility
+      transports: ['websocket', 'polling']
     });
 
-    s.on('connect', () => {
-      console.log('✅ Socket connected for user:', user.id);
-    });
+    newSocket.on('connect', () => console.log('✅ Socket:', user.id));
+    newSocket.on('connect_error', (err) => console.error('❌ Socket:', err.message));
 
-    s.on('connect_error', (err) => {
-      console.error('❌ Socket connection error:', err.message);
-    });
+    socketRef.current = newSocket;
+    setSocket(newSocket);
 
-    setSocket(s);
-
-    // 3. Cleanup: Disconnect when user logs out or component unmounts
     return () => {
-      if (s) s.disconnect();
+      newSocket.disconnect();
     };
-  }, [user]); // Re-run this effect whenever 'user' state changes
+  }, [user?.id, loading]);  // ✅ Dependencies include loading
+
+  // ✅ Render logic AFTER all hooks
+  if (loading) return null;
 
   return (
     <SocketContext.Provider value={socket}>
       {children}
     </SocketContext.Provider>
   );
-};
+}
