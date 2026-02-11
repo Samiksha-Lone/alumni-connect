@@ -4,7 +4,10 @@ import axios from 'axios'
 
 const AuthContext = createContext(null)
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
+// Use dev proxy when running locally
+const API_BASE = import.meta.env.DEV
+  ? ''
+  : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
 
 axios.defaults.baseURL = API_BASE
 axios.defaults.withCredentials = true
@@ -13,6 +16,16 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [users, setUsers] = useState([])
+
+  const fetchAllUsers = useCallback(async () => {
+    try {
+      const res = await axios.get('/users')
+      setUsers(res.data || [])
+    // eslint-disable-next-line no-unused-vars
+    } catch (err) {
+      // ignore; only admins should call this
+    }
+  }, [])
 
   // ✅ FAST: Parallel local + API check (300ms vs 2s)
   useEffect(() => {
@@ -33,7 +46,9 @@ export function AuthProvider({ children }) {
 
         // Update from API if valid
         if (meRes?.data) {
-          setUser(meRes.data)
+          // normalize id/_id from backend (some endpoints return `id`, DB returns `_id`)
+          const normalized = { ...meRes.data, _id: meRes.data._id || meRes.data.id };
+          setUser(normalized)
           if (adminCheck?.data) setUsers(adminCheck.data)
         }
       } catch (err) {
@@ -62,7 +77,8 @@ export function AuthProvider({ children }) {
       const res = await axios.post('/auth/login', { email, password, role })
       
       if (res.data?.user) {
-        setUser(res.data.user)
+        const normalized = { ...res.data.user, _id: res.data.user._id || res.data.user.id };
+        setUser(normalized)
         return { ok: true }
       }
       throw new Error('Invalid response')
@@ -102,6 +118,7 @@ export function AuthProvider({ children }) {
     loading, 
     users, 
     setUsers, 
+    fetchAllUsers,
     login, 
     register, 
     logout 

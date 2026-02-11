@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com',
+  baseURL: import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com',
   withCredentials: true,
 });
 
@@ -15,12 +15,22 @@ const ChatList = ({ onSelectChat, initialPartnerId }) => {
     const fetchConversations = async () => {
       try {
         const res = await api.get('/chat/conversations');
-        const data = res.data || [];
+        let data = res.data;
+        // Defensive: ensure we only set an array
+        if (Array.isArray(data)) {
+          // ok
+        } else if (data && Array.isArray(data.conversations)) {
+          data = data.conversations;
+        } else {
+          console.warn('fetchConversations: unexpected response', data);
+          data = [];
+        }
+
         setConversations(data);
 
         // If we came from Alumni → Message and this partner exists, preselect it
         if (initialPartnerId && data.length) {
-          const existing = data.find(c => c.partnerId === initialPartnerId);
+          const existing = data.find(c => String(c.partnerId) === String(initialPartnerId));
           if (existing) {
             setSelectedId(existing.partnerId);
             onSelectChat(existing);

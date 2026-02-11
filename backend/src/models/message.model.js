@@ -31,6 +31,6 @@ const messageSchema = new mongoose.Schema({
         default: Date.now
     }
 
-});
+}, { timestamps: true });
 
 module.exports = mongoose.models.Message || mongoose.model('Message', messageSchema);

@@ -198,30 +198,6 @@ git push                # Both frontend and backend auto-deploy
 
 ---
 
-## 🎯 Features I'm Proud Of
-
-✨ **Real-time Chat** - Uses Socket.IO, so messages appear instantly!
-🎨 **Dark Mode** - Toggle theme with context API
-📱 **Fully Responsive** - Tested on mobile, tablet, desktop
-🔐 **Secure Auth** - Passwords hashed with bcrypt, JWT tokens
-🎯 **Toast Notifications** - User-friendly error/success messages
-⚡ **Fast Deployment** - Auto-deploy on GitHub push
-
----
-
-## 🚨 Known Issues & Fixes
-
-**Issue:** Backend won't start
-- **Fix:** Check MongoDB Atlas connection string in .env
-
-**Issue:** Frontend can't connect to backend
-- **Fix:** Verify `VITE_API_BASE` in .env.local matches backend URL
-
-**Issue:** Chat messages not appearing
-- **Fix:** Clear browser cache, ensure Socket.IO is connected
-
----
-
 ## 💡 What I Learned
 
 Making this project, I learned:
@@ -242,9 +218,9 @@ Making this project, I learned:
 - **Skills:** MERN, Tailwind CSS, Socket.io, Express, MongoDB, Vercel, Render
 
 **Contact me:**
-- 📧 Email: samiksha@gmail.com
-- 💼 LinkedIn: [Your LinkedIn]
-- 🐙 GitHub: [Your GitHub]
+- 📧 Email: samikshalone2@gmail.com
+- 💼 LinkedIn: https://www.linkedin.com/in/samiksha-lone/
+- 🐙 GitHub: https://github.com/Samiksha-Lone
 
 ---
 

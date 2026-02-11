@@ -148,7 +148,7 @@ import { useAuth } from '../context/AuthContext'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
+const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
 
 export default function Opportunities() {
   const { user } = useAuth()
@@ -221,7 +221,7 @@ export default function Opportunities() {
   const canAdd = user && (user.role === 'alumni' || user.role === 'admin')
 
   return (
-    <section className="min-h-screen px-6 py-12 mx-auto max-w-7xl">
+    <section className="px-6 py-12 mx-auto max-w-7xl">
       <div className="flex flex-col justify-between gap-4 mb-10 md:flex-row md:items-center">
         <div>
           <h2 className="text-4xl font-bold text-slate-900 dark:text-white">Career Opportunities</h2>

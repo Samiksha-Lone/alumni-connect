@@ -164,13 +164,14 @@ import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import LazyImage from '../components/ui/LazyImage'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
+const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
 
 function ImageModal({ index, items = [], onClose, setIndex }) {
   if (index === null || index === undefined) return null
   const item = items[index]
   if (!item) return null
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     const kb = (e) => {
       if (e.key === 'Escape') onClose()
@@ -232,7 +233,14 @@ export default function Gallery() {
     try {
       setLoading(true)
       const res = await axios.get(`${API_BASE}/gallery`)
-      setItems(res.data || [])
+      if (Array.isArray(res.data)) {
+        setItems(res.data)
+      } else if (res.data && Array.isArray(res.data.gallery)) {
+        setItems(res.data.gallery)
+      } else {
+        console.warn('fetchGallery: unexpected response', res.data)
+        setItems([])
+      }
       setError('')
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load gallery')
@@ -326,7 +334,7 @@ export default function Gallery() {
               <p className="text-slate-400">The gallery is currently empty.</p>
             </div>
           ) : (
-            items.map((it, idx) => (
+            (Array.isArray(items) ? items : []).map((it, idx) => (
               <div 
                 key={it._id} 
                 className="relative overflow-hidden transition-all shadow-sm cursor-pointer group aspect-square rounded-xl bg-slate-100 dark:bg-slate-800 hover:shadow-xl"

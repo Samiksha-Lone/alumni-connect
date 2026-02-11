@@ -46,24 +46,34 @@ exports.getMessages = async (req, res) => {
   try {
     const { userId } = req.params;
     const { page = 1, limit = 50 } = req.query;
-    
+
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId parameter' });
+    }
+
+    if (!req.user || !req.user.id) {
+      console.error('getMessages: req.user missing', { user: req.user });
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
     const chatId = [req.user.id, userId].sort().join('_');
-    
+
     const messages = await Message.find({ chatId })
       .populate('senderId', 'name email role avatar')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
+      .sort({ createdAt: -1, timestamp: -1 })
+      .limit(parseInt(limit, 10) || 50)
+      .skip(((parseInt(page, 10) || 1) - 1) * (parseInt(limit, 10) || 50))
       .lean();
-    
+
     // Mark as read
     await Message.updateMany(
       { chatId, receiverId: req.user.id, isRead: false },
       { isRead: true }
     );
-    
+
     res.json(messages.reverse()); // Show oldest first
   } catch (error) {
+    console.error('getMessages error:', error && error.stack ? error.stack : error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -232,7 +242,7 @@ exports.searchMessages = async (req, res) => {
 };
 
 // 8. GET MESSAGE STATS (for dashboard)
-exports.getConversations = async (req, res) => {
+exports.getConversationStats = async (req, res) => {
   try {
     // RAW IDs - No populate (avoids User model error)
     const messages = await Message.find({

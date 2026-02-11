@@ -2,6 +2,11 @@ const userModel = require("../models/user.model");
 
 async function updateUser(req, res) {
   try {
+    console.debug('updateUser called', {
+      paramsId: req.params.id,
+      authUser: req.user && (req.user.id || req.user._id),
+      body: req.body
+    })
     const userId = req.params.id;
     const { name, email, yearOfStudying, course, graduationYear, courseStudied, company } = req.body;
     const currentUserId = req.user.id || req.user._id;
@@ -98,9 +103,39 @@ async function getUserById(req, res) {
   }
 }
 
+async function uploadResume(req, res) {
+  try {
+    const userId = req.params.id;
+    const currentUserId = req.user.id || req.user._id;
+
+    if (currentUserId.toString() !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Unauthorized to upload for this user' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No resume file uploaded' });
+    }
+
+    const filename = req.file.filename;
+    const resumePath = `/uploads/resumes/${filename}`;
+
+    const user = await userModel.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.resumeUrl = `${req.protocol}://${req.get('host')}${resumePath}`;
+    await user.save();
+
+    res.status(200).json({ message: 'Resume uploaded', resumeUrl: user.resumeUrl });
+  } catch (err) {
+    console.error('Resume upload error:', err);
+    res.status(500).json({ message: 'Server error uploading resume', error: err.message });
+  }
+}
+
 module.exports = {
   updateUser,
   deleteUser,
   getAllUsers,
-  getUserById
+  getUserById,
+  uploadResume
 };

@@ -104,7 +104,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; // Import useAuth
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com';
+const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com';
 
 export default function AlumniPage() {
   const [alumni, setAlumni] = useState([]);
@@ -150,7 +150,7 @@ export default function AlumniPage() {
   };
 
   return (
-    <section className="min-h-screen px-6 py-12 mx-auto max-w-7xl">
+    <section className="px-6 py-12 mx-auto max-w-7xl">
       <div className="flex items-center justify-between mb-10">
         <div>
           <h2 className="text-4xl font-bold text-slate-900 dark:text-white">Alumni Directory</h2>

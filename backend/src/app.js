@@ -13,6 +13,17 @@ const { errorHandler, notFoundHandler, asyncHandler } = require('./middlewares/e
 const app = express();
 const server = http.createServer(app);
 
+// Ensure a JWT_SECRET exists in development to avoid 500s during local testing
+if (!process.env.JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('FATAL: JWT_SECRET is not set in production. Set process.env.JWT_SECRET and restart.');
+    process.exit(1);
+  } else {
+    process.env.JWT_SECRET = 'dev_jwt_secret_change_me';
+    console.warn('Warning: JWT_SECRET not set. Using development fallback secret. Set JWT_SECRET in .env to avoid this warning.');
+  }
+}
+
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
@@ -30,9 +41,9 @@ const apiLimiter = rateLimit({
 
 const allowedOrigins = [
   'http://localhost:5173',
-  'http://localhost:3000',           
-  'https://alumni-connect-frontendd.vercel.app', 
-  'https://alumni-connect-frontend.vercel.app'    
+  'http://localhost:3000',
+  'https://alumni-connect-frontendd.vercel.app',
+  'https://alumni-connect-frontend.vercel.app'
 ];
 
 const io = socketIo(server, {
@@ -45,21 +56,35 @@ const io = socketIo(server, {
 
 io.use((socket, next) => {
   try {
-    let token = socket.handshake.auth.token;
-    if (!token && socket.handshake.headers.cookie) {
-      const match = socket.handshake.headers.cookie.match(/(?:^|; )token=([^;]*)/);
-      token = match ? match[1] : null;
+    // ✅ Read your ACTUAL cookie name (check login route)
+    let token = null
+    
+    // Try auth first (frontend compatible)
+    if (socket.handshake.auth?.token) {
+      token = socket.handshake.auth.token
+    } 
+    // Fallback: Parse cookies (withCredentials sends them)
+    else if (socket.handshake.headers.cookie) {
+      // Look for common cookie names: token (used by auth controller), authToken, jwt
+      const tokenMatch = socket.handshake.headers.cookie.match(/(?:^|; )token=([^;]+)/)
+      const authMatch = socket.handshake.headers.cookie.match(/(?:^|; )authToken=([^;]+)/)
+      const jwtMatch = socket.handshake.headers.cookie.match(/(?:^|; )jwt=([^;]+)/)
+      token = tokenMatch?.[1] || authMatch?.[1] || jwtMatch?.[1] || null
     }
-    if (!token) return next(new Error('No token provided'));
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    socket.userId = decoded.id;
-    socket.role = decoded.role || 'student';
-    next();
+    
+    if (!token) {
+      return next(new Error('No auth token in auth or cookies'))
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    socket.userId = decoded.id
+    socket.role = decoded.role || 'student'
+    next()
   } catch (error) {
-    logger.warn('Socket authentication failed', { error: error.message });
-    next(new Error('Invalid token'));
+    logger.warn('Socket auth failed', { error: error.message })
+    next(new Error('Invalid token'))
   }
-});
+})
 
 io.on('connection', (socket) => {
   logger.info(`User ${socket.userId} connected via Socket.IO`);
@@ -86,12 +111,21 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
+// Allow credentials and reflect the request origin so cookies work across origins.
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // allow server-to-server or tools like curl
+    if (allowedOrigins.indexOf(origin) !== -1) return callback(null, true);
+    return callback(new Error('CORS policy: Origin not allowed'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Serve uploaded files
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // app.options('*', cors());
 
@@ -132,7 +166,20 @@ app.use('/users', apiLimiter, userRoutes);
 app.use('/events', apiLimiter, eventRoutes);
 app.use('/gallery', apiLimiter, galleryRoutes);
 app.use('/jobs', apiLimiter, jobRoutes);
-app.use('/chat', apiLimiter, chatRoutes);
+// Temporary debug middleware for chat routes to surface auth header/cookie presence
+app.use('/chat', (req, res, next) => {
+  try {
+    console.log('DEBUG /chat', {
+      path: req.path,
+      method: req.method,
+      authHeader: req.headers.authorization ? 'present' : 'missing',
+      cookieHeader: req.headers.cookie ? 'present' : 'missing',
+    });
+  } catch (e) {
+    console.warn('DEBUG /chat logging failed', e && e.message);
+  }
+  next();
+}, apiLimiter, chatRoutes);
 
 app.get('/debug/status', asyncHandler(async (req, res) => {
   const state = mongoose.connection.readyState;

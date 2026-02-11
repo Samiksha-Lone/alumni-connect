@@ -5,7 +5,7 @@ import { useToast } from '../context/useToast'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
+// Use axios.defaults.baseURL (set in App.jsx). VITE_API_BASE can still override it.
 
 export default function Profile() {
   const { user, logout, users, fetchAllUsers } = useAuth()  // ✅ Added missing users, fetchAllUsers
@@ -17,8 +17,18 @@ export default function Profile() {
   const [resumeUploading, setResumeUploading] = useState(false)
 
   useEffect(() => {
-    if (user) setForm({ ...user })
-  }, [user])
+  const loadProfile = async () => {
+    if (!user?._id) return;
+    try {
+      const res = await axios.get(`/users/${user._id}`);
+      setForm(res.data);
+    } catch (err) {
+      console.error('Profile fetch error:', err);
+      if (err.response?.status === 401) logout();
+    }
+  };
+  loadProfile();
+}, [user._id]);  
 
   if (!user) return <div className="p-20 text-center text-slate-500">Authentication required...</div>
 
@@ -30,10 +40,15 @@ export default function Profile() {
 
     setUpdating(true)
     try {
-      const res = await axios.put(`${API_BASE}/users/${user._id}`, form, {
-        withCredentials: true
-      })
-      
+      const payload = { ...form }
+      if (payload.yearOfStudying !== undefined && payload.yearOfStudying !== '') {
+        payload.yearOfStudying = Number(payload.yearOfStudying)
+      } else {
+        delete payload.yearOfStudying
+      }
+
+      const res = await axios.put(`/users/${user._id}`, payload)
+
       setForm(res.data)
       success('Profile updated successfully! ✅')
       setEditing(false)
@@ -61,9 +76,8 @@ export default function Profile() {
 
     setResumeUploading(true)
     try {
-      await axios.post(`${API_BASE}/users/${user._id}/upload-resume`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        withCredentials: true
+      await axios.post(`/users/${user._id}/upload-resume`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       })
       
       success('Resume uploaded successfully! 📄')
@@ -185,9 +199,7 @@ function AdminPanel({ fetchAllUsers }) {
     e.preventDefault()
     setLoading(true)
     try {
-      await axios.post(`${API_BASE}/auth/register`, { ...newAdmin, role: 'admin' }, {
-        withCredentials: true
-      })
+      await axios.post('/auth/register', { ...newAdmin, role: 'admin' })
       
       success('✅ New admin created successfully!')
       setNewAdmin({ name: '', email: '', password: '' })
@@ -285,9 +297,9 @@ function ProfileSelectField({ label, name, value, editing, onChange, options, cl
           ))}
         </select>
       ) : (
-        <p className="text-lg font-semibold text-slate-800 dark:text-slate-200">
-          {options.find(o => o.value === value)?.label || 'Not provided'}
-        </p>
+            <p className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+              {options.find(o => String(o.value) === String(value))?.label || 'Not provided'}
+            </p>
       )}
     </div>
   )

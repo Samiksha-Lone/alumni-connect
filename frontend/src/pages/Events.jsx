@@ -6,7 +6,7 @@ import Button from '../components/ui/Button'
 import { useNavigate } from 'react-router-dom'; 
 import { toast } from 'react-hot-toast';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
+const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
 
 export default function Events() {
   const { user } = useAuth() // No longer need 'token' from context
@@ -25,7 +25,14 @@ export default function Events() {
       setLoading(true)
       // withCredentials is true by default in our global axios config
       const res = await axios.get(`${API_BASE}/events`)
-      setItems(res.data || [])
+      if (Array.isArray(res.data)) {
+        setItems(res.data)
+      } else if (res.data && Array.isArray(res.data.events)) {
+        setItems(res.data.events)
+      } else {
+        console.warn('fetchEvents: unexpected response', res.data)
+        setItems([])
+      }
       setError('')
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load events')
@@ -138,7 +145,7 @@ export default function Events() {
             <p className="text-xl text-slate-400">No upcoming events scheduled.</p>
           </div>
         ) : (
-          items.map((e) => (
+          (Array.isArray(items) ? items : []).map((e) => (
             <div key={e._id} className="relative flex flex-col h-full overflow-hidden transition-all duration-300 bg-white border group dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl hover:shadow-xl">
 
               {user?.role === 'admin' && (

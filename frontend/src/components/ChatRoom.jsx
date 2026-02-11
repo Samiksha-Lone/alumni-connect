@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useSocket } from '../context/SocketContext';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com',
+  baseURL: import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com',
   withCredentials: true,
 });
 
@@ -20,7 +20,12 @@ const ChatRoom = ({ partnerId }) => {
     const loadPartner = async () => {
       try {
         const res = await api.get(`/users/${partnerId}`);
-        setPartner(res.data);
+        if (res && res.data && typeof res.data === 'object' && !Array.isArray(res.data)) {
+          setPartner(res.data);
+        } else {
+          console.warn('loadPartner: unexpected response', res.data);
+          setPartner(null);
+        }
       } catch (e) {
         console.error('loadPartner error', e);
       }
@@ -33,7 +38,14 @@ const ChatRoom = ({ partnerId }) => {
     const loadMessages = async () => {
       try {
         const res = await api.get(`/chat/messages/${partnerId}`);
-        setMessages(res.data || []);
+        if (res && Array.isArray(res.data)) {
+          setMessages(res.data);
+        } else if (res && res.data && Array.isArray(res.data.messages)) {
+          setMessages(res.data.messages);
+        } else {
+          console.warn('loadMessages: unexpected response', res.data);
+          setMessages([]);
+        }
       } catch (e) {
         console.error('loadMessages error', e);
       }

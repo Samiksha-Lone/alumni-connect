@@ -22,9 +22,10 @@ import ChatPage from './pages/ChatPage';
 import './styles/common.css';
 
 // ---- Axios global config ----
-const API_BASE =
-  import.meta.env.VITE_API_BASE ||
-  'https://alumni-connect-backend-hrsc.onrender.com';
+// In development, leave baseURL empty so Vite dev server proxy is used.
+const API_BASE = import.meta.env.DEV
+  ? ''
+  : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com';
 
 axios.defaults.baseURL = API_BASE;
 axios.defaults.withCredentials = true;

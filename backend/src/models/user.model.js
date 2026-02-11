@@ -78,4 +78,4 @@ userSchema.index({ name: 'text', email: 'text', company: 'text' });
 // TTL index for lastSeen (optional - for analytics)
 userSchema.index({ lastSeen: 1 }, { expireAfterSeconds: 2592000 }); // 30 days
 
-module.exports = mongoose.model("user", userSchema);
+module.exports = mongoose.model("User", userSchema);
