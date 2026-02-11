@@ -24,7 +24,6 @@ const generateIcebreaker = async (req, res) => {
         
         res.json({ icebreaker: text });
     } catch (error) {
-        console.error("Gemini Error:", error);
         res.status(500).json({ error: "Failed to generate icebreaker" });
     }
 };

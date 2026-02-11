@@ -4,7 +4,6 @@ import axios from 'axios'
 
 const AuthContext = createContext(null)
 
-// Use dev proxy when running locally
 const API_BASE = import.meta.env.DEV
   ? ''
   : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
@@ -23,46 +22,40 @@ export function AuthProvider({ children }) {
       setUsers(res.data || [])
     // eslint-disable-next-line no-unused-vars
     } catch (err) {
-      // ignore; only admins should call this
+      //
     }
   }, [])
 
-  // ✅ FAST: Parallel local + API check (300ms vs 2s)
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // 1. Instant localStorage check (0ms)
         const stored = localStorage.getItem('currentUser')
         if (stored) {
           const parsed = JSON.parse(stored)
           setUser(parsed)
         }
 
-        // 2. Parallel API validation (non-blocking)
         const [meRes, adminCheck] = await Promise.all([
           axios.get('/auth/me').catch(() => null),
           axios.get('/auth/me').then(res => res.data?.role === 'admin' ? axios.get('/users') : null).catch(() => null)
         ])
 
-        // Update from API if valid
         if (meRes?.data) {
-          // normalize id/_id from backend (some endpoints return `id`, DB returns `_id`)
           const normalized = { ...meRes.data, _id: meRes.data._id || meRes.data.id };
           setUser(normalized)
           if (adminCheck?.data) setUsers(adminCheck.data)
         }
+      // eslint-disable-next-line no-unused-vars
       } catch (err) {
-        console.warn('Auth check failed:', err)
         setUser(null)
       } finally {
-        setLoading(false)  // ✅ Unblock UI immediately
+        setLoading(false)
       }
     }
 
     initAuth()
   }, [])
 
-  // ✅ Storage sync (debounced)
   useEffect(() => {
     if (user) {
       localStorage.setItem('currentUser', JSON.stringify(user))
@@ -107,7 +100,7 @@ export function AuthProvider({ children }) {
     try {
       await axios.get('/auth/logout')
     } catch {
-      // Ignore errors on logout
+      //
     }
     setUser(null)
     localStorage.removeItem('currentUser')
@@ -134,3 +127,4 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext)
 }
+

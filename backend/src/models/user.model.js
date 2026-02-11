@@ -27,7 +27,6 @@ const userSchema = new mongoose.Schema(
         required: true,
         minlength: 6
     },
-    // Alumni-specific fields
     courseStudied: { 
         type: String,
         maxlength: 200
@@ -41,7 +40,6 @@ const userSchema = new mongoose.Schema(
         min: 1900,
         max: new Date().getFullYear()
     },
-    // Student-specific fields
     yearOfStudying: { 
         type: Number,
         min: 1,
@@ -69,13 +67,11 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Add compound index for finding users by role
 userSchema.index({ role: 1, createdAt: -1 });
 
-// Add text index for searching
 userSchema.index({ name: 'text', email: 'text', company: 'text' });
 
-// TTL index for lastSeen (optional - for analytics)
-userSchema.index({ lastSeen: 1 }, { expireAfterSeconds: 2592000 }); // 30 days
+userSchema.index({ lastSeen: 1 }, { expireAfterSeconds: 2592000 });
 
 module.exports = mongoose.model("User", userSchema);
+

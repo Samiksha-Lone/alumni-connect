@@ -39,7 +39,6 @@ router.put('/:id', verifyToken, userController.updateUser);
 
 router.delete('/:id', verifyToken, userController.deleteUser);
 
-// Resume upload: saves file and updates user's resumeUrl
 const resumesDir = path.join(__dirname, '..', '..', 'uploads', 'resumes');
 fs.mkdirSync(resumesDir, { recursive: true });
 const storage = multer.diskStorage({

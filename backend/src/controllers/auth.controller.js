@@ -14,7 +14,6 @@ async function registerUser(req, res, next) {
       course,
     } = req.body;
 
-    // Check if user already exists
     let existingUser = await userModel.findOne({ email });
     if (existingUser) {
       logger.warn(`Registration attempt with existing email: ${email}`);
@@ -24,7 +23,6 @@ async function registerUser(req, res, next) {
       });
     }
 
-    // Hash password with proper salt rounds
     const hashedPassword = await bcrypt.hash(password, 12);
     
     const user = await userModel.create({
@@ -39,7 +37,6 @@ async function registerUser(req, res, next) {
       course: role === "student" ? course : undefined,
     });
 
-    // Generate JWT token
     const token = jwt.sign(
       {
         id: user._id,
@@ -56,7 +53,7 @@ async function registerUser(req, res, next) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
     res.status(201).json({
@@ -97,7 +94,6 @@ async function loginUser(req, res, next) {
       });
     }
 
-    // Generate JWT token with expiration
     const token = jwt.sign(
       {
         id: user._id,
@@ -115,7 +111,7 @@ async function loginUser(req, res, next) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
     res.status(200).json({
@@ -185,14 +181,12 @@ async function forgotPassword(req, res, next) {
 
     const user = await userModel.findOne({ email });
     if (!user) {
-      // Don't reveal if email exists for security
       logger.warn(`Forgot password attempt with non-existent email: ${email}`);
       return res.status(200).json({
         message: 'If email exists, a reset link has been sent'
       });
     }
 
-    // Generate reset token (expires in 1 hour)
     const resetToken = jwt.sign(
       {
         id: user._id,
@@ -203,12 +197,11 @@ async function forgotPassword(req, res, next) {
       { expiresIn: '1h' }
     );
 
-    // For now, just return the token (in production, send via email)
     logger.info(`Password reset token generated for user: ${user._id}`);
     
     res.status(200).json({
       message: 'If email exists, a reset link has been sent',
-      resetToken // For testing/demo purposes
+      resetToken
     });
   } catch (err) {
     logger.error(`Forgot password error: ${err.message}`);
@@ -239,7 +232,6 @@ async function resetPassword(req, res, next) {
       });
     }
 
-    // Verify token
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -256,7 +248,6 @@ async function resetPassword(req, res, next) {
       });
     }
 
-    // Update password
     const hashedPassword = await bcrypt.hash(newPassword, 12);
     await userModel.findByIdAndUpdate(
       decoded.id,

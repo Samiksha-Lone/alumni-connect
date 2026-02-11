@@ -1,14 +1,9 @@
 const logger = require('../utils/logger');
 
-/**
- * Global error handler middleware
- * Should be the last middleware in the app
- */
 const errorHandler = (err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
 
-  // Log the error
   logger.error({
     message: message,
     statusCode: statusCode,
@@ -18,7 +13,6 @@ const errorHandler = (err, req, res, next) => {
     userId: req.user?.id,
   });
 
-  // Mongoose validation error
   if (err.name === 'ValidationError') {
     const errors = Object.values(err.errors).map((e) => ({
       field: e.path,
@@ -30,7 +24,6 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Mongoose duplicate key error
   if (err.code === 11000) {
     const field = Object.keys(err.keyPattern)[0];
     return res.status(400).json({
@@ -39,7 +32,6 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // JWT errors
   if (err.name === 'JsonWebTokenError') {
     return res.status(401).json({
       message: 'Invalid token',
@@ -54,7 +46,6 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Cast error (invalid MongoDB ID)
   if (err.name === 'CastError') {
     return res.status(400).json({
       message: 'Invalid ID format',
@@ -62,16 +53,12 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Default error response
   res.status(statusCode).json({
     message: message,
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };
 
-/**
- * 404 handler - should be registered before error handler
- */
 const notFoundHandler = (req, res) => {
   logger.warn({
     message: '404 Not Found',
@@ -85,10 +72,6 @@ const notFoundHandler = (req, res) => {
   });
 };
 
-/**
- * Async error wrapper - wraps async route handlers
- * Usage: router.get('/', asyncHandler(async (req, res) => {...}))
- */
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
@@ -98,3 +81,4 @@ module.exports = {
   notFoundHandler,
   asyncHandler,
 };
+

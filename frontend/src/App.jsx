@@ -21,8 +21,6 @@ import ChatPage from './pages/ChatPage';
 
 import './styles/common.css';
 
-// ---- Axios global config ----
-// In development, leave baseURL empty so Vite dev server proxy is used.
 const API_BASE = import.meta.env.DEV
   ? ''
   : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com';
@@ -41,9 +39,9 @@ export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ThemeProvider>
-        <ToastProvider>          {/* ✅ #1: EARLY - all hooks need this */}
-          <AuthProvider>         {/* ✅ #2: AFTER Toast - uses useToast safely */}
-            <SocketProvider>     {/* ✅ #3: AFTER Auth - uses loaded user */}
+        <ToastProvider>
+          <AuthProvider>
+            <SocketProvider>
               <div className="flex flex-col min-h-screen">
                 <NavBar />
                 <main className="flex-grow w-full max-w-6xl px-4 py-8 mx-auto">
@@ -78,7 +76,7 @@ export default function App() {
                   </Routes>
                 </main>
                 <Footer />
-                <ToastContainer />     {/* ✅ Direct child of ToastProvider */}
+                <ToastContainer />
               </div>
             </SocketProvider>
           </AuthProvider>
@@ -87,3 +85,4 @@ export default function App() {
     </BrowserRouter>
   );
 }
+

@@ -3,12 +3,10 @@ const mongoose = require('mongoose');
 const Message = require('../models/message.model');
 const User = require('../models/user.model');
 
-// 1. SEND MESSAGE
 exports.sendMessage = async (req, res) => {
   try {
     const { receiverId, content } = req.body;
     
-    // Validate receiver exists
     const receiver = await User.findById(receiverId);
     if (!receiver) {
       return res.status(404).json({ error: 'Receiver not found' });
@@ -25,14 +23,11 @@ exports.sendMessage = async (req, res) => {
     
     await message.save();
     
-    // Populate sender info
     await message.populate('senderId', 'name email role avatar');
     
-    // Emit to receiver's room
     const io = req.app.get('io');
     io.to(receiverId).emit('newMessage', message);
     
-    // Update sender online status
     await User.findByIdAndUpdate(req.user.id, { isOnline: true, lastSeen: new Date() });
     
     res.status(201).json(message);
@@ -41,7 +36,6 @@ exports.sendMessage = async (req, res) => {
   }
 };
 
-// 2. GET MESSAGES (with pagination)
 exports.getMessages = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -52,7 +46,6 @@ exports.getMessages = async (req, res) => {
     }
 
     if (!req.user || !req.user.id) {
-      console.error('getMessages: req.user missing', { user: req.user });
       return res.status(401).json({ error: 'Authentication required' });
     }
 
@@ -65,24 +58,20 @@ exports.getMessages = async (req, res) => {
       .skip(((parseInt(page, 10) || 1) - 1) * (parseInt(limit, 10) || 50))
       .lean();
 
-    // Mark as read
     await Message.updateMany(
       { chatId, receiverId: req.user.id, isRead: false },
       { isRead: true }
     );
 
-    res.json(messages.reverse()); // Show oldest first
+    res.json(messages.reverse());
   } catch (error) {
-    console.error('getMessages error:', error && error.stack ? error.stack : error);
     res.status(500).json({ error: error.message });
   }
 };
 
-// 3. GET CONVERSATIONS LIST
 exports.getConversations = async (req, res) => {
   try {
     const conversations = await Message.aggregate([
-      // Match user's conversations
       {
         $match: {
           $or: [
@@ -91,7 +80,6 @@ exports.getConversations = async (req, res) => {
           ]
         }
       },
-      // Group by chatId
       {
         $group: {
           _id: '$chatId',
@@ -122,7 +110,6 @@ exports.getConversations = async (req, res) => {
           }
         }
       },
-      // Lookup partner info
       {
         $lookup: {
           from: 'users',
@@ -147,18 +134,16 @@ exports.getConversations = async (req, res) => {
     
     res.json(conversations);
   } catch (error) {
-    console.error('Conversations error:', error);
     res.status(500).json({ error: error.message });
   }
 };
 
-// 4. GET USERS FOR STARTING NEW CHAT
 exports.getChatUsers = async (req, res) => {
   try {
     const { role = 'alumni', search = '', page = 1, limit = 20 } = req.query;
     
     const query = {
-      _id: { $ne: req.user.id }, // Exclude self
+      _id: { $ne: req.user.id },
       role: { $in: role === 'all' ? ['student', 'alumni'] : [role] }
     };
     
@@ -186,7 +171,6 @@ exports.getChatUsers = async (req, res) => {
   }
 };
 
-// 5. MARK CONVERSATION AS READ
 exports.markAsRead = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -203,13 +187,11 @@ exports.markAsRead = async (req, res) => {
   }
 };
 
-// 6. DELETE CONVERSATION (soft delete)
 exports.deleteConversation = async (req, res) => {
   try {
     const { userId } = req.params;
     const chatId = [req.user.id, userId].sort().join('_');
     
-    // Add deleted flag instead of hard delete
     await Message.updateMany(
       { chatId },
       { $set: { deletedBy: req.user.id } }
@@ -221,7 +203,6 @@ exports.deleteConversation = async (req, res) => {
   }
 };
 
-// 7. SEARCH MESSAGES
 exports.searchMessages = async (req, res) => {
   try {
     const { query, userId } = req.query;
@@ -241,10 +222,8 @@ exports.searchMessages = async (req, res) => {
   }
 };
 
-// 8. GET MESSAGE STATS (for dashboard)
 exports.getConversationStats = async (req, res) => {
   try {
-    // RAW IDs - No populate (avoids User model error)
     const messages = await Message.find({
       $or: [
         { senderId: req.user._id },
@@ -254,7 +233,6 @@ exports.getConversationStats = async (req, res) => {
     .sort({ createdAt: -1 })
     .limit(100);
 
-    // Group by chatId
     const conversations = {};
     
     messages.forEach(msg => {
@@ -264,7 +242,7 @@ exports.getConversationStats = async (req, res) => {
       if (!conversations[chatId]) {
         conversations[chatId] = {
           partnerId: partnerId.toString(),
-          partnerName: 'User', // Will fix with frontend lookup
+          partnerName: 'User',
           partnerRole: 'user', 
           lastMessage: msg.content,
           lastMessageTime: msg.createdAt,
@@ -280,7 +258,7 @@ exports.getConversationStats = async (req, res) => {
     res.json(conversationList.sort((a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime)));
     
   } catch (error) {
-    console.error('getConversations error:', error);
     res.status(500).json({ error: error.message });
   }
 };
+

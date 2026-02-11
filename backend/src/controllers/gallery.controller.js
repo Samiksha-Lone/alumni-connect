@@ -18,11 +18,9 @@ exports.addImage = async (req, res) => {
       
       return res.status(201).json({
         message: 'Image added successfully',
-        image,
-
+        image
       });
     } catch (error) {
-      console.error(error);
       return res.status(500).json({ error: "Server error adding image" });
     }
 };
@@ -32,7 +30,6 @@ exports.getImages = async (req, res) => {
     const images = await Gallery.find().sort({ createdAt: -1 });
     res.status(200).json(images);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Server error fetching images" });
   }
 };
@@ -40,7 +37,6 @@ exports.getImages = async (req, res) => {
 exports.deleteImage = async (req, res) => {
   try {
     if (!req.user || req.user.role !== "admin") {
-      console.warn('Unauthorized delete image attempt', { user: req.user, params: req.params })
       return res.status(403).json({ error: "Only admin can delete images" });
     }
 
@@ -54,7 +50,7 @@ exports.deleteImage = async (req, res) => {
     await Gallery.findByIdAndDelete(imageId);
     return res.status(200).json({ message: "Image deleted successfully" });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: "Server error deleting image" });
   }
 };
+

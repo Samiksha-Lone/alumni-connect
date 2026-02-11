@@ -1,9 +1,5 @@
 const { body, param, query, validationResult } = require('express-validator');
 
-/**
- * Validation error handler middleware
- * Checks for validation errors and returns them
- */
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -18,7 +14,6 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-// ============ AUTH VALIDATIONS ============
 const validateRegister = [
   body('email')
     .isEmail()
@@ -38,7 +33,6 @@ const validateRegister = [
   body('role')
     .isIn(['student', 'alumni', 'admin'])
     .withMessage('Invalid role'),
-  // Conditional validations based on role
   body('courseStudied')
     .if(() => {
       return (req.body.role === 'alumni');
@@ -75,7 +69,6 @@ const validateLogin = [
   handleValidationErrors
 ];
 
-// ============ USER VALIDATIONS ============
 const validateUserUpdate = [
   body('name')
     .optional()
@@ -107,7 +100,6 @@ const validateUserId = [
   handleValidationErrors
 ];
 
-// ============ MESSAGE VALIDATIONS ============
 const validateSendMessage = [
   body('receiverId')
     .isMongoId()
@@ -136,7 +128,6 @@ const validateMessageParams = [
   handleValidationErrors
 ];
 
-// ============ EVENT VALIDATIONS ============
 const validateCreateEvent = [
   body('title')
     .trim()
@@ -167,7 +158,6 @@ const validateEventId = [
   handleValidationErrors
 ];
 
-// ============ JOB VALIDATIONS ============
 const validateCreateJob = [
   body('title')
     .trim()
@@ -200,7 +190,6 @@ const validateJobId = [
   handleValidationErrors
 ];
 
-// ============ GALLERY VALIDATIONS ============
 const validateUploadGallery = [
   body('title')
     .optional()
@@ -236,3 +225,4 @@ module.exports = {
   validateUploadGallery,
   validateGalleryId,
 };
+

@@ -29,8 +29,8 @@ async function ensureAdmin() {
             password: hashedPassword,
         });
     } catch (err) {
-        console.error('Error ensuring admin user:', err);
     }
 }
 
 module.exports = { ensureAdmin };
+

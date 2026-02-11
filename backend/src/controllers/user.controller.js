@@ -2,11 +2,6 @@ const userModel = require("../models/user.model");
 
 async function updateUser(req, res) {
   try {
-    console.debug('updateUser called', {
-      paramsId: req.params.id,
-      authUser: req.user && (req.user.id || req.user._id),
-      body: req.body
-    })
     const userId = req.params.id;
     const { name, email, yearOfStudying, course, graduationYear, courseStudied, company } = req.body;
     const currentUserId = req.user.id || req.user._id;
@@ -48,7 +43,6 @@ async function updateUser(req, res) {
       updatedAt: updatedUser.updatedAt
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Server error updating user", error: error.message });
   }
 }
@@ -68,7 +62,6 @@ async function deleteUser(req, res) {
 
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Server error deleting user", error: error.message });
   }
 }
@@ -82,7 +75,6 @@ async function getAllUsers(req, res) {
     const users = await userModel.find().select("-password");
     res.status(200).json(users);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Server error fetching users", error: error.message });
   }
 }
@@ -98,7 +90,6 @@ async function getUserById(req, res) {
 
     res.status(200).json(user);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Server error fetching user", error: error.message });
   }
 }
@@ -127,7 +118,6 @@ async function uploadResume(req, res) {
 
     res.status(200).json({ message: 'Resume uploaded', resumeUrl: user.resumeUrl });
   } catch (err) {
-    console.error('Resume upload error:', err);
     res.status(500).json({ message: 'Server error uploading resume', error: err.message });
   }
 }
@@ -139,3 +129,4 @@ module.exports = {
   getUserById,
   uploadResume
 };
+

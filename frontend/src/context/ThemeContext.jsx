@@ -22,7 +22,6 @@ export function ThemeProvider({ children }) {
     try {
       localStorage.setItem('theme', theme)
     } catch {
-      console.warn('Failed to save theme to localStorage');
     }
   }, [theme])
 
@@ -32,4 +31,5 @@ export function ThemeProvider({ children }) {
 
   return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>
 }
+
 

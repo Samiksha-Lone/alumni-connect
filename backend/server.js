@@ -1,4 +1,3 @@
-// start server
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 const server = require('./src/app');
@@ -14,5 +13,4 @@ connectDB()
     });
 
 server.listen(port, () => {
-  console.log(`Server + Socket.IO running on port ${port}`);
 });
