@@ -18,8 +18,12 @@ lerna-debug.log*
 .env
 .env.local
 .env.*.local
-.env.example
+!.env.example
 .env.test
+.env.production
+.env.production.local
+.env.production
+.env.production.local
 
 # ============================================
 # Build & Dist Outputs

@@ -19,6 +19,7 @@ A full-stack platform where:
 - 👤 **Profile editing** - customize your profile
 - 🌓 **Dark/Light theme** - toggle between modes
 - 📱 **Mobile responsive** - works on all devices
+- 📸 **Gallery** - browse campus photos and memories
 
 **Tech Stack:**
 - **Frontend**: React 19 + Tailwind CSS + Vite
@@ -29,28 +30,43 @@ A full-stack platform where:
 
 ---
 
+## ⚙️ System Requirements
+
+- **Node.js** 20.x or higher
+- **npm** or yarn
+- **MongoDB Atlas** account (free tier available)
+- **Google AI Studio** API key (for Gemini AI features - optional)
+- **Git** for version control
+
+---
+
 ## 🛠️ How to Run Locally
 
 Works on Windows, Mac, and Linux! ✨
 
 ### Backend Setup
+
 ```bash
 cd backend
 npm install
 
-# Create .env file with:
+# Create .env file and copy from .env.example
+# Fill in your credentials:
 # MONGO_URI=your_mongodb_atlas_uri
-# JWT_SECRET=anything_you_want
+# JWT_SECRET=your_secret_key_here
 # PORT=10000
+# GEMINI_API_KEY=your_google_ai_key (optional, for AI chat)
 
-npm start  # runs on http://localhost:10000
+npm start     # runs on http://localhost:10000
+npm run dev   # runs with auto-reload (uses nodemon)
 ```
 
 ### Frontend Setup
+
 ```bash
 cd frontend
 npm install
-npm run dev  # runs on http://localhost:5173
+npm run dev   # runs on http://localhost:5173
 ```
 
 **Test Accounts:**
@@ -62,50 +78,93 @@ Alumni:  alumni@test.com / password123
 
 ---
 
-## 📡 Main APIs I Made
+## 🔐 Environment Variables Setup
 
-Tested with Postman ✅
+### MongoDB Atlas
+1. Go to https://www.mongodb.com/cloud/atlas
+2. Create free account and cluster
+3. Get connection URI: `mongodb+srv://username:password@cluster.mongodb.net/alumni_connect`
+4. Add your IP to IP Whitelist (use 0.0.0.0 for development)
 
-### Auth
-```
-POST   /auth/register          → Create new account
-POST   /auth/login             → Login
-GET    /auth/logout            → Logout
-GET    /auth/me                → Get current user
-POST   /auth/forgot-password   → Reset password
-```
-
-### Events
-```
-GET    /events                 → See all events
-POST   /events                 → Admin: create event
-PUT    /events/:id             → Admin: edit event
-DELETE /events/:id             → Admin: delete event
-POST   /events/:id/rsvp        → Student: RSVP for event
+### JWT Secret
+Generate a secure random key:
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-### Jobs
-```
-GET    /jobs                   → See all job postings
-POST   /jobs                   → Alumni: post job
-PUT    /jobs/:id               → Alumni: edit job
-DELETE /jobs/:id               → Alumni: delete job
+### Gemini API Key (Optional)
+1. Visit https://aistudio.google.com/app/apikeys
+2. Create new API key (free tier available)
+3. Add to `.env` as `GEMINI_API_KEY`
+
+### Backend `.env` Example
+```dotenv
+MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/alumni_connect?retryWrites=true&w=majority
+JWT_SECRET=your_generated_secret_key_here
+PORT=10000
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+GEMINI_API_KEY=your_google_ai_key_optional
 ```
 
-### Chat
+See `backend/.env.example` for complete template.
+
+---
+
+## 📡 Complete API Documentation
+
+Tested with Postman ✅ | Base URL: `http://localhost:10000`
+
+### Authentication Routes
 ```
-GET    /chat/conversations     → Get your chats
-POST   /chat/message           → Send message
-GET    /chat/messages/:userId  → Get chat history
-DELETE /chat/conversation/:userId → Delete chat
+POST   /auth/register              → Create new account
+POST   /auth/login                 → Login
+GET    /auth/logout                → Logout
+GET    /auth/me                    → Get current user
+POST   /auth/forgot-password       → Send password reset email
+POST   /auth/reset-password/:token → Complete password reset
 ```
 
-### Users
+### Events Routes
 ```
-GET    /users                  → Get all users
-GET    /users/alumni           → Get all alumni
-GET    /users/:id              → Get specific user
-PUT    /users/:id              → Update profile
+GET    /events                     → See all events
+POST   /events                     → Admin: create event
+PUT    /events/:id                 → Admin: edit event
+DELETE /events/:id                 → Admin: delete event
+POST   /events/:id/rsvp            → Student: RSVP for event
+```
+
+### Jobs Routes
+```
+GET    /jobs                       → See all job postings
+POST   /jobs                       → Alumni: post job
+PUT    /jobs/:id                   → Alumni: edit job
+DELETE /jobs/:id                   → Alumni: delete job
+```
+
+### Chat Routes
+```
+GET    /chat/conversations         → Get your conversations
+POST   /chat/message               → Send message
+GET    /chat/messages/:userId      → Get chat history with user
+DELETE /chat/conversation/:userId  → Delete conversation
+```
+
+### Users Routes
+```
+GET    /users                      → Get all users (paginated)
+GET    /users/alumni               → Get all alumni
+GET    /users/:id                  → Get specific user
+PUT    /users/:id                  → Update profile
+POST   /users/:id/upload-resume    → Upload resume file
+```
+
+### Gallery Routes
+```
+GET    /gallery                    → Get all gallery images
+POST   /gallery                    → Add image (requires auth)
+DELETE /gallery/:id                → Delete image (requires auth)
 ```
 
 ---
@@ -116,39 +175,80 @@ PUT    /users/:id              → Update profile
 alumni-connect/
 ├── frontend/
 │   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   ├── pages/           # Home, Events, Jobs, Chat, etc
-│   │   ├── context/         # Auth, Theme, Socket context
-│   │   ├── App.jsx          # Main app component
-│   │   └── main.jsx         # Entry point
+│   │   ├── components/           # Reusable UI components
+│   │   │   ├── navbar/
+│   │   │   ├── footer/
+│   │   │   └── ui/               # Button, Card, inputs
+│   │   ├── pages/                # Page components
+│   │   │   ├── Home.jsx
+│   │   │   ├── Events.jsx
+│   │   │   ├── Opportunities.jsx (Jobs)
+│   │   │   ├── Gallery.jsx
+│   │   │   ├── AuthPage.jsx
+│   │   │   ├── ChatPage.jsx
+│   │   │   └── Profile.jsx
+│   │   ├── context/              # React Context
+│   │   │   ├── AuthContext.jsx   # User authentication
+│   │   │   ├── SocketContext.jsx # Real-time updates
+│   │   │   ├── ThemeContext.jsx  # Dark/Light mode
+│   │   │   └── ToastContext.jsx  # Notifications
+│   │   ├── styles/               # CSS files
+│   │   ├── api.js                # Axios configuration
+│   │   ├── App.jsx               # Main app component
+│   │   └── main.jsx              # Entry point
+│   ├── index.html
 │   ├── package.json
-│   └── vite.config.js
+│   ├── vite.config.js
+│   └── tailwind.config.js
 │
 ├── backend/
 │   ├── src/
-│   │   ├── controllers/     # Business logic
+│   │   ├── controllers/          # Business logic
 │   │   │   ├── auth.controller.js
 │   │   │   ├── event.controller.js
 │   │   │   ├── job.controller.js
 │   │   │   ├── chat.controller.js
-│   │   │   └── user.controller.js
-│   │   ├── routes/          # API endpoints
+│   │   │   ├── user.controller.js
+│   │   │   ├── gallery.controller.js
+│   │   │   └── ai.controller.js  # Gemini AI integration
+│   │   ├── routes/               # API endpoints
 │   │   │   ├── auth.routes.js
 │   │   │   ├── event.routes.js
 │   │   │   ├── job.routes.js
 │   │   │   ├── chat.routes.js
-│   │   │   └── user.routes.js
-│   │   ├── models/          # MongoDB schemas
-│   │   │   ├── User.js
-│   │   │   ├── Event.js
-│   │   │   ├── Job.js
-│   │   │   ├── Message.js
-│   │   │   └── Gallery.js
-│   │   └── app.js           # Express setup + Socket.IO
+│   │   │   ├── user.routes.js
+│   │   │   ├── gallery.routes.js
+│   │   │   └── docs.routes.js    # Swagger documentation
+│   │   ├── models/               # MongoDB schemas
+│   │   │   ├── user.model.js
+│   │   │   ├── event.model.js
+│   │   │   ├── job.model.js
+│   │   │   ├── message.model.js
+│   │   │   ├── gallery.model.js
+│   │   │   └── index.js
+│   │   ├── middlewares/          # Express middlewares
+│   │   │   ├── auth.middleware.js      # JWT verification
+│   │   │   ├── role.middleware.js      # Role-based access
+│   │   │   ├── error.middleware.js     # Error handling
+│   │   │   └── validation.middleware.js # Input validation
+│   │   ├── db/
+│   │   │   └── db.js             # MongoDB connection
+│   │   ├── utils/                # Utility functions
+│   │   │   ├── logger.js         # Winston logger
+│   │   │   ├── swagger.js        # API documentation
+│   │   │   └── storage.service.js
+│   │   └── app.js                # Express + Socket.IO setup
+│   ├── server.js                 # Start file
+│   ├── seed.js                   # Database seeding
+│   ├── jest.config.js            # Test configuration
 │   ├── package.json
-│   └── server.js            # Start file
+│   ├── .env.example              # Environment template
+│   └── uploads/                  # File uploads (resumes, etc)
 │
-└── README.md
+├── .gitignore
+├── package.json
+├── README.md
+└── README_ANALYSIS.md            # Analysis & recommendations
 ```
 
 ---
@@ -156,58 +256,109 @@ alumni-connect/
 ## 🚀 How I Deployed
 
 ### Frontend → Vercel
-1. Push to GitHub
-2. Connect Vercel to repo (auto-deploys on push!)
-3. Set `VITE_API_BASE` environment variable
+1. Push to GitHub repository
+2. Connect Vercel to your GitHub repo (auto-deploys on push!)
+3. Set environment variables in Vercel dashboard:
+   - `VITE_API_BASE` = `https://your-backend-url.onrender.com`
 4. Done! ✅
 
 ### Backend → Render
 1. Create Render account
-2. Add GitHub repo
-3. Set environment variables (MONGO_URI, JWT_SECRET)
-4. Auto-deploys on GitHub push ✅
+2. Connect GitHub repo
+3. Create new Web Service
+4. Set environment variables:
+   - `MONGO_URI` = your MongoDB URI
+   - `JWT_SECRET` = your secret
+   - `GEMINI_API_KEY` = your API key
+   - `PORT` = 10000
+   - `NODE_ENV` = production
+5. Deploy! ✅
 
 **Commands used:**
 ```bash
-git push                # Both frontend and backend auto-deploy
-# No manual deployment needed - just push and it's live!
+git push             # Both auto-deploy on push - no manual deployment needed!
 ```
 
 ---
 
-## 👥 User Roles
+## 👥 User Roles & Permissions
 
 ### Admin
-- Create events
-- Delete events/jobs
-- See all users
+- ✅ Create, edit, delete events
+- ✅ Delete inappropriate jobs/content
+- ✅ See all users
+- ✅ View platform analytics
+- ✅ Manage user roles
 
 ### Student
-- View events
-- RSVP for events
-- Browse jobs
-- Chat with alumni
+- ✅ View all events
+- ✅ RSVP for events
+- ✅ Browse jobs posted by alumni
+- ✅ Chat with alumni for guidance
+- ✅ Update profile and resume
+- ✅ View gallery
 
 ### Alumni
-- Post job opportunities
-- Edit their jobs
-- Chat with students
-- Access networking features
+- ✅ Post job opportunities
+- ✅ Edit their own jobs
+- ✅ Chat with students
+- ✅ Access networking features
+- ✅ Browse other alumni
+- ✅ Update profile
 
-**To test:** Login as admin → click "Publish Event" button on /events page
+**To test:** Login as admin@test.com → Navigate to Events page → Click "Create Event" button
+
+---
+
+## 🆘 Troubleshooting
+
+### Backend Connection Issues
+
+**Problem:** `ECONNREFUSED` error when connecting to MongoDB
+- **Solution:** 
+  - Verify `MONGO_URI` is correct
+  - Add your IP to MongoDB Atlas whitelist (0.0.0.0 for dev)
+  - Check credentials are URL-encoded
+
+**Problem:** Backend runs but frontend can't connect
+- **Solution:**
+  - Ensure `ALLOWED_ORIGINS` in backend includes frontend URL
+  - Check `API_BASE` in frontend matches backend URL
+  - Clear browser cache and try again
+
+**Problem:** Socket.IO connection fails
+- **Solution:**
+  - Check CORS configuration in app.js
+  - Verify both frontend and backend URLs in allowedOrigins
+  - Ensure Socket.IO version matches on client and server
+
+### Frontend Issues
+
+**Problem:** `VITE_API_BASE` undefined
+- **Solution:**
+  - On Vercel, add environment variable in project settings
+  - For local dev, set in `.env.local` or just use empty string
+
+**Problem:** Chat messages not loading
+- **Solution:**
+  - Check network tab in DevTools (look for 401/403 errors)
+  - Verify authentication token is being sent
+  - Check Backend logs for errors
 
 ---
 
 ## 💡 What I Learned
 
 Making this project, I learned:
-- Full-stack MERN development
+- Full-stack MERN development workflow
 - Real-time communication with Socket.IO
-- JWT authentication & role-based access
-- MongoDB schema design
-- Deployment on Vercel & Render
-- Error handling & validation
+- JWT authentication and role-based access control (RBAC)
+- MongoDB schema design and indexing
+- Deployment strategies (Vercel, Render)
+- Error handling and API validation
 - Responsive design with Tailwind CSS
+- Testing with Jest and Supertest
+- Security best practices (CORS, rate limiting, bcrypt)
 
 ---
 
@@ -215,9 +366,9 @@ Making this project, I learned:
 
 **Samiksha Balaji Lone**
 - Final year B.Tech IT student
-- **Skills:** MERN, Tailwind CSS, Socket.io, Express, MongoDB, Vercel, Render
+- **Skills:** MERN Stack, Tailwind CSS, Socket.IO, Express.js, MongoDB, Vercel, Render, REST APIs
 
-**Contact me:**
+**Contact & Social:**
 - 📧 Email: samikshalone2@gmail.com
 - 💼 LinkedIn: https://www.linkedin.com/in/samiksha-lone/
 - 🐙 GitHub: https://github.com/Samiksha-Lone
@@ -227,14 +378,26 @@ Making this project, I learned:
 ## 🌟 Feedback & Contributions
 
 Found a bug? Want to contribute? Feel free to:
-1. Open an issue
+1. Open a GitHub issue
 2. Submit a pull request
-3. Drop me an email!
+3. Send me an email with suggestions
 
-**Feedback is welcome!** ⭐ If you found this helpful, a star would be appreciated!
+**Support:** If this project helped you, consider giving it a ⭐ on GitHub!
 
 ---
 
-**Last Updated:** January 7, 2026  
+## 📜 License
+
+This project is open source and available under the ISC License.
+
+---
+
+**Last Updated:** February 14, 2026  
 **Version:** 1.0.0  
-**Status:** Complete ✅
+**Status:** Production Ready ✅
+
+---
+
+### 🔐 Security Note
+
+**IMPORTANT:** Never commit `.env` files to Git. The `.gitignore` file already excludes them. Always use the `.env.example` template and fill in your own credentials locally.

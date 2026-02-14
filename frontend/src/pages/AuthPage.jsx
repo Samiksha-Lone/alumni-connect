@@ -23,7 +23,7 @@ export default function AuthPage() {
   const [branch, setBranch] = useState('')
   const [yearOfPassing, setYearOfPassing] = useState('')
   const [company, setCompany] = useState('')
-  const [jobRole, setJobRole] = useState('')
+  const [jobRole] = useState('')
 
   const [showForgotModal, setShowForgotModal] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
@@ -332,7 +332,9 @@ export default function AuthPage() {
                 type="button"
                 onClick={() => {
                   setShowForgotModal(true)
+                  // eslint-disable-next-line no-undef
                   setError(null)
+                  // eslint-disable-next-line no-undef
                   setSuccess(null)
                 }}
                 className="text-xs text-blue-600 underline hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
@@ -430,7 +432,9 @@ export default function AuthPage() {
                       setResetToken('')
                       setNewPassword('')
                       setConfirmPassword('')
+                      // eslint-disable-next-line no-undef
                       setError(null)
+                      // eslint-disable-next-line no-undef
                       setSuccess(null)
                     }}
                     className="flex-1 py-2 font-bold border rounded-md text-slate-600 border-slate-300 dark:text-slate-400 dark:border-slate-600"
