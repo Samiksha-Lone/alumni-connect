@@ -69,15 +69,6 @@ npm install
 npm run dev   # runs on http://localhost:5173
 ```
 
-**Test Accounts:**
-```
-Admin:   admin@test.com / password123
-Student: student@test.com / password123
-Alumni:  alumni@test.com / password123
-```
-
----
-
 ## 🔐 Environment Variables Setup
 
 ### MongoDB Atlas
