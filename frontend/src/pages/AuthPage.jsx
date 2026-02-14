@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '../context/useToast'
 import axios from 'axios'
+import PasswordInput from '../components/ui/PasswordInput'
 
 const API_BASE =
   import.meta.env.VITE_API_BASE ||
@@ -14,7 +15,6 @@ export default function AuthPage() {
   const { success: showSuccess, error: showError } = useToast()
   const nav = useNavigate()
 
-  // Form States
   const [role, setRole] = useState('student')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,7 +25,6 @@ export default function AuthPage() {
   const [company, setCompany] = useState('')
   const [jobRole, setJobRole] = useState('')
 
-  // Forgot Password States
   const [showForgotModal, setShowForgotModal] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
   const [forgotLoading, setForgotLoading] = useState(false)
@@ -37,7 +36,6 @@ export default function AuthPage() {
   async function handleRegister(e) {
     e.preventDefault()
 
-    // Validation
     if (!name.trim()) {
       showError('Please enter your full name')
       return
@@ -97,7 +95,7 @@ export default function AuthPage() {
       return
     }
 
-    const res = await login({ email, password, role })
+    const res = await login({ email, password })
 
     if (!res.ok) {
       showError(res.error || 'Login failed. Please check your credentials.')
@@ -178,7 +176,6 @@ export default function AuthPage() {
           {mode === 'login' ? 'Welcome Back' : 'Create Account'}
         </h2>
 
-        {/* Mode Switcher */}
         <div className="flex gap-2 p-1 mb-8 rounded-lg bg-slate-100 dark:bg-slate-900">
           <button
             disabled={loading}
@@ -208,28 +205,26 @@ export default function AuthPage() {
           </button>
         </div>
 
-        {/* Login / Register Form */}
         <form
           onSubmit={mode === 'login' ? handleLogin : handleRegister}
           className="space-y-4"
         >
-          {/* Role */}
-          <div>
-            <label className="block mb-1 text-xs font-semibold uppercase text-slate-500">
-              I am a...
-            </label>
-            <select
-              value={role}
-              onChange={e => setRole(e.target.value)}
-              className="w-full px-4 py-2 border rounded-md outline-none dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="student">Student</option>
-              <option value="alumni">Alumni</option>
-              {mode === 'login' && <option value="admin">Admin</option>}
-            </select>
-          </div>
+          {mode === 'register' && (
+            <div>
+              <label className="block mb-1 text-xs font-semibold uppercase text-slate-500">
+                I am a...
+              </label>
+              <select
+                value={role}
+                onChange={e => setRole(e.target.value)}
+                className="w-full px-4 py-2 border rounded-md outline-none dark:bg-slate-900 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="student">Student</option>
+                <option value="alumni">Alumni</option>
+              </select>
+            </div>
+          )}
 
-          {/* Name (register only) */}
           {mode === 'register' && (
             <div>
               <label className="block mb-1 text-xs font-semibold uppercase text-slate-500">
@@ -246,7 +241,6 @@ export default function AuthPage() {
             </div>
           )}
 
-          {/* Email */}
           <div>
             <label className="block mb-1 text-xs font-semibold uppercase text-slate-500">
               Email Address
@@ -261,17 +255,13 @@ export default function AuthPage() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="block mb-1 text-xs font-semibold uppercase text-slate-500">
               Password
             </label>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={e => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-2 border rounded-md dark:bg-slate-900 dark:border-slate-700"
               placeholder="••••••••"
             />
           </div>
@@ -324,7 +314,6 @@ export default function AuthPage() {
             </div>
           )}
 
-          {/* Submit button */}
           <button
             type="submit"
             disabled={loading}
@@ -337,7 +326,6 @@ export default function AuthPage() {
               : 'Create Account'}
           </button>
 
-          {/* Forgot Password link inside login form */}
           {mode === 'login' && (
             <div className="mt-2 text-right">
               <button
@@ -356,7 +344,6 @@ export default function AuthPage() {
         </form>
       </div>
 
-      {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
           <div className="w-full max-w-sm p-8 mx-4 bg-white rounded-lg shadow-xl dark:bg-slate-950">
@@ -409,12 +396,9 @@ export default function AuthPage() {
                   <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">
                     New Password
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
-                    required
-                    className="w-full px-4 py-2 border rounded-md dark:bg-slate-900 dark:border-slate-700"
                     placeholder="••••••••"
                   />
                 </div>
@@ -423,12 +407,9 @@ export default function AuthPage() {
                   <label className="block mb-2 text-sm font-medium text-slate-900 dark:text-slate-50">
                     Confirm Password
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
-                    required
-                    className="w-full px-4 py-2 border rounded-md dark:bg-slate-900 dark:border-slate-700"
                     placeholder="••••••••"
                   />
                 </div>

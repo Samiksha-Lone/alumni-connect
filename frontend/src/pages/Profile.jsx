@@ -4,11 +4,10 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/useToast'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
-
-// Use axios.defaults.baseURL (set in App.jsx). VITE_API_BASE can still override it.
+import PasswordInput from '../components/ui/PasswordInput'
 
 export default function Profile() {
-  const { user, logout, users, fetchAllUsers } = useAuth()  // ✅ Added missing users, fetchAllUsers
+  const { user, logout, users, fetchAllUsers } = useAuth()  
   const { success, error } = useToast()
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({})
@@ -183,7 +182,7 @@ export default function Profile() {
       </Card>
 
       {user.role === 'admin' && (
-        <AdminPanel users={users} fetchAllUsers={fetchAllUsers} />  // ✅ Fixed props + function name
+        <AdminPanel users={users} fetchAllUsers={fetchAllUsers} />  
       )}
     </section>
   )
@@ -243,12 +242,11 @@ function AdminPanel({ fetchAllUsers }) {
                 className="p-3 border rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500"
                 required
               />
-              <input
-                type="password"
+              <PasswordInput
                 placeholder="Password"
                 value={newAdmin.password}
                 onChange={(e) => setNewAdmin(prev => ({ ...prev, password: e.target.value }))}
-                className="p-3 border rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500"
+                inputClassName="p-3 rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 required
               />
             </div>

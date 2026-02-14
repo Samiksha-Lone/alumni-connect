@@ -64,10 +64,10 @@ export function AuthProvider({ children }) {
     }
   }, [user])
 
-  const login = useCallback(async ({ email, password, role }) => {
+  const login = useCallback(async ({ email, password}) => {
     try {
       setLoading(true)
-      const res = await axios.post('/auth/login', { email, password, role })
+      const res = await axios.post('/auth/login', { email, password })
       
       if (res.data?.user) {
         const normalized = { ...res.data.user, _id: res.data.user._id || res.data.user.id };

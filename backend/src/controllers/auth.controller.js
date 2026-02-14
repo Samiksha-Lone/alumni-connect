@@ -13,6 +13,33 @@ async function registerUser(req, res, next) {
       yearOfStudying,
       course,
     } = req.body;
+    // If attempting to create an admin, allow only when requester is an authenticated admin
+    if (role === 'admin') {
+      // Try to get token from Authorization header or cookies
+      let requesterToken = null
+      if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+        requesterToken = req.headers.authorization.split(' ')[1]
+      } else if (req.cookies && req.cookies.token) {
+        requesterToken = req.cookies.token
+      }
+
+      if (!requesterToken) {
+        logger.warn(`Blocked unauthenticated admin registration attempt for email: ${email}`)
+        return res.status(403).json({ message: 'Cannot register admin via public endpoint' })
+      }
+
+      try {
+        const decoded = jwt.verify(requesterToken, process.env.JWT_SECRET)
+        const requester = await userModel.findById(decoded.id)
+        if (!requester || requester.role !== 'admin') {
+          logger.warn(`Blocked non-admin user from creating admin: ${decoded.id}`)
+          return res.status(403).json({ message: 'Only admins can create admin accounts' })
+        }
+      } catch (err) {
+        logger.warn('Failed admin auth check during registration', err && err.message)
+        return res.status(403).json({ message: 'Cannot register admin via public endpoint' })
+      }
+    }
 
     let existingUser = await userModel.findOne({ email });
     if (existingUser) {
@@ -48,7 +75,7 @@ async function registerUser(req, res, next) {
     );
 
     logger.info(`User registered successfully: ${user._id}`);
-    
+
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

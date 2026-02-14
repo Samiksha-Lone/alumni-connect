@@ -5,6 +5,7 @@ import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { useNavigate } from 'react-router-dom'; 
 import { toast } from 'react-hot-toast';
+import { HiExclamation, HiTrash, HiCalendar, HiCheck, HiArrowRight } from 'react-icons/hi';
 
 const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
 
@@ -128,8 +129,8 @@ export default function Events() {
       </div>
 
       {error && (
-        <div className="p-4 mb-6 text-red-600 border border-red-200 rounded-lg bg-red-50 animate-in fade-in slide-in-from-top-2">
-          ⚠️ {error}
+        <div className="p-4 mb-6 text-red-600 border border-red-200 rounded-lg bg-red-50 animate-in fade-in slide-in-from-top-2 flex items-center gap-2">
+          <HiExclamation className="flex-shrink-0" /> {error}
         </div>
       )}
 
@@ -149,21 +150,19 @@ export default function Events() {
             <div key={e._id} className="relative flex flex-col h-full overflow-hidden transition-all duration-300 bg-white border group dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl hover:shadow-xl">
 
               {user?.role === 'admin' && (
-                <button
-                  onClick={() => deleteEvent(e._id)}
-                  className="absolute z-10 p-2 text-red-500 transition-opacity rounded-full opacity-0 top-3 right-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm group-hover:opacity-100 hover:bg-red-50"
-                  title="Delete Event"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                </button>
+                  <button
+                    onClick={() => deleteEvent(e._id)}
+                    className="absolute z-10 p-2 text-red-500 transition-opacity rounded-full opacity-0 top-3 right-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm group-hover:opacity-100 hover:bg-red-50"
+                    title="Delete Event"
+                  >
+                    <HiTrash className="w-5 h-5" />
+                  </button>
               )}
 
               <div className="flex-grow p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded">Upcoming</span>
-                  <span className="text-xs text-slate-500">📅 {new Date(e.eventDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                  <span className="text-xs text-slate-500 flex items-center gap-1"><HiCalendar /> {new Date(e.eventDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                 </div>
 
                 <h3 className="mb-3 text-xl font-bold transition-colors text-slate-900 dark:text-white group-hover:text-blue-600">{e.title}</h3>
@@ -180,8 +179,8 @@ export default function Events() {
 
               <div className="px-6 py-4 border-t bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800">
                 {rsvpStatus[e._id] ? (
-                  <span className="flex items-center text-sm font-semibold text-green-600 dark:text-green-400">
-                    ✓ RSVP Confirmed
+                  <span className="flex items-center text-sm font-semibold text-green-600 dark:text-green-400 gap-1">
+                    <HiCheck /> RSVP Confirmed
                   </span>
                 ) : (
                   <button
@@ -189,7 +188,7 @@ export default function Events() {
                     disabled={loading || e.isFull}
                     className="flex items-center text-sm font-semibold text-blue-600 transition-all dark:text-blue-400 hover:gap-2 disabled:opacity-50"
                   >
-                    Register for Event <span className="ml-1">→</span>
+                    Register for Event <HiArrowRight />
                   </button>
                 )}
               </div>

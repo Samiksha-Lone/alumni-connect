@@ -1,8 +1,8 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import UiNavLink from './ui/UiNavLink';
 import { useAuth } from '../context/AuthContext';
 import useTheme from '../context/useTheme';
+import { HiSun, HiMoon } from 'react-icons/hi';
 
 export default function NavBar() {
   const { user } = useAuth();
@@ -49,7 +49,7 @@ export default function NavBar() {
             title="Toggle theme"
             className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors duration-150"
           >
-            {theme === 'dark' ? '🌙' : '☀️'}
+            {theme === 'dark' ? <HiMoon className="w-5 h-5" /> : <HiSun className="w-5 h-5" />}
           </button>
         </div>
       </nav>

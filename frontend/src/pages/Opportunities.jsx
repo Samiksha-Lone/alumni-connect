@@ -147,6 +147,7 @@ import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
+import { HiSpeakerphone, HiX, HiArrowRight, HiOfficeBuilding, HiCalendar } from 'react-icons/hi'
 
 const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
 
@@ -232,7 +233,7 @@ export default function Opportunities() {
       {canAdd && (
         <Card className="p-6 mb-12 border-blue-100 dark:border-blue-900/30 bg-blue-50/30 dark:bg-slate-900/50">
           <h3 className="flex items-center gap-2 mb-4 text-lg font-bold text-blue-700 dark:text-blue-400">
-            <span>📢</span> Post a Job or Internship
+            <HiSpeakerphone className="w-5 h-5" /> Post a Job or Internship
           </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Job Title *" className="p-2 border rounded dark:bg-slate-800 dark:border-slate-700" />
@@ -267,9 +268,7 @@ export default function Opportunities() {
                   onClick={() => deleteOpportunity(o._id)} 
                   className="absolute p-2 transition-colors top-4 right-4 text-slate-300 hover:text-red-500"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
+                  <HiX className="w-5 h-5" />
                 </button>
               )}
               
@@ -300,7 +299,7 @@ export default function Opportunities() {
                     className="flex items-center gap-1 text-sm font-bold text-blue-600 hover:text-blue-700 group/link"
                   >
                     Apply Now 
-                    <span className="transition-transform group-hover/link:translate-x-1">→</span>
+                    <HiArrowRight className="transition-transform group-hover/link:translate-x-1" />
                   </a>
                 )}
               </div>

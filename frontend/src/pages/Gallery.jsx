@@ -163,6 +163,7 @@ import { useAuth } from '../context/AuthContext'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import LazyImage from '../components/ui/LazyImage'
+import { HiX, HiChevronLeft, HiChevronRight, HiTrash } from 'react-icons/hi'
 
 const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
 
@@ -188,14 +189,14 @@ function ImageModal({ index, items = [], onClose, setIndex }) {
         onClick={onClose} 
         className="absolute text-4xl text-white transition-colors top-6 right-6 hover:text-slate-300"
       >
-        &times;
+        <HiX />
       </button>
 
       <button 
         className="absolute p-4 text-3xl text-white transition-all rounded-full left-4 hover:bg-white/10"
         onClick={(e) => { e.stopPropagation(); setIndex((index - 1 + items.length) % items.length) }}
       >
-        &#10094;
+        <HiChevronLeft />
       </button>
 
       <div className="flex flex-col items-center w-full max-w-5xl" onClick={e => e.stopPropagation()}>
@@ -215,7 +216,7 @@ function ImageModal({ index, items = [], onClose, setIndex }) {
         className="absolute p-4 text-3xl text-white transition-all rounded-full right-4 hover:bg-white/10"
         onClick={(e) => { e.stopPropagation(); setIndex((index + 1) % items.length) }}
       >
-        &#10095;
+        <HiChevronRight />
       </button>
     </div>
   )
@@ -351,9 +352,7 @@ export default function Gallery() {
                     onClick={(e) => deleteImage(it._id, e)}
                     className="absolute p-2 text-white transition-opacity bg-red-500 rounded-lg shadow-lg opacity-0 top-3 right-3 group-hover:opacity-100 hover:bg-red-600"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                    <HiTrash className="w-5 h-5" />
                   </button>
                 )}
 
