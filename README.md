@@ -1,6 +1,6 @@
 # 🎓 Alumni Connect
 
-My final year **B.Tech IT project** - connecting students with alumni for networking, events, and jobs.
+My Third year project - connecting students with alumni for networking, events, and jobs.
 
 **Live Links:**
 - 🌐 **Frontend**: https://alumni-connect-frontendd.vercel.app
@@ -285,6 +285,7 @@ git push             # Both auto-deploy on push - no manual deployment needed!
 
 ### Admin
 - ✅ Create, edit, delete events
+- ✅ Add & Manage college pictures to gallery
 - ✅ Delete inappropriate jobs/content
 - ✅ See all users
 - ✅ View platform analytics
@@ -395,9 +396,3 @@ This project is open source and available under the ISC License.
 **Last Updated:** February 14, 2026  
 **Version:** 1.0.0  
 **Status:** Production Ready ✅
-
----
-
-### 🔐 Security Note
-
-**IMPORTANT:** Never commit `.env` files to Git. The `.gitignore` file already excludes them. Always use the `.env.example` template and fill in your own credentials locally.
