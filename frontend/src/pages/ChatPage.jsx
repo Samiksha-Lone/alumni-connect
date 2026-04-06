@@ -43,6 +43,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { MessageSquare, ArrowLeft } from 'lucide-react';
 import ChatList from '../components/ChatList';
 import ChatRoom from '../components/ChatRoom';
 
@@ -50,13 +51,11 @@ const ChatPage = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const location = useLocation();
   
-  // Extract partner data passed from AlumniPage
   const initialPartnerId = location.state?.partnerId || null;
   const initialPartnerName = location.state?.partnerName || 'Alumni';
 
   useEffect(() => {
     if (initialPartnerId) {
-      // Set the active chat window immediately
       setSelectedChat({ 
         partnerId: initialPartnerId, 
         name: initialPartnerName 
@@ -65,10 +64,10 @@ const ChatPage = () => {
   }, [initialPartnerId, initialPartnerName]);
 
   return (
-    <div className="flex flex-col md:flex-row h-[calc(100vh-100px)] bg-white dark:bg-slate-950 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+    <div className="section-container !p-0 h-[calc(100vh-120px)] flex overflow-hidden bg-card border border-border rounded-3xl shadow-sm animate-fade-in mb-8">
       
-      {/* Sidebar: List of conversations */}
-      <aside className={`w-full md:w-80 lg:w-96 border-r border-slate-200 dark:border-slate-800 ${selectedChat ? 'hidden md:block' : 'block'}`}>
+      {/* Sidebar */}
+      <aside className={`w-full md:w-80 lg:w-96 border-r border-border bg-gray-50/50 dark:bg-gray-900/10 ${selectedChat ? 'hidden md:block' : 'block'}`}>
         <ChatList 
           onSelectChat={setSelectedChat} 
           activeChatId={selectedChat?.partnerId} 
@@ -76,16 +75,17 @@ const ChatPage = () => {
         />
       </aside>
 
-      {/* Main: Message Window */}
-      <main className={`flex-1 flex flex-col relative bg-slate-50 dark:bg-slate-900/30 ${!selectedChat ? 'hidden md:flex' : 'flex'}`}>
+      {/* Main Chat Area */}
+      <main className={`flex-1 flex flex-col relative bg-white dark:bg-slate-900/20 ${!selectedChat ? 'hidden md:flex' : 'flex'}`}>
         {selectedChat ? (
-          <div className="flex flex-col w-full h-full">
+          <div className="flex flex-col w-full h-full relative">
             {/* Mobile Back Button */}
             <button 
               onClick={() => setSelectedChat(null)}
-              className="absolute z-10 p-2 bg-white rounded-full shadow-sm md:hidden top-4 left-4 dark:bg-slate-800"
+              className="absolute z-50 p-2 text-text-secondary hover:text-primary md:hidden top-4 left-4"
+              title="Back to conversations"
             >
-              ⬅️
+              <ArrowLeft size={24} />
             </button>
             
             <ChatRoom 
@@ -94,13 +94,13 @@ const ChatPage = () => {
             />
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center px-6 m-auto text-center">
-            <div className="flex items-center justify-center w-20 h-20 mb-6 text-4xl bg-blue-100 rounded-full dark:bg-blue-900/30">
-              💬
+          <div className="flex flex-col items-center justify-center p-12 m-auto text-center animate-slide-up">
+            <div className="w-20 h-20 bg-primary-soft rounded-3xl flex items-center justify-center mb-6 text-primary border border-primary/10">
+              <MessageSquare size={40} />
             </div>
-            <h1 className="mb-2 text-2xl font-bold text-slate-900 dark:text-slate-100">Your Messages</h1>
-            <p className="max-w-sm text-slate-500 dark:text-slate-400">
-              Select an alumni from the directory to start a conversation or pick a recent chat from the list.
+            <h1 className="heading-md mb-2">Direct Messages</h1>
+            <p className="max-w-xs text-text-secondary text-sm">
+              Select a conversation from the sidebar or start a new one from the Alumni Directory.
             </p>
           </div>
         )}

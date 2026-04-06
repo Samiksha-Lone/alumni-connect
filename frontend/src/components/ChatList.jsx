@@ -1,43 +1,30 @@
-// src/components/ChatList.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Search, User } from 'lucide-react';
 
 const api = axios.create({
   baseURL: import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com',
   withCredentials: true,
 });
 
-const ChatList = ({ onSelectChat, initialPartnerId }) => {
+const ChatList = ({ onSelectChat, activeChatId, initialPartnerId }) => {
   const [conversations, setConversations] = useState([]);
-  const [selectedId, setSelectedId] = useState(initialPartnerId || null);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     const fetchConversations = async () => {
       try {
         const res = await api.get('/chat/conversations');
         let data = res.data;
-        // Defensive: ensure we only set an array
-        if (Array.isArray(data)) {
-          // ok
-        } else if (data && Array.isArray(data.conversations)) {
-          data = data.conversations;
-        } else {
-          console.warn('fetchConversations: unexpected response', data);
-          data = [];
+        if (!Array.isArray(data)) {
+          data = data.conversations || [];
         }
-
         setConversations(data);
 
-        // If we came from Alumni → Message and this partner exists, preselect it
         if (initialPartnerId && data.length) {
           const existing = data.find(c => String(c.partnerId) === String(initialPartnerId));
-          if (existing) {
-            setSelectedId(existing.partnerId);
-            onSelectChat(existing);
-          } else {
-            // No previous conversation, still allow ChatPage to open ChatRoom via partnerId
-            onSelectChat({ partnerId: initialPartnerId });
-          }
+          if (existing) onSelectChat(existing);
+          else onSelectChat({ partnerId: initialPartnerId });
         }
       } catch (err) {
         console.error('fetchConversations error', err);
@@ -46,57 +33,70 @@ const ChatList = ({ onSelectChat, initialPartnerId }) => {
     fetchConversations();
   }, [initialPartnerId, onSelectChat]);
 
-  const handleClick = (conv) => {
-    setSelectedId(conv.partnerId);
-    onSelectChat(conv);
-  };
+  const filtered = conversations.filter(c => 
+    (c.partnerName || '').toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <aside className="flex flex-col bg-white border-r w-80 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-      <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-          Conversations
-        </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          {conversations.length} active chat{conversations.length !== 1 && 's'}
-        </p>
+    <div className="flex flex-col h-full bg-gray-50/50 dark:bg-gray-900/10">
+      <div className="p-6 border-b border-border">
+        <h2 className="heading-sm mb-4">Messages</h2>
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+          <input
+            type="text"
+            placeholder="Search conversations..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="form-input pl-9 h-9 text-xs"
+          />
+        </div>
       </div>
+
       <div className="flex-1 overflow-y-auto">
-        {conversations.map((conv) => (
-          <button
-            key={conv.partnerId}
-            onClick={() => handleClick(conv)}
-            className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-slate-100 dark:border-slate-800 transition-colors ${
-              selectedId === conv.partnerId
-                ? 'bg-slate-100 dark:bg-slate-800'
-                : 'hover:bg-slate-100 dark:hover:bg-slate-800/70'
-            }`}
-          >
-            <div className="flex items-center justify-center w-10 h-10 text-sm font-semibold text-white rounded-full bg-gradient-to-br from-blue-500 to-sky-500">
-              {(conv.partnerName || 'U').charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-slate-900 dark:text-slate-100">
-                {conv.partnerName || 'User'}
-              </p>
-              <p className="text-xs truncate text-slate-500 dark:text-slate-400">
-                {conv.lastMessage}
-              </p>
-            </div>
-            {conv.unreadCount > 0 && (
-              <div className="ml-2 px-2 py-1 rounded-full bg-rose-500 text-[10px] font-semibold text-white">
-                {conv.unreadCount}
+        {filtered.length > 0 ? (
+          filtered.map((conv) => (
+            <button
+              key={conv.partnerId}
+              onClick={() => onSelectChat(conv)}
+              className={`w-full flex items-center gap-4 px-6 py-4 text-left border-b border-border/50 transition-all ${
+                activeChatId === conv.partnerId
+                  ? 'bg-white dark:bg-gray-800 shadow-sm border-l-4 border-l-primary'
+                  : 'hover:bg-white/50 dark:hover:bg-gray-800/50'
+              }`}
+            >
+              <div className="relative flex-shrink-0">
+                <div className="w-11 h-11 rounded-2xl bg-primary-soft text-primary flex items-center justify-center font-bold text-sm border border-primary/10">
+                  {(conv.partnerName || 'U').charAt(0).toUpperCase()}
+                </div>
+                {/* Status indicator could go here */}
               </div>
-            )}
-          </button>
-        ))}
-        {conversations.length === 0 && (
-          <p className="p-4 text-xs text-slate-500 dark:text-slate-400">
-            No conversations yet. Start by messaging someone from the Alumni Directory.
-          </p>
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-start mb-0.5">
+                  <p className={`text-sm tracking-tight truncate ${activeChatId === conv.partnerId ? 'font-bold text-primary' : 'font-semibold text-text-primary'}`}>
+                    {conv.partnerName || 'User'}
+                  </p>
+                  {conv.unreadCount > 0 && (
+                    <span className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
+                      {conv.unreadCount}
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs truncate text-text-secondary">
+                  {conv.lastMessage || 'No messages yet'}
+                </p>
+              </div>
+            </button>
+          ))
+        ) : (
+          <div className="p-8 text-center">
+             <User size={32} className="mx-auto text-text-secondary mb-3 opacity-20" />
+             <p className="text-xs text-text-secondary">No conversations found</p>
+          </div>
         )}
       </div>
-    </aside>
+    </div>
   );
 };
 

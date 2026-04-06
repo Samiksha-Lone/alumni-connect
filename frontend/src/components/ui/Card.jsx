@@ -1,8 +1,9 @@
 import React from 'react'
 
-export default function Card({ children, className = '', ...props }) {
+export default function Card({ children, className = '', hover = true, ...props }) {
+  const cls = `card ${hover ? 'card-hover' : ''} ${className}`.trim()
   return (
-    <article className={`card ${className}`} {...props}>
+    <article className={cls} {...props}>
       {children}
     </article>
   )

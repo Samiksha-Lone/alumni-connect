@@ -31,23 +31,30 @@ export function AuthProvider({ children }) {
       try {
         const stored = localStorage.getItem('currentUser')
         if (stored) {
-          const parsed = JSON.parse(stored)
-          setUser(parsed)
+          try {
+            setUser(JSON.parse(stored))
+          } catch {
+            localStorage.removeItem('currentUser')
+          }
         }
 
-        const [meRes, adminCheck] = await Promise.all([
-          axios.get('/auth/me').catch(() => null),
-          axios.get('/auth/me').then(res => res.data?.role === 'admin' ? axios.get('/users') : null).catch(() => null)
-        ])
+        const res = await axios.get('/auth/me').catch(() => null)
 
-        if (meRes?.data) {
-          const normalized = { ...meRes.data, _id: meRes.data._id || meRes.data.id };
+        if (res?.data) {
+          const normalized = { ...res.data, _id: res.data._id || res.data.id };
           setUser(normalized)
-          if (adminCheck?.data) setUsers(adminCheck.data)
+          
+          if (normalized.role === 'admin') {
+            const usersRes = await axios.get('/users').catch(() => null)
+            if (usersRes?.data) setUsers(usersRes.data)
+          }
+        } else {
+          setUser(null)
+          localStorage.removeItem('currentUser')
         }
-      // eslint-disable-next-line no-unused-vars
       } catch (err) {
         setUser(null)
+        localStorage.removeItem('currentUser')
       } finally {
         setLoading(false)
       }

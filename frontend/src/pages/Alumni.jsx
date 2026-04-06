@@ -1,108 +1,12 @@
-// import React, { useEffect, useState, useCallback } from 'react';
-// import Button from '../components/ui/Button'
-// import Card from '../components/ui/Card'
-// import axios from 'axios';
-// import { useNavigate } from 'react-router-dom';
-
-// const API_BASE = import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com';
-
-// export default function AlumniPage() {
-//   const [alumni, setAlumni] = useState([]);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState('');
-//   const navigate = useNavigate();
-
-//   const fetchAlumni = useCallback(async () => {
-//     try {
-//       setLoading(true);
-//       const res = await axios.get(`${API_BASE}/users/alumni`, {
-//         withCredentials: true,
-//       });
-//       setAlumni(res.data || []);
-//       setError('');
-//     } catch (err) {
-//       console.error('Failed to fetch alumni:', err.message);
-//       setError(err.response?.data?.message || 'Failed to load alumni');
-//       setAlumni([]);
-//     } finally {
-//       setLoading(false);
-//     }
-//   }, []);
-
-//   useEffect(() => {
-//     fetchAlumni();
-//   }, [fetchAlumni]);
-
-//   const handleMessageClick = (alumniUser) => {
-//     navigate('/chat', { state: { partnerId: alumniUser._id } });
-//   };
-
-//   return (
-//     <section className="px-6 py-12 mx-auto max-w-7xl">
-//       <h2 className="mb-8 text-4xl font-bold">Alumni</h2>
-
-//       {loading && (
-//         <div className="py-12 text-center">
-//           <p className="text-lg muted">Loading alumni...</p>
-//         </div>
-//       )}
-
-//       {error && (
-//         <div className="py-12 text-center">
-//           <p style={{ color: 'var(--accent)' }} className="text-lg">{error}</p>
-//         </div>
-//       )}
-
-//       {!loading && !error && (
-//         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-//           {alumni.length === 0 ? (
-//             <div className="py-12 text-center col-span-full">
-//               <p className="text-lg muted">No alumni registered yet</p>
-//             </div>
-//           ) : (
-//             alumni.map((a) => {
-//               try {
-//                 return (
-//                   <Card key={a._id || a.id} className="flex flex-col p-6">
-//                     <h3 className="mb-2 text-xl font-semibold">{a.name || 'N/A'}</h3>
-//                     <p className="mb-3 text-sm muted">{a.email || 'N/A'}</p>
-
-//                     <div className="flex-grow mb-4 text-sm muted">
-//                       {a.graduationYear && (
-//                         <p>
-//                           Year: <span className="font-medium">{a.graduationYear}</span>
-//                           {a.courseStudied && <span> • {a.courseStudied}</span>}
-//                         </p>
-//                       )}
-//                       {a.company && <p className="mt-2">Company: <span className="font-medium">{a.company}</span></p>}
-//                     </div>
-
-//                     <Button className="w-full mt-4" onClick={() => handleMessageClick(a)}>
-//                       Message
-//                     </Button>
-//                   </Card>
-//                 );
-//               } catch (e) {
-//                 console.error('Error rendering alumni item:', e);
-//                 return null;
-//               }
-//             })
-//           )}
-//         </div>
-//       )}
-//     </section>
-//   );
-// }
-
-
-
-
 import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { Search, Briefcase, GraduationCap, MessageSquare, RefreshCw, ArrowUpRight } from 'lucide-react';
+import { FaLinkedin } from 'react-icons/fa6';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; // Import useAuth
+import { useAuth } from '../context/AuthContext';
+import { CardSkeleton } from '../components/ui/Skeleton';
 
 const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com';
 
@@ -110,8 +14,9 @@ export default function AlumniPage() {
   const [alumni, setAlumni] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
-  const { user } = useAuth(); // Get current user info
+  const { user } = useAuth();
 
   const fetchAlumni = useCallback(async () => {
     try {
@@ -120,13 +25,12 @@ export default function AlumniPage() {
         withCredentials: true,
       });
       
-      // Filter out the logged-in user so they don't see themselves in the list
       const list = (res.data || []).filter(a => a._id !== user?.id);
       setAlumni(list);
       setError('');
     } catch (err) {
       if (err.response?.status === 401) {
-        setError('Please login to view alumni directory');
+        setError('Please login to view the alumni directory');
       } else {
         setError(err.response?.data?.message || 'Failed to load alumni');
       }
@@ -139,8 +43,13 @@ export default function AlumniPage() {
     fetchAlumni();
   }, [fetchAlumni]);
 
+  const filteredAlumni = alumni.filter(a => 
+    (a.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (a.company || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (a.courseStudied || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const handleMessageClick = (alumniUser) => {
-    // Navigate to chat and pass the partner details
     navigate('/chat', { 
       state: { 
         partnerId: alumniUser._id,
@@ -150,90 +59,101 @@ export default function AlumniPage() {
   };
 
   return (
-    <section className="px-6 py-12 mx-auto max-w-7xl">
-      <div className="flex items-center justify-between mb-10">
-        <div>
-          <h2 className="text-4xl font-bold text-slate-900 dark:text-white">Alumni Directory</h2>
-          <p className="mt-2 text-slate-500">Connect with graduates from your branch</p>
+    <div className="section-container">
+      <div className="flex flex-col items-center text-center mb-10 animate-slide-up">
+        <div className="max-w-2xl mb-6">
+          <h1 className="heading-lg mb-2">Alumni Directory</h1>
+          <p className="text-text-secondary text-sm font-medium">
+            Connect with our global network of professional graduates.
+          </p>
         </div>
-        <button 
-           onClick={fetchAlumni} 
-           className="p-2 text-blue-600 transition-colors rounded-full hover:bg-blue-50"
-           title="Refresh List"
-        >
-          🔄
-        </button>
+        
+        <div className="flex flex-col sm:flex-row gap-2 w-full max-w-lg">
+          <div className="relative group flex-grow">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary transition-colors group-focus-within:text-primary" size={16} />
+            <input 
+              type="text" 
+              placeholder="Search directory..." 
+              className="form-input pl-10 h-10 text-sm shadow-sm bg-card"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Button variant="secondary" onClick={fetchAlumni} className="h-10 px-4 shrink-0 border-border">
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+          </Button>
+        </div>
       </div>
 
-      {loading && (
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-12 h-12 mb-4 border-b-2 border-blue-600 rounded-full animate-spin"></div>
-          <p className="text-slate-500">Finding alumni...</p>
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+           {[1, 2, 3, 4, 5, 6, 7, 8].map(i => <CardSkeleton key={i} />)}
+        </div>
+      ) : error ? (
+        <Card className="p-8 text-center border-red-100 bg-red-50/30 dark:bg-red-950/10 max-w-md mx-auto">
+          <p className="text-red-600 dark:text-red-400 mb-4 text-sm font-medium">{error}</p>
+          <Button variant="primary" onClick={fetchAlumni} className="h-9 px-6 text-xs">Try Again</Button>
+        </Card>
+      ) : filteredAlumni.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-fade-in">
+          {filteredAlumni.map((a) => (
+            <AlumniCard key={a._id} alumni={a} onMessage={() => handleMessageClick(a)} />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16 bg-gray-50/50 dark:bg-gray-900/10 rounded-xl border border-dashed border-border max-w-md mx-auto">
+          <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center mx-auto mb-3 text-text-secondary border border-border shadow-sm">
+             <Search size={24} />
+          </div>
+          <h3 className="heading-sm mb-1">No results found</h3>
+          <p className="text-text-secondary text-xs">Try searching for a different name or company.</p>
         </div>
       )}
+    </div>
+  );
+}
 
-      {error && (
-        <div className="p-6 text-center border border-red-200 bg-red-50 rounded-xl">
-          <p className="font-medium text-red-600">{error}</p>
-          <Button onClick={fetchAlumni} className="mt-4 bg-red-600 hover:bg-red-700">Try Again</Button>
-        </div>
-      )}
-
-      {!loading && !error && (
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {alumni.length === 0 ? (
-            <div className="py-20 text-center border-2 border-dashed col-span-full border-slate-200 rounded-2xl">
-              <p className="text-xl font-medium text-slate-400">No alumni registered yet</p>
-              <p className="text-sm text-slate-400">Be the first to invite someone!</p>
-            </div>
-          ) : (
-            alumni.map((a) => (
-              <Card key={a._id} className="flex flex-col h-full overflow-hidden transition-shadow duration-300 hover:shadow-2xl border-slate-200 dark:border-slate-800">
-                <div className="w-full h-2 bg-blue-600" /> {/* Top accent bar */}
-                <div className="flex flex-col flex-grow p-6">
-                  <div className="flex items-center mb-4">
-                    <div className="flex items-center justify-center w-12 h-12 mr-4 text-xl font-bold text-blue-700 bg-blue-100 rounded-full">
-                      {a.name?.charAt(0) || '?'}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold leading-tight text-slate-900 dark:text-white">{a.name}</h3>
-                      <p className="text-xs text-slate-500">{a.role?.toUpperCase()}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex-grow space-y-3">
-                    <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
-                      <span className="mr-2">📧</span> {a.email}
-                    </div>
-                    
-                    {/* Flexible Display for different data versions */}
-                    <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                        🎓 {(a.graduationYear || a.yearOfPassing) || 'N/A'} 
-                        <span className="mx-2 text-slate-300">|</span> 
-                        {(a.courseStudied || a.branch) || 'General'}
-                      </p>
-                      
-                      {a.company && (
-                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                          💼 <span className="font-semibold">{a.company}</span>
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <Button 
-                    className="w-full mt-6 bg-slate-900 hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700" 
-                    onClick={() => handleMessageClick(a)}
-                  >
-                    Send Message
-                  </Button>
-                </div>
-              </Card>
-            ))
+function AlumniCard({ alumni, onMessage }) {
+  return (
+    <Card className="flex flex-col h-full group hover:border-primary/30 transition-all duration-300 !p-0 overflow-hidden bg-card">
+      <div className="p-4 flex-1">
+        <div className="flex items-start justify-between mb-4">
+          <div className="w-12 h-12 rounded-xl bg-primary-soft text-primary flex items-center justify-center text-lg font-bold group-hover:scale-105 transition-transform duration-300 border border-primary/10">
+            {alumni.name?.charAt(0)}
+          </div>
+          {alumni.linkedin && (
+             <a href={alumni.linkedin} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-text-secondary hover:text-blue-600 transition-colors border border-border">
+               <FaLinkedin size={14} />
+             </a>
           )}
         </div>
-      )}
-    </section>
+
+        <h3 className="text-sm font-bold mb-1 group-hover:text-primary transition-colors leading-tight truncate">{alumni.name}</h3>
+        
+        <div className="space-y-1.5 mb-4">
+           <div className="flex items-center gap-2 text-text-secondary text-[11px]">
+             <Briefcase size={12} className="text-primary/60 shrink-0" />
+             <span className="font-semibold truncate">{alumni.company || 'Professional Member'}</span>
+           </div>
+           <div className="flex items-center gap-2 text-text-secondary text-[11px]">
+             <GraduationCap size={12} className="text-primary/60 shrink-0" />
+             <span className="truncate">Class of {alumni.graduationYear || 'N/A'} • {alumni.courseStudied || 'Member'}</span>
+           </div>
+        </div>
+      </div>
+
+      <div className="px-4 py-3 bg-gray-50/50 dark:bg-gray-800/10 border-t border-border flex gap-2">
+        <Button onClick={onMessage} variant="primary" className="flex-1 text-[10px] h-8 font-bold">
+           <MessageSquare size={12} className="mr-1.2" /> Message
+        </Button>
+        {alumni.resumeUrl && (
+          <a href={alumni.resumeUrl} target="_blank" rel="noopener noreferrer">
+             <Button variant="secondary" className="px-2 h-8 border-border bg-card">
+                <ArrowUpRight size={12} />
+             </Button>
+          </a>
+        )}
+      </div>
+    </Card>
   );
 }
