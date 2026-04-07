@@ -23,8 +23,6 @@ Alumni Connect bridges this gap by providing a centralized platform where studen
 - Integrated AI features for smart networking assistance
 - Developed a responsive and modern UI using React + Tailwind CSS
 
----
-
 ## Features
 
 - 🔐 Role-based authentication (Student, Alumni, Admin)
@@ -36,8 +34,6 @@ Alumni Connect bridges this gap by providing a centralized platform where studen
 - 🖼️ Gallery for sharing campus memories
 - 🤖 AI-powered message suggestions (Gemini API)
 
----
-
 ## Tech Stack
 
 - **Frontend:** React, Vite, Tailwind CSS
@@ -46,8 +42,6 @@ Alumni Connect bridges this gap by providing a centralized platform where studen
 - **Real-time:** Socket.IO
 - **Authentication:** JWT, bcrypt
 - **AI:** Google Gemini API (optional)
-
----
 
 ## Installation & Setup
 
@@ -106,8 +100,6 @@ Alumni Connect bridges this gap by providing a centralized platform where studen
 - Video chat integration for networking
 - Mobile application development
 - Analytics dashboard for engagement tracking
-
----
 
 ## Contact
 
