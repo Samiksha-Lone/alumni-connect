@@ -8,8 +8,6 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { CardSkeleton } from '../components/ui/Skeleton';
 
-const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com';
-
 export default function Events() {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
@@ -26,7 +24,7 @@ export default function Events() {
   const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE}/events`);
+      const res = await axios.get('/events');
       if (Array.isArray(res.data)) {
         setItems(res.data);
       } else if (res.data && Array.isArray(res.data.events)) {
@@ -54,7 +52,7 @@ export default function Events() {
 
     try {
       setLoading(true);
-      await axios.post(`${API_BASE}/events`, {
+      await axios.post('/events', {
         title,
         description: desc,
         eventDate: date
@@ -76,7 +74,7 @@ export default function Events() {
     if (!window.confirm('Are you sure you want to delete this event?')) return;
     try {
       setLoading(true);
-      await axios.delete(`${API_BASE}/events/${id}`);
+      await axios.delete(`/events/${id}`);
       toast.success('Event deleted');
       await fetchEvents();
     } catch (err) {
@@ -93,7 +91,7 @@ export default function Events() {
     }
     try {
       setLoading(true);
-      await axios.post(`${API_BASE}/events/${eventId}/rsvp`);
+      await axios.post(`/events/${eventId}/rsvp`);
       setRsvpStatus(prev => ({...prev, [eventId]: true}));
       toast.success(`RSVP confirmed for ${title}`);
       fetchEvents();

@@ -8,8 +8,6 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { Mail, Lock, User, GraduationCap, Building2, BookOpen, ArrowRight, X, AlertCircle } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com';
-
 export default function AuthPage() {
   const [mode, setMode] = useState('login');
   const { register, login, loading } = useAuth();
@@ -58,7 +56,7 @@ export default function AuthPage() {
     if (!res.ok) {
       showError(res.error || 'Registration failed. Please try again.');
     } else {
-      showSuccess('Account created successfully! Welcome aboard 🎉');
+      showSuccess('Account created successfully! Welcome');
       setTimeout(() => nav('/profile'), 1500);
     }
   }
@@ -86,7 +84,7 @@ export default function AuthPage() {
       return;
     }
     try {
-      const response = await axios.post(`${API_BASE}/auth/forgot-password`, { email: forgotEmail });
+      const response = await axios.post('/auth/forgot-password', { email: forgotEmail });
       showSuccess('Reset link sent if account exists');
       if (response.data.resetToken) {
         setResetToken(response.data.resetToken);
@@ -106,7 +104,7 @@ export default function AuthPage() {
     if (newPassword.length < 6) return showError('Password must be at least 6 characters');
     setForgotLoading(true);
     try {
-      await axios.post(`${API_BASE}/auth/reset-password/${resetToken}`, { newPassword, confirmPassword });
+      await axios.post(`/auth/reset-password/${resetToken}`, { newPassword, confirmPassword });
       showSuccess('Password reset successful! login now.');
       setTimeout(() => {
         setShowForgotModal(false);
@@ -244,7 +242,7 @@ export default function AuthPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="form-label">
-                       {role === 'student' ? 'Year of Study' : 'Year of Passing'}
+                       {role === 'student' ? 'Year of Admission' : 'Year of Passing'}
                     </label>
                     <input
                       type="text"

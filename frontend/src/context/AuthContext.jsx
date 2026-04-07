@@ -1,12 +1,11 @@
-/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import axios from 'axios'
 
 const AuthContext = createContext(null)
 
 const API_BASE = import.meta.env.DEV
-  ? ''
-  : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
+  ? '/api'
+  : (import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com') + '/api'
 
 axios.defaults.baseURL = API_BASE
 axios.defaults.withCredentials = true
@@ -83,8 +82,8 @@ export function AuthProvider({ children }) {
       }
       throw new Error('Invalid response')
     } catch (err) {
-      const message = err.response?.data?.message || 'Login failed'
-      throw new Error(message)
+      const message = err.response?.data?.message || 'Login failed';
+      return { ok: false, error: message };
     } finally {
       setLoading(false)
     }
@@ -96,8 +95,8 @@ export function AuthProvider({ children }) {
       await axios.post('/auth/register', newUser)
       return await login({ email: newUser.email, password: newUser.password, role: newUser.role })
     } catch (err) {
-      const message = err.response?.data?.message || 'Registration failed'
-      throw new Error(message)
+      const message = err.response?.data?.message || 'Registration failed';
+      return { ok: false, error: message };
     } finally {
       setLoading(false)
     }

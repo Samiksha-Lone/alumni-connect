@@ -6,7 +6,6 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import PasswordInput from '../components/ui/PasswordInput';
 import { User, Mail, GraduationCap, Building2, BookOpen, FileText, Upload, LogOut, Settings, Plus, ShieldCheck } from 'lucide-react';
-import { ProfileSkeleton } from '../components/ui/Skeleton';
 
 export default function Profile() {
   const { user, logout, users, fetchAllUsers } = useAuth();
@@ -55,7 +54,7 @@ export default function Profile() {
 
       const res = await axios.put(`/users/${user._id}`, payload);
       setForm(res.data);
-      success('Profile updated successfully! ✅');
+      success('Profile updated successfully!');
       setEditing(false);
     } catch (err) {
       console.error('Update error:', err);
@@ -85,7 +84,7 @@ export default function Profile() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
-      success('Resume uploaded successfully! 📄');
+      success('Resume uploaded successfully!');
       setResumeFile(null);
       fetchAllUsers();
     } catch (err) {
@@ -96,7 +95,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="section-container max-w-5xl">
+    <div className="section-container max-w-7xl">
       <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6 animate-slide-up">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-primary text-white flex items-center justify-center text-xl font-bold shadow-xl shadow-primary/20 border-2 border-white dark:border-gray-900">
@@ -180,58 +179,62 @@ export default function Profile() {
         </div>
 
         <div className="space-y-6">
-          <Card className="p-6">
-            <h2 className="heading-md mb-6 flex items-center gap-2">
-              <FileText size={18} className="text-primary" /> Career Assets
-            </h2>
-            <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/30 border border-dashed border-border flex flex-col items-center text-center">
-                <Upload size={24} className="text-text-secondary mb-3 opacity-50" />
-                <p className="text-[10px] text-text-secondary mb-3 uppercase tracking-wider font-bold">Upload Resume (PDF/DOCX)</p>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  id="resume-upload"
-                  onChange={(e) => setResumeFile(e.target.files[0])}
-                  className="hidden"
-                />
-                <label 
-                  htmlFor="resume-upload"
-                  className="w-full py-2 px-3 rounded-lg border border-border bg-card hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer text-xs font-bold truncate"
+          {user.role === 'student' && (
+            <Card className="p-6">
+              <h2 className="heading-md mb-6 flex items-center gap-2">
+                <FileText size={18} className="text-primary" /> Career Assets
+              </h2>
+              <div className="space-y-4">
+                <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/30 border border-dashed border-border flex flex-col items-center text-center">
+                  <Upload size={24} className="text-text-secondary mb-3 opacity-50" />
+                  <p className="text-[10px] text-text-secondary mb-3 uppercase tracking-wider font-bold">Upload Resume (PDF/DOCX)</p>
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    id="resume-upload"
+                    onChange={(e) => setResumeFile(e.target.files[0])}
+                    className="hidden"
+                  />
+                  <label 
+                    htmlFor="resume-upload"
+                    className="w-full py-2 px-3 rounded-lg border border-border bg-card hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer text-xs font-bold truncate"
+                  >
+                    {resumeFile ? resumeFile.name : 'Choose file...'}
+                  </label>
+                </div>
+
+                <Button 
+                  onClick={handleResumeUpload} 
+                  disabled={!resumeFile || resumeUploading}
+                  className="w-full h-10 text-xs font-bold"
                 >
-                  {resumeFile ? resumeFile.name : 'Choose file...'}
-                </label>
+                  {resumeUploading ? 'Uploading...' : 'Upload Resume'}
+                </Button>
+
+                {user.resumeUrl && (
+                  <a 
+                    href={user.resumeUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-primary-soft text-primary font-bold text-xs hover:bg-primary/10 transition-all border border-primary/10"
+                  >
+                    <FileText size={16} /> View Current Resume
+                  </a>
+                )}
               </div>
+            </Card>
+          )}
 
-              <Button 
-                onClick={handleResumeUpload} 
-                disabled={!resumeFile || resumeUploading}
-                className="w-full h-10 text-xs font-bold"
-              >
-                {resumeUploading ? 'Uploading...' : 'Upload Resume'}
-              </Button>
 
-              {user.resumeUrl && (
-                <a 
-                  href={user.resumeUrl} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-primary-soft text-primary font-bold text-xs hover:bg-primary/10 transition-all border border-primary/10"
-                >
-                  <FileText size={16} /> View Current Resume
-                </a>
-              )}
-            </div>
-          </Card>
-
-          <Card className="p-5 bg-primary-soft/20 border-primary/10">
-             <h3 className="text-sm font-bold mb-2">Privacy Tip</h3>
-             <p className="text-[11px] text-text-secondary leading-relaxed">
-               Keeping your profile updated helps alumni find you for the right opportunities.
-             </p>
-          </Card>
         </div>
       </div>
+
+      <Card className="p-4 bg-primary-soft/20 border-primary/10 text-center w-full mt-2">
+        <h3 className="text-sm font-bold mb-1">Privacy Tip</h3>
+        <p className="text-[11px] text-text-secondary leading-relaxed">
+          Keeping your profile updated helps alumni find you for the right opportunities.
+        </p>
+      </Card>
     </div>
   );
 }
@@ -241,6 +244,23 @@ function AdminPanel({ fetchAllUsers }) {
   const [showAddAdmin, setShowAddAdmin] = useState(false);
   const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoadingStats(true);
+        const res = await axios.get('/debug/status');
+        setStats(res.data.counts);
+      } catch (err) {
+        console.error('Failed to fetch stats:', err);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    fetchStats();
+  }, []);
 
   async function handleAddAdmin(e) {
     e.preventDefault();
@@ -258,60 +278,103 @@ function AdminPanel({ fetchAllUsers }) {
     }
   }
 
+  const StatBox = ({ label, value, icon, colorClass }) => (
+    <div className="bg-card border border-border/60 p-3.5 rounded-xl flex items-center gap-3 transition-all hover:border-primary/40 hover:shadow-sm">
+      <div className={`p-2.5 rounded-lg ${colorClass} opacity-90`}>
+        {React.cloneElement(icon, { size: 18 })}
+      </div>
+      <div>
+        <p className="text-[10px] uppercase tracking-wider font-bold text-text-secondary mb-0.5">{label}</p>
+        <p className="text-lg font-extrabold leading-none">{value !== undefined ? value : '...'}</p>
+      </div>
+    </div>
+  );
+
   return (
-    <Card className="mt-8 p-8 border-primary/20 bg-primary-soft/10">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-        <h2 className="heading-md flex items-center gap-2">
-          <ShieldCheck size={24} className="text-primary" /> Admin Controls
-        </h2>
-        <Button 
-          onClick={() => setShowAddAdmin(!showAddAdmin)} 
-          variant={showAddAdmin ? 'secondary' : 'primary'}
-          className="h-10 px-6 text-sm"
-        >
-          {showAddAdmin ? <X size={18} /> : <span className="flex items-center gap-2"><Plus size={18} /> Add Admin</span>}
-        </Button>
+    <Card className="mt-8 p-0 border-primary/10 bg-primary-soft/5 overflow-hidden">
+      <div className="p-6 pb-2">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-sm font-bold flex items-center gap-2 uppercase tracking-tight">
+            <ShieldCheck size={18} className="text-primary" /> Admin Dashboard
+          </h2>
+          <Button 
+            onClick={() => setShowAddAdmin(!showAddAdmin)} 
+            variant={showAddAdmin ? 'secondary' : 'primary'}
+            className="h-9 px-4 text-[11px] font-bold"
+          >
+            {showAddAdmin ? <X size={16} /> : <span className="flex items-center gap-1.5"><Plus size={16} /> Add Admin</span>}
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <StatBox 
+            label="Students" 
+            value={stats?.students} 
+            icon={<GraduationCap />} 
+            colorClass="bg-blue-500/10 text-blue-500" 
+          />
+          <StatBox 
+            label="Alumni" 
+            value={stats?.alumni} 
+            icon={<User />} 
+            colorClass="bg-emerald-500/10 text-emerald-500" 
+          />
+          <StatBox 
+            label="Events" 
+            value={stats?.events} 
+            icon={<ShieldCheck />} 
+            colorClass="bg-amber-500/10 text-amber-500" 
+          />
+          <StatBox 
+            label="Jobs" 
+            value={stats?.jobs} 
+            icon={<Building2 />} 
+            colorClass="bg-purple-500/10 text-purple-500" 
+          />
+        </div>
       </div>
       
       {showAddAdmin && (
-        <form onSubmit={handleAddAdmin} className="space-y-6 animate-slide-up">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div>
-               <label className="form-label">Full Name</label>
-               <input
-                 type="text"
-                 placeholder="Admin Name"
-                 value={newAdmin.name}
-                 onChange={(e) => setNewAdmin(prev => ({ ...prev, name: e.target.value }))}
-                 className="form-input"
-                 required
-               />
+        <div className="p-8 pt-0 border-t border-border/50 bg-white/30 dark:bg-black/10">
+          <form onSubmit={handleAddAdmin} className="space-y-6 animate-slide-up pt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div>
+                 <label className="form-label">Full Name</label>
+                 <input
+                   type="text"
+                   placeholder="Admin Name"
+                   value={newAdmin.name}
+                   onChange={(e) => setNewAdmin(prev => ({ ...prev, name: e.target.value }))}
+                   className="form-input"
+                   required
+                 />
+              </div>
+              <div>
+                 <label className="form-label">Email</label>
+                 <input
+                   type="email"
+                   placeholder="admin@college.edu"
+                   value={newAdmin.email}
+                   onChange={(e) => setNewAdmin(prev => ({ ...prev, email: e.target.value }))}
+                   className="form-input"
+                   required
+                 />
+              </div>
+              <div>
+                 <label className="form-label">Password</label>
+                 <PasswordInput
+                   placeholder="••••••••"
+                   value={newAdmin.password}
+                   onChange={(e) => setNewAdmin(prev => ({ ...prev, password: e.target.value }))}
+                   required
+                 />
+              </div>
             </div>
-            <div>
-               <label className="form-label">Email</label>
-               <input
-                 type="email"
-                 placeholder="admin@college.edu"
-                 value={newAdmin.email}
-                 onChange={(e) => setNewAdmin(prev => ({ ...prev, email: e.target.value }))}
-                 className="form-input"
-                 required
-               />
-            </div>
-            <div>
-               <label className="form-label">Password</label>
-               <PasswordInput
-                 placeholder="••••••••"
-                 value={newAdmin.password}
-                 onChange={(e) => setNewAdmin(prev => ({ ...prev, password: e.target.value }))}
-                 required
-               />
-            </div>
-          </div>
-          <Button type="submit" disabled={loading} className="w-full h-12">
-            {loading ? 'Creating Account...' : 'Confirm & Create Admin Account'}
-          </Button>
-        </form>
+            <Button type="submit" disabled={loading} className="w-full h-12">
+              {loading ? 'Creating Account...' : 'Confirm & Create Admin Account'}
+            </Button>
+          </form>
+        </div>
       )}
     </Card>
   );

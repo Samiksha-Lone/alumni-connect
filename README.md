@@ -81,8 +81,6 @@ Alumni Connect bridges this gap by providing a centralized platform where studen
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:3000
 
----
-
 ## Key Learnings
 
 - Developed scalable full-stack architecture using MERN stack
@@ -90,8 +88,6 @@ Alumni Connect bridges this gap by providing a centralized platform where studen
 - Designed secure authentication and role-based authorization
 - Integrated third-party APIs (Gemini AI) into production workflow
 - Built responsive and user-friendly UI with modern frontend tools
-
----
 
 ## Future Improvements
 

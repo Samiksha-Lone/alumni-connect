@@ -26,7 +26,8 @@ exports.sendMessage = async (req, res) => {
     await message.populate('senderId', 'name email role avatar');
     
     const io = req.app.get('io');
-    io.to(receiverId).emit('newMessage', message);
+    io.to(receiverId.toString()).emit('newMessage', message);
+    io.to(req.user.id.toString()).emit('newMessage', message); // Also emit to sender to handle multiple tabs/devices
     
     await User.findByIdAndUpdate(req.user.id, { isOnline: true, lastSeen: new Date() });
     
@@ -262,3 +263,40 @@ exports.getConversationStats = async (req, res) => {
   }
 };
 
+exports.uploadFile = async (req, res) => {
+  try {
+    const { receiverId } = req.body;
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const receiver = await User.findById(receiverId);
+    if (!receiver) {
+      return res.status(404).json({ error: 'Receiver not found' });
+    }
+
+    const chatId = [req.user.id, receiverId].sort().join('_');
+    const fileUrl = `/uploads/chat/${req.file.filename}`;
+
+    const message = new Message({
+      chatId,
+      senderId: req.user.id,
+      receiverId,
+      content: `Sent a file: ${req.file.originalname}`,
+      fileUrl,
+      fileName: req.file.originalname,
+      fileType: req.file.mimetype
+    });
+
+    await message.save();
+    await message.populate('senderId', 'name email role avatar');
+
+    const io = req.app.get('io');
+    io.to(receiverId.toString()).emit('newMessage', message);
+    io.to(req.user.id.toString()).emit('newMessage', message);
+
+    res.status(201).json(message);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

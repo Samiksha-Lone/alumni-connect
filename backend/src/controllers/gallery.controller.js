@@ -6,14 +6,20 @@ exports.addImage = async (req, res) => {
         return res.status(403).json({ error: "Only admin has this privilege" });
       }
   
-      const { imageUrl} = req.body || {};
+      let { imageUrl, description } = req.body || {};
+      
+      // If a file was uploaded, use its path
+      if (req.file) {
+        imageUrl = `/uploads/gallery/${req.file.filename}`;
+      }
   
       if (!imageUrl) {
-        return res.status(400).json({ error: "Missing required fields" });
+        return res.status(400).json({ error: "Image source placeholder required (URL or File)" });
       }
   
       const image = await Gallery.create({
-        imageUrl
+        imageUrl,
+        description: description || 'Campus Life'
       });
       
       return res.status(201).json({
@@ -21,6 +27,7 @@ exports.addImage = async (req, res) => {
         image
       });
     } catch (error) {
+      console.error('Error adding image:', error);
       return res.status(500).json({ error: "Server error adding image" });
     }
 };

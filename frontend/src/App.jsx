@@ -22,8 +22,8 @@ import ChatPage from './pages/ChatPage';
 import './styles/common.css';
 
 const API_BASE = import.meta.env.DEV
-  ? ''
-  : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com';
+  ? '/api'
+  : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com/api';
 
 axios.defaults.baseURL = API_BASE;
 axios.defaults.withCredentials = true;

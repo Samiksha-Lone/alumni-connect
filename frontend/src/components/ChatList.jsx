@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Search, User } from 'lucide-react';
 
 const api = axios.create({
-  baseURL: import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com',
+  baseURL: import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com') + '/api',
   withCredentials: true,
 });
 

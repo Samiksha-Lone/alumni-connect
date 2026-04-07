@@ -7,8 +7,6 @@ import Button from '../components/ui/Button';
 import { toast } from 'react-hot-toast';
 import { CardSkeleton } from '../components/ui/Skeleton';
 
-const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com';
-
 export default function Opportunities() {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
@@ -24,7 +22,7 @@ export default function Opportunities() {
   const fetchOpportunities = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE}/jobs`);
+      const res = await axios.get('/jobs');
       setItems(res.data || []);
       setError('');
     } catch (err) {
@@ -45,7 +43,7 @@ export default function Opportunities() {
     }
     try {
       setLoading(true);
-      await axios.post(`${API_BASE}/jobs`, { 
+      await axios.post('/jobs', { 
         title, 
         company, 
         description: desc, 
@@ -67,7 +65,7 @@ export default function Opportunities() {
     if (!window.confirm('Delete this opportunity?')) return;
     try {
       setLoading(true);
-      await axios.delete(`${API_BASE}/jobs/${id}`);
+      await axios.delete(`/jobs/${id}`);
       toast.success('Opportunity deleted');
       await fetchOpportunities();
     } catch (err) {

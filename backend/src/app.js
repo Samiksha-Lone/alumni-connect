@@ -145,21 +145,26 @@ app.get('/', (req, res) => {
   res.json({ message: 'Alumni Connect API - Server running' });
 });
 
-app.use('/auth', authRoutes);
+const apiRouter = express.Router();
 
-app.use('/docs', docsRoutes);
+apiRouter.use('/auth', authRoutes);
+apiRouter.use('/docs', docsRoutes);
+apiRouter.use('/users', apiLimiter, userRoutes);
+apiRouter.use('/events', apiLimiter, eventRoutes);
+apiRouter.use('/gallery', apiLimiter, galleryRoutes);
+apiRouter.use('/jobs', apiLimiter, jobRoutes);
+apiRouter.use('/chat', apiLimiter, chatRoutes);
 
-app.use('/users', apiLimiter, userRoutes);
-app.use('/events', apiLimiter, eventRoutes);
-app.use('/gallery', apiLimiter, galleryRoutes);
-app.use('/jobs', apiLimiter, jobRoutes);
-app.use('/chat', apiLimiter, chatRoutes);
+app.use('/api', apiRouter);
 
-app.get('/debug/status', asyncHandler(async (req, res) => {
+app.get('/api/debug/status', asyncHandler(async (req, res) => {
   const state = mongoose.connection.readyState;
   const Message = require('./models/message.model');
-  const [users, events, gallery, jobs, messages] = await Promise.all([
+  const [totalUsers, alumni, students, admins, events, gallery, jobs, messages] = await Promise.all([
     User.countDocuments(),
+    User.countDocuments({ role: 'alumni' }),
+    User.countDocuments({ role: 'student' }),
+    User.countDocuments({ role: 'admin' }),
     Event.countDocuments(),
     Gallery.countDocuments(),
     Job.countDocuments(),
@@ -167,7 +172,16 @@ app.get('/debug/status', asyncHandler(async (req, res) => {
   ]);
   res.json({ 
     state, 
-    counts: { users, events, gallery, jobs, messages }
+    counts: { 
+      totalUsers, 
+      alumni, 
+      students, 
+      admins, 
+      events, 
+      gallery, 
+      jobs, 
+      messages 
+    }
   });
 }));
 
