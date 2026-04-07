@@ -5,10 +5,10 @@ import { useToast } from '../context/useToast';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import PasswordInput from '../components/ui/PasswordInput';
-import { User, Mail, GraduationCap, Building2, BookOpen, FileText, Upload, LogOut, Settings, Plus, ShieldCheck } from 'lucide-react';
+import { User, Mail, GraduationCap, Building2, BookOpen, FileText, Upload, LogOut, Settings, Plus, ShieldCheck, CheckCircle2, ArrowUpRight, RefreshCw, X, AlertCircle } from 'lucide-react';
 
 export default function Profile() {
-  const { user, logout, users, fetchAllUsers } = useAuth();
+  const { user, setUser, logout, users, fetchAllUsers } = useAuth();
   const { success, error } = useToast();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
@@ -80,9 +80,12 @@ export default function Profile() {
 
     setResumeUploading(true);
     try {
-      await axios.post(`/users/${user._id}/upload-resume`, formData, {
+      const res = await axios.post(`/users/${user._id}/upload-resume`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
+      
+      const newResumeUrl = res.data.resumeUrl;
+      setUser(prev => ({ ...prev, resumeUrl: newResumeUrl }));
       
       success('Resume uploaded successfully!');
       setResumeFile(null);
@@ -126,20 +129,21 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Card className="p-5">
-            <h2 className="heading-md mb-4 flex items-center gap-2">
-              <User size={18} className="text-primary" /> Personal Information
+      <div className={user.role === 'admin' ? "grid lg:grid-cols-4 gap-8" : "grid lg:grid-cols-3 gap-6"}>
+        {/* Left Sidebar / Profile Card */}
+        <div className={user.role === 'admin' ? "lg:col-span-1 space-y-6" : "lg:col-span-2 space-y-6"}>
+          <Card className="p-5 border-primary/5 shadow-sm">
+            <h2 className="text-xs font-black uppercase tracking-widest text-text-secondary mb-6 flex items-center gap-2">
+              <User size={14} className="text-primary" /> Identity
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <ProfileField icon={<User size={14} />} label="Full Name" name="name" value={form.name} editing={editing} onChange={setForm} />
-              <ProfileField icon={<Mail size={14} />} label="Email Address" name="email" value={form.email} editing={editing} onChange={setForm} type="email" />
+            <div className="space-y-5">
+              <ProfileField icon={<User size={12} />} label="Full Name" name="name" value={form.name} editing={editing} onChange={setForm} className="border-b border-border/40 pb-4 last:border-0" />
+              <ProfileField icon={<Mail size={12} />} label="Work Email" name="email" value={form.email} editing={editing} onChange={setForm} type="email" className="border-b border-border/40 pb-4 last:border-0" />
 
               {user.role === 'student' && (
                 <>
                   <ProfileSelectField
-                    icon={<GraduationCap size={14} />}
+                    icon={<GraduationCap size={12} />}
                     label="Year of Study"
                     name="yearOfStudying"
                     value={form.yearOfStudying}
@@ -153,41 +157,43 @@ export default function Profile() {
                       { value: '4', label: '4th Year' }
                     ]}
                   />
-                  <ProfileField icon={<BookOpen size={14} />} label="Course Name" name="course" value={form.course} editing={editing} onChange={setForm} />
+                  <ProfileField icon={<BookOpen size={12} />} label="Course Name" name="course" value={form.course} editing={editing} onChange={setForm} />
                 </>
               )}
 
               {user.role === 'alumni' && (
                 <>
-                  <ProfileField icon={<GraduationCap size={14} />} label="Graduation Year" name="graduationYear" value={form.graduationYear} editing={editing} onChange={setForm} type="number" />
-                  <ProfileField icon={<Building2 size={14} />} label="Current Company" name="company" value={form.company} editing={editing} onChange={setForm} />
-                  <ProfileField icon={<BookOpen size={14} />} label="Course Studied" name="courseStudied" value={form.courseStudied} editing={editing} onChange={setForm} className="sm:col-span-2" />
+                  <ProfileField icon={<GraduationCap size={12} />} label="Graduation Year" name="graduationYear" value={form.graduationYear} editing={editing} onChange={setForm} type="number" />
+                  <ProfileField icon={<Building2 size={12} />} label="Current Company" name="company" value={form.company} editing={editing} onChange={setForm} />
+                  <ProfileField icon={<BookOpen size={12} />} label="Course Studied" name="courseStudied" value={form.courseStudied} editing={editing} onChange={setForm} />
                 </>
               )}
             </div>
 
             {editing && (
-              <Button onClick={handleSave} disabled={updating} className="w-full mt-8 h-10 text-xs font-bold">
-                {updating ? 'Saving...' : 'Save Profile Changes'}
+              <Button onClick={handleSave} disabled={updating} className="w-full mt-8 h-10 text-xs font-black shadow-lg shadow-primary/10">
+                {updating ? 'Saving...' : 'Sync Profile'}
               </Button>
             )}
           </Card>
-
-          {user.role === 'admin' && (
-            <AdminPanel fetchAllUsers={fetchAllUsers} />  
-          )}
         </div>
 
-        <div className="space-y-6">
-          {user.role === 'student' && (
-            <Card className="p-6">
-              <h2 className="heading-md mb-6 flex items-center gap-2">
-                <FileText size={18} className="text-primary" /> Career Assets
-              </h2>
-              <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800/30 border border-dashed border-border flex flex-col items-center text-center">
-                  <Upload size={24} className="text-text-secondary mb-3 opacity-50" />
-                  <p className="text-[10px] text-text-secondary mb-3 uppercase tracking-wider font-bold">Upload Resume (PDF/DOCX)</p>
+        {/* Main Dashboard / Career Assets */}
+        <div className={user.role === 'admin' ? "lg:col-span-3 space-y-6" : "space-y-6"}>
+          {user.role === 'admin' ? (
+            <AdminPanel fetchAllUsers={fetchAllUsers} />
+          ) : (
+            <Card className="p-6 border-primary/5 shadow-sm h-full">
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xs font-black uppercase tracking-widest text-text-secondary mb-6 flex items-center gap-2">
+                    <FileText size={14} className="text-primary" /> Career Assets
+                  </h2>
+
+                  <p className="text-[11px] text-text-secondary mb-3 uppercase tracking-wider font-extrabold flex items-center gap-1.5">
+                    {user.resumeUrl ? 'Resume Uploaded' : 'Upload Career Resume'}
+                  </p>
+                  
                   <input
                     type="file"
                     accept=".pdf,.doc,.docx"
@@ -195,31 +201,45 @@ export default function Profile() {
                     onChange={(e) => setResumeFile(e.target.files[0])}
                     className="hidden"
                   />
+                  
                   <label 
                     htmlFor="resume-upload"
-                    className="w-full py-2 px-3 rounded-lg border border-border bg-card hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer text-xs font-bold truncate"
+                    className="w-full py-2.5 px-4 rounded-lg border border-border bg-card hover:bg-gray-50 dark:hover:bg-primary-soft/5 transition-all cursor-pointer text-xs font-bold truncate flex items-center justify-center gap-2"
                   >
-                    {resumeFile ? resumeFile.name : 'Choose file...'}
+                    {resumeFile ? resumeFile.name : (user.resumeUrl ? 'Replace Resume' : 'Choose file...')}
                   </label>
                 </div>
 
                 <Button 
                   onClick={handleResumeUpload} 
                   disabled={!resumeFile || resumeUploading}
-                  className="w-full h-10 text-xs font-bold"
+                  className="w-full h-10 text-xs font-black shadow-lg shadow-primary/10"
                 >
-                  {resumeUploading ? 'Uploading...' : 'Upload Resume'}
+                  {resumeUploading ? (
+                    <span className="flex items-center gap-2"><RefreshCw size={14} className="animate-spin" /> Uploading...</span>
+                  ) : 'Sync Resume to Profile'}
                 </Button>
 
                 {user.resumeUrl && (
-                  <a 
-                    href={user.resumeUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-primary-soft text-primary font-bold text-xs hover:bg-primary/10 transition-all border border-primary/10"
-                  >
-                    <FileText size={16} /> View Current Resume
-                  </a>
+                  <div className="pt-2 border-t border-border/50">
+                    <a 
+                      href={user.resumeUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-3 rounded-lg bg-primary-soft/10 text-primary border border-primary/20 hover:bg-primary-soft/20 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-md bg-white dark:bg-gray-800">
+                          <FileText size={16} />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-[10px] font-bold uppercase tracking-tight leading-none mb-1">Live Document</p>
+                          <p className="text-[11px] font-bold text-text-primary">Current_Resume.pdf</p>
+                        </div>
+                      </div>
+                      <ArrowUpRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </a>
+                  </div>
                 )}
               </div>
             </Card>
@@ -240,6 +260,7 @@ export default function Profile() {
 }
 
 function AdminPanel({ fetchAllUsers }) {
+  const { users } = useAuth();
   const { success, error } = useToast();
   const [showAddAdmin, setShowAddAdmin] = useState(false);
   const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '' });
@@ -334,45 +355,105 @@ function AdminPanel({ fetchAllUsers }) {
         </div>
       </div>
       
+      {/* Student Directory / Talent Pool (Admin Only) */}
+      <div className="p-6 border-t border-border/50 bg-gray-50/10">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Student Directory</h3>
+          <p className="text-[10px] text-text-secondary/60 italic font-medium">All students currently on the platform</p>
+        </div>
+        
+        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+          {users.filter(u => u.role === 'student').length === 0 ? (
+            <div className="p-8 text-center text-[11px] text-text-secondary/60 bg-white/20 rounded-xl border border-dashed">
+              No students found in the database.
+            </div>
+          ) : (
+            users.filter(u => u.role === 'student').map((s) => (
+              <div key={s._id} className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/60 hover:border-primary/30 transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary-soft text-primary flex items-center justify-center font-bold text-xs">
+                    {s.name.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-text-primary leading-none mb-1">{s.name}</p>
+                    <p className="text-[10px] text-text-secondary">{s.course || 'Degree Member'} | Year {s.yearOfStudying || '?'}</p>
+                  </div>
+                </div>
+                
+                {s.resumeUrl ? (
+                  <a 
+                    href={s.resumeUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-all"
+                  >
+                    <FileText size={14} />
+                  </a>
+                ) : (
+                  <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-text-secondary opacity-30" title="No resume uploaded">
+                    <AlertCircle size={14} />
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
       {showAddAdmin && (
-        <div className="p-8 pt-0 border-t border-border/50 bg-white/30 dark:bg-black/10">
-          <form onSubmit={handleAddAdmin} className="space-y-6 animate-slide-up pt-8">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="p-6 pt-0 border-t border-border/50 bg-gray-50/20">
+          <form onSubmit={handleAddAdmin} className="space-y-4 animate-slide-up pt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                 <label className="form-label">Full Name</label>
+                 <label className="text-[10px] uppercase font-bold text-text-secondary tracking-widest pl-1 mb-1.5 block">Full Name</label>
                  <input
                    type="text"
-                   placeholder="Admin Name"
+                   placeholder="e.g. Rahul Sharma"
                    value={newAdmin.name}
                    onChange={(e) => setNewAdmin(prev => ({ ...prev, name: e.target.value }))}
-                   className="form-input"
+                   className="form-input h-9 text-xs"
                    required
                  />
               </div>
               <div>
-                 <label className="form-label">Email</label>
+                 <label className="text-[10px] uppercase font-bold text-text-secondary tracking-widest pl-1 mb-1.5 block">Work Email</label>
                  <input
                    type="email"
                    placeholder="admin@college.edu"
                    value={newAdmin.email}
                    onChange={(e) => setNewAdmin(prev => ({ ...prev, email: e.target.value }))}
-                   className="form-input"
+                   className="form-input h-9 text-xs"
                    required
                  />
               </div>
               <div>
-                 <label className="form-label">Password</label>
+                 <label className="text-[10px] uppercase font-bold text-text-secondary tracking-widest pl-1 mb-1.5 block">Secure Password</label>
                  <PasswordInput
                    placeholder="••••••••"
                    value={newAdmin.password}
                    onChange={(e) => setNewAdmin(prev => ({ ...prev, password: e.target.value }))}
+                   className="h-9"
                    required
                  />
               </div>
             </div>
-            <Button type="submit" disabled={loading} className="w-full h-12">
-              {loading ? 'Creating Account...' : 'Confirm & Create Admin Account'}
-            </Button>
+            <div className="flex justify-end gap-3 pt-2">
+               <Button 
+                type="button"
+                variant="ghost" 
+                onClick={() => setShowAddAdmin(false)} 
+                className="h-9 text-[11px] font-bold px-4"
+               >
+                 Cancel
+               </Button>
+               <Button 
+                type="submit" 
+                disabled={loading} 
+                className="h-9 px-6 text-[11px] font-black shadow-lg shadow-primary/10"
+               >
+                {loading ? 'Creating Account...' : 'Deploy Admin Account'}
+               </Button>
+            </div>
           </form>
         </div>
       )}

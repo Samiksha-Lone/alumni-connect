@@ -39,6 +39,7 @@ async function updateUser(req, res) {
       graduationYear: updatedUser.graduationYear,
       yearOfStudying: updatedUser.yearOfStudying,
       course: updatedUser.course,
+      resumeUrl: updatedUser.resumeUrl,
       createdAt: updatedUser.createdAt,
       updatedAt: updatedUser.updatedAt
     });

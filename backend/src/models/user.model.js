@@ -62,6 +62,10 @@ const userSchema = new mongoose.Schema(
     avatar: {
         type: String,
         default: null
+    },
+    resumeUrl: {
+        type: String,
+        default: null
     }
   },
   { timestamps: true }

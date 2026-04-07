@@ -75,17 +75,23 @@ async function registerUser(req, res, next) {
     );
 
     logger.info(`User registered successfully: ${user._id}`);
+    
+    // IF an admin is creating this account, DO NOT issue a new token/cookie
+    // This prevents the current admin from being logged out
+    const isRequesterAdmin = role === 'admin'; 
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+    if (!isRequesterAdmin) {
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      });
+    }
 
     res.status(201).json({
-      message: "User registered successfully",
-      token,
+      message: isRequesterAdmin ? "Admin account created successfully" : "User registered successfully",
+      token: isRequesterAdmin ? undefined : token,
       user: {
         id: user._id,
         name: user.name,
