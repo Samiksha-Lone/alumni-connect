@@ -15,6 +15,10 @@ import Gallery from './pages/Gallery';
 import Events from './pages/Events';
 import AlumniPage from './pages/Alumni';
 import Opportunities from './pages/Opportunities';
+import Discussion from './pages/Discussion';
+import Mentorship from './pages/Mentorship';
+import Recommendations from './pages/Recommendations';
+import Chatbot from './pages/Chatbot';
 import AuthPage from './pages/AuthPage';
 import Profile from './pages/Profile';
 import ChatPage from './pages/ChatPage';
@@ -52,6 +56,10 @@ export default function App() {
                     <Route path="/events" element={<Events />} />
                     <Route path="/alumni" element={<AlumniPage />} />
                     <Route path="/opportunities" element={<Opportunities />} />
+                    <Route path="/discussion" element={<Discussion />} />
+                    <Route path="/mentorship" element={<Mentorship />} />
+                    <Route path="/recommendations" element={<Recommendations />} />
+                    <Route path="/chatbot" element={<Chatbot />} />
                     <Route path="/auth" element={<AuthPage />} />
 
                     <Route

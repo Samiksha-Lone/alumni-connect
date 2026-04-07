@@ -62,6 +62,11 @@ async function registerUser(req, res, next) {
       graduationYear: role === "alumni" ? graduationYear : undefined,
       yearOfStudying: role === "student" ? yearOfStudying : undefined,
       course: role === "student" ? course : undefined,
+      expertise: req.body.expertise || '',
+      skills: Array.isArray(req.body.skills) ? req.body.skills : (req.body.skills ? req.body.skills.split(',').map((item) => item.trim()).filter(Boolean) : []),
+      bio: req.body.bio || '',
+      mentorAvailable: req.body.mentorAvailable === true || req.body.mentorAvailable === 'true',
+      mentorshipTopics: Array.isArray(req.body.mentorshipTopics) ? req.body.mentorshipTopics : (req.body.mentorshipTopics ? req.body.mentorshipTopics.split(',').map((item) => item.trim()).filter(Boolean) : []),
     });
 
     const token = jwt.sign(

@@ -79,4 +79,26 @@ const generateIcebreaker = async (req, res) => {
   }
 };
 
-module.exports = { generateIcebreaker };
+const generateChatbotResponse = async (req, res) => {
+  const { question } = req.body;
+
+  if (!question || question.trim().length === 0) {
+    return res.status(400).json({ error: 'Question is required' });
+  }
+
+  const prompt = `You are an AI assistant for an alumni-student engagement platform. Answer the user query clearly and concisely, provide guidance on platform navigation, mentorship requests, discussion guidelines, and community best practices. Keep the response friendly, professional, and specific to using the Alumni Connect platform.`;
+  const fullPrompt = `${prompt}\n\nUser question: ${question}`;
+
+  try {
+    const isProduction = process.env.NODE_ENV === 'production';
+    const answer = isProduction
+      ? await generateWithOpenAI(fullPrompt)
+      : await generateWithOllama(fullPrompt);
+
+    res.json({ answer: answer.trim() });
+  } catch (error) {
+    res.status(500).json({ error: error.message || 'Failed to generate chatbot response' });
+  }
+};
+
+module.exports = { generateIcebreaker, generateChatbotResponse };

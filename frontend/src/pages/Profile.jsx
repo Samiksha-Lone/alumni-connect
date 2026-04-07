@@ -166,8 +166,34 @@ export default function Profile() {
                   <ProfileField icon={<GraduationCap size={12} />} label="Graduation Year" name="graduationYear" value={form.graduationYear} editing={editing} onChange={setForm} type="number" />
                   <ProfileField icon={<Building2 size={12} />} label="Current Company" name="company" value={form.company} editing={editing} onChange={setForm} />
                   <ProfileField icon={<BookOpen size={12} />} label="Course Studied" name="courseStudied" value={form.courseStudied} editing={editing} onChange={setForm} />
+                  <ProfileField icon={<ShieldCheck size={12} />} label="Expertise" name="expertise" value={form.expertise} editing={editing} onChange={setForm} />
+                  <ProfileField icon={<BookOpen size={12} />} label="Skills (comma separated)" name="skills" value={form.skills?.join ? form.skills.join(', ') : form.skills} editing={editing} onChange={setForm} />
+                  <div className="border-b border-border/40 pb-4">
+                    <label className="text-[11px] uppercase font-bold text-text-secondary tracking-widest pl-1 mb-1.5 block">Mentor Availability</label>
+                    <label className="inline-flex items-center gap-2 text-sm text-text-primary">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(form.mentorAvailable)}
+                        disabled={!editing}
+                        onChange={(e) => setForm((prev) => ({ ...prev, mentorAvailable: e.target.checked }))}
+                        className="form-checkbox"
+                      />
+                      Available for mentorship
+                    </label>
+                  </div>
+                  <ProfileField icon={<User size={12} />} label="Mentorship Topics" name="mentorshipTopics" value={form.mentorshipTopics?.join ? form.mentorshipTopics.join(', ') : form.mentorshipTopics} editing={editing} onChange={setForm} />
                 </>
               )}
+              <div className="border-b border-border/40 pb-4">
+                <label className="text-[11px] uppercase font-bold text-text-secondary tracking-widest pl-1 mb-1.5 block">About</label>
+                <textarea
+                  value={form.bio || ''}
+                  onChange={(e) => setForm((prev) => ({ ...prev, bio: e.target.value }))}
+                  disabled={!editing}
+                  className="form-input w-full text-sm min-h-[90px]"
+                  placeholder="Write a short bio about your goals, expertise, or interests."
+                />
+              </div>
             </div>
 
             {editing && (

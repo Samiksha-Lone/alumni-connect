@@ -1,9 +1,23 @@
 const userModel = require("../models/user.model");
+const { createVerificationHash, calculateFakeProfileScore } = require('../services/moderation.service');
 
 async function updateUser(req, res) {
   try {
     const userId = req.params.id;
-    const { name, email, yearOfStudying, course, graduationYear, courseStudied, company } = req.body;
+    const {
+      name,
+      email,
+      yearOfStudying,
+      course,
+      graduationYear,
+      courseStudied,
+      company,
+      expertise,
+      skills,
+      bio,
+      mentorAvailable,
+      mentorshipTopics,
+    } = req.body;
     const currentUserId = req.user.id || req.user._id;
     
     if (currentUserId.toString() !== userId && req.user.role !== "admin") {
@@ -25,6 +39,16 @@ async function updateUser(req, res) {
       if (graduationYear !== undefined) user.graduationYear = graduationYear;
       if (courseStudied) user.courseStudied = courseStudied;
       if (company) user.company = company;
+    }
+
+    if (expertise !== undefined) user.expertise = expertise;
+    if (bio !== undefined) user.bio = bio;
+    if (mentorAvailable !== undefined) user.mentorAvailable = mentorAvailable === true || mentorAvailable === 'true';
+    if (skills !== undefined) {
+      user.skills = Array.isArray(skills) ? skills : String(skills).split(',').map((item) => item.trim()).filter(Boolean);
+    }
+    if (mentorshipTopics !== undefined) {
+      user.mentorshipTopics = Array.isArray(mentorshipTopics) ? mentorshipTopics : String(mentorshipTopics).split(',').map((item) => item.trim()).filter(Boolean);
     }
 
     const updatedUser = await user.save();
@@ -123,11 +147,31 @@ async function uploadResume(req, res) {
   }
 }
 
+async function verifyUserProfile(req, res) {
+  try {
+    const userId = req.params.id;
+    const user = await userModel.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.isVerified = true;
+    user.profileStatus = 'verified';
+    user.verifiedAt = new Date();
+    user.verificationHash = createVerificationHash(user._id, user.email);
+    user.fakeProfileScore = calculateFakeProfileScore(user);
+    await user.save();
+
+    res.json({ message: 'User profile verified successfully', user });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error verifying user', error: error.message });
+  }
+}
+
 module.exports = {
   updateUser,
   deleteUser,
   getAllUsers,
   getUserById,
-  uploadResume
+  uploadResume,
+  verifyUserProfile,
 };
 

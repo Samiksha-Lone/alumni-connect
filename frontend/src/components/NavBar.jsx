@@ -17,6 +17,10 @@ export default function NavBar() {
     { to: '/events', label: 'Events' },
     { to: '/alumni', label: 'Alumni' },
     { to: '/opportunities', label: 'Opportunities' },
+    { to: '/recommendations', label: 'For You' },
+    { to: '/discussion', label: 'Forum' },
+    { to: '/mentorship', label: 'Mentorship' },
+    { to: '/chatbot', label: 'AI Help' },
   ];
 
   return (

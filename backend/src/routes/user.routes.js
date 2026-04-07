@@ -48,5 +48,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 router.post('/:id/upload-resume', verifyToken, upload.single('resume'), userController.uploadResume);
+router.patch('/:id/verify', verifyToken, authorizeRoles('admin'), userController.verifyUserProfile);
 
 module.exports = router;

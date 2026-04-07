@@ -49,6 +49,53 @@ const userSchema = new mongoose.Schema(
         type: String,
         maxlength: 200
     },
+    expertise: {
+      type: String,
+      maxlength: 250,
+      default: ''
+    },
+    skills: {
+      type: [String],
+      default: []
+    },
+    bio: {
+      type: String,
+      maxlength: 1000,
+      default: ''
+    },
+    mentorAvailable: {
+      type: Boolean,
+      default: false,
+      index: true
+    },
+    mentorshipTopics: {
+      type: [String],
+      default: []
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+      index: true
+    },
+    verificationHash: {
+      type: String,
+      default: null
+    },
+    profileStatus: {
+      type: String,
+      enum: ['pending', 'verified', 'suspended', 'under_review'],
+      default: 'pending'
+    },
+    verifiedAt: {
+      type: Date,
+      default: null
+    },
+    fakeProfileScore: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100
+    },
     
     isOnline: { 
         type: Boolean, 
