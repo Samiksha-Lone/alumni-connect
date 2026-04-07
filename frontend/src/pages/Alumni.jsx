@@ -6,6 +6,7 @@ import { FaLinkedin } from 'react-icons/fa6';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/useToast';
 import { CardSkeleton } from '../components/ui/Skeleton';
 
 export default function AlumniPage() {
@@ -13,8 +14,13 @@ export default function AlumniPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [icebreaker, setIcebreaker] = useState('');
+  const [showIcebreaker, setShowIcebreaker] = useState(false);
+  const [selectedIcebreakerAlumni, setSelectedIcebreakerAlumni] = useState(null);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { success: showSuccess, error: showError } = useToast();
 
   const fetchAlumni = useCallback(async () => {
     try {
@@ -56,6 +62,37 @@ export default function AlumniPage() {
     });
   };
 
+  const handleIcebreaker = async (alumniUser) => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
+    setAiLoading(true);
+    setSelectedIcebreakerAlumni(alumniUser);
+    setIcebreaker('');
+    setShowIcebreaker(true);
+
+    try {
+      const payload = {
+        studentName: user.name || 'Student',
+        studentMajor: user.courseStudied || user.branch || 'Student',
+        alumniName: alumniUser.name || 'Alumni',
+        alumniRole: alumniUser.jobRole || alumniUser.role || 'Professional',
+        alumniCompany: alumniUser.company || 'their company',
+      };
+
+      const res = await axios.post('/ai/icebreaker', payload);
+      setIcebreaker(res.data?.icebreaker || 'Unable to generate message.');
+      showSuccess('Icebreaker created successfully');
+    } catch (err) {
+      setIcebreaker('Could not generate icebreaker at this time.');
+      showError(err.response?.data?.error || 'Failed to generate icebreaker');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   return (
     <div className="section-container">
       <div className="flex flex-col items-center mb-10 text-center animate-slide-up">
@@ -95,7 +132,7 @@ export default function AlumniPage() {
       ) : filteredAlumni.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 animate-fade-in">
           {filteredAlumni.map((a) => (
-            <AlumniCard key={a._id} alumni={a} onMessage={() => handleMessageClick(a)} />
+            <AlumniCard key={a._id} alumni={a} onMessage={() => handleMessageClick(a)} onIcebreaker={handleIcebreaker} />
           ))}
         </div>
       ) : (
@@ -107,11 +144,56 @@ export default function AlumniPage() {
           <p className="text-xs text-text-secondary">Try searching for a different name or company.</p>
         </div>
       )}
+
+      {showIcebreaker && selectedIcebreakerAlumni && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="w-full max-w-2xl p-6 bg-white shadow-2xl rounded-3xl dark:bg-slate-900 dark:border dark:border-border">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <h2 className="text-lg font-bold">Icebreaker for {selectedIcebreakerAlumni.name}</h2>
+                <p className="text-sm text-text-secondary">Use this message to start a polite connection request.</p>
+              </div>
+              <button
+                onClick={() => setShowIcebreaker(false)}
+                className="px-3 py-2 text-sm font-semibold rounded-lg text-text-secondary hover:bg-gray-100 dark:hover:bg-slate-800"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="p-5 mb-4 text-sm bg-gray-100 text-text-primary rounded-3xl dark:bg-slate-800">
+              {aiLoading ? 'Generating icebreaker…' : icebreaker || 'No icebreaker available.'}
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                disabled={aiLoading || !icebreaker}
+                onClick={() => {
+                  navigator.clipboard.writeText(icebreaker || '');
+                  showSuccess('Copied to clipboard');
+                }}
+                className="px-4 py-2 text-sm font-bold text-white rounded-full bg-primary hover:bg-primary-hover disabled:opacity-50"
+              >
+                Copy Message
+              </button>
+              <button
+                type="button"
+                disabled={aiLoading}
+                onClick={() => handleIcebreaker(selectedIcebreakerAlumni)}
+                className="px-4 py-2 text-sm font-semibold border rounded-full text-text-primary border-border hover:bg-gray-100 dark:hover:bg-slate-800 disabled:opacity-50"
+              >
+                Regenerate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function AlumniCard({ alumni, onMessage }) {
+function AlumniCard({ alumni, onMessage, onIcebreaker }) {
   return (
     <Card className="flex flex-col h-full group hover:border-primary/30 transition-all duration-300 !p-0 overflow-hidden bg-card">
       <div className="flex-1 p-4">
@@ -140,9 +222,12 @@ function AlumniCard({ alumni, onMessage }) {
         </div>
       </div>
 
-      <div className="flex gap-2 px-4 py-3 border-t bg-gray-50/50 dark:bg-gray-800/10 border-border">
+      <div className="flex flex-col gap-2 px-4 py-3 border-t bg-gray-50/50 dark:bg-gray-800/10 border-border sm:flex-row">
         <Button onClick={onMessage} variant="primary" className="flex-1 text-[10px] h-8 font-bold">
            <MessageSquare size={12} className="mr-1.2" /> Message
+        </Button>
+        <Button onClick={() => onIcebreaker(alumni)} variant="secondary" className="flex-1 text-[10px] h-8 font-bold">
+           Icebreaker
         </Button>
         {alumni.resumeUrl && (
           <a href={alumni.resumeUrl} target="_blank" rel="noopener noreferrer">

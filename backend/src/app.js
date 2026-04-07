@@ -132,6 +132,7 @@ const eventRoutes = require('./routes/event.routes');
 const galleryRoutes = require('./routes/gallery.routes');
 const jobRoutes = require('./routes/job.routes');
 const chatRoutes = require('./routes/chat.routes');
+const aiRoutes = require('./routes/ai.routes');
 const docsRoutes = require('./routes/docs.routes');
 
 const Event = require('./models/event.model');
@@ -154,6 +155,7 @@ apiRouter.use('/events', apiLimiter, eventRoutes);
 apiRouter.use('/gallery', apiLimiter, galleryRoutes);
 apiRouter.use('/jobs', apiLimiter, jobRoutes);
 apiRouter.use('/chat', apiLimiter, chatRoutes);
+apiRouter.use('/ai', apiLimiter, aiRoutes);
 
 app.use('/api', apiRouter);
 

@@ -1,11 +1,11 @@
 # Alumni Connect
 
-A full-stack MERN platform that enables students and alumni to connect, share opportunities, attend events, and communicate in real-time through an interactive and scalable system.
+A full-stack platform connecting students and alumni for networking, events, and real-time communication.
 
 ## 🔗 Links
 
-- 🚀 Live Demo: https://alumni-connect-frontendd.vercel.app
-- 💻 GitHub Repository: https://github.com/Samiksha-Lone/alumni-connect
+- 🚀 **Live Demo**: [https://alumni-connect-frontendd.vercel.app](https://alumni-connect-frontendd.vercel.app)
+- 💻 **GitHub Repository**: [https://github.com/Samiksha-Lone/alumni-connect](https://github.com/Samiksha-Lone/alumni-connect)
 
 ## Problem Statement
 
@@ -15,35 +15,35 @@ After graduation, students often lose touch with their alma mater and fellow gra
 
 Alumni Connect bridges this gap by providing a centralized platform where students can network with alumni, attend events, explore job opportunities, and communicate in real-time.
 
-## Project Highlights
+## ⭐ Project Highlights
 
-- Built a real-time communication system using Socket.IO
-- Implemented role-based access control (Student, Alumni, Admin)
-- Designed scalable REST APIs with Node.js and Express
-- Integrated AI features for smart networking assistance
-- Developed a responsive and modern UI using React + Tailwind CSS
+- Built a real-time chat system using Socket.IO for instant messaging
+- Implemented role-based authentication with JWT tokens (Student, Alumni, Admin)
+- Designed and developed REST APIs with Node.js and Express
+- Integrated AI-powered icebreaker feature using Ollama and OpenAI APIs
+- Created a responsive UI with React and Tailwind CSS
 
-## Features
+## 🚀 Features
 
-- 🔐 Role-based authentication (Student, Alumni, Admin)
-- 💬 Real-time chat using Socket.IO
-- 📅 Event creation and RSVP system
-- 💼 Job board for posting and exploring opportunities
-- 🔍 Alumni directory with search functionality
-- 👤 Profile management with resume upload
-- 🖼️ Gallery for sharing campus memories
-- 🤖 AI-powered message suggestions (Gemini API)
+- 🔐 User authentication with role-based access control
+- 💬 Real-time messaging with Socket.IO
+- 📅 Event creation
+- 💼 Job board for career opportunities
+- 👥 Alumni directory with search functionality
+- 👤 Profile management with resume uploads
+- 🖼️ Campus gallery for sharing memories
+- 🤖 AI-powered icebreaker suggestions for networking
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- **Frontend:** React, Vite, Tailwind CSS
-- **Backend:** Node.js, Express.js
-- **Database:** MongoDB Atlas
-- **Real-time:** Socket.IO
-- **Authentication:** JWT, bcrypt
-- **AI:** Google Gemini API (optional)
+- **Frontend**: React, Vite, Tailwind CSS
+- **Backend**: Node.js, Express.js
+- **Database**: MongoDB Atlas
+- **Real-time**: Socket.IO
+- **Authentication**: JWT, bcrypt
+- **AI**: Ollama (development) / OpenAI (production)
 
-## Installation & Setup
+## ⚙️ Installation / Setup
 
 1. **Clone the repository**
    ```bash
@@ -64,7 +64,7 @@ Alumni Connect bridges this gap by providing a centralized platform where studen
 
 3. **Set up environment variables**
    - Copy `backend/.env.example` to `backend/.env`
-   - Add your MongoDB URI, JWT secret, and other required variables
+   - Add your MongoDB URI and JWT secret
 
 4. **Run the application**
    ```bash
@@ -77,27 +77,20 @@ Alumni Connect bridges this gap by providing a centralized platform where studen
    npm run dev
    ```
 
-5. **Access the app**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:3000
+## 🎯 Key Learnings
 
-## Key Learnings
+- Learned full-stack development with MERN stack
+- Implemented real-time communication using WebSockets
+- Built secure authentication and authorization systems
+- Integrated third-party APIs (Google Gemini)
+- Developed responsive user interfaces with modern CSS frameworks
 
-- Developed scalable full-stack architecture using MERN stack
-- Implemented real-time communication using WebSockets (Socket.IO)
-- Designed secure authentication and role-based authorization
-- Integrated third-party APIs (Gemini AI) into production workflow
-- Built responsive and user-friendly UI with modern frontend tools
+## 🚀 Future Improvements
 
-## Future Improvements
+- Add email notifications for events and messages
+- Add advanced search and filtering options
 
-- Advanced search and filtering for alumni/jobs
-- Email notifications for events and messages
-- Video chat integration for networking
-- Mobile application development
-- Analytics dashboard for engagement tracking
-
-## Contact
+## 📬 Contact
 
 **Samiksha Balaji Lone**  
 📧 samikshalone2@gmail.com  
