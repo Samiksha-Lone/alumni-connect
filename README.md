@@ -175,4 +175,4 @@ If you use, fork, or modify this project, please provide proper attribution to t
 Name: Samiksha Lone  
 GitHub: https://github.com/Samiksha-Lone
 
-Do not claim this project as your own. Keep the implementation professional and concise.
+Attribution helps acknowledge the original work and supports the open-source community.
