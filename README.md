@@ -163,3 +163,16 @@ The platform ensures secure, scalable, and intelligent alumni-student interactio
 **Samiksha Balaji Lone**  
 📧 samikshalone2@gmail.com  
 🔗 [LinkedIn](https://linkedin.com/in/samiksha-lone) | [Portfolio](https://samiksha-lone.vercel.app/)
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Credit
+
+If you use, fork, or modify this project, please provide proper attribution to the original author:
+
+Name: Samiksha Lone  
+GitHub: https://github.com/Samiksha-Lone
+
+Do not claim this project as your own. Keep the implementation professional and concise.
