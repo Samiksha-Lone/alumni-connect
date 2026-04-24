@@ -27,6 +27,8 @@ const userSchema = new mongoose.Schema(
         required: true,
         minlength: 6
     },
+    resetCode: { type: String, default: null },
+    resetCodeExpires: { type: Date, default: null },
     courseStudied: { 
         type: String,
         maxlength: 200
@@ -110,9 +112,65 @@ const userSchema = new mongoose.Schema(
         type: String,
         default: null
     },
-    resumeUrl: {
+    // Student Job Profile Fields (only for students)
+    experience: {
         type: String,
+        maxlength: 2000,
+        default: ''
+    },
+    languages: {
+        type: [String],
+        default: []
+    },
+    portfolioLinks: {
+        type: String,
+        maxlength: 1000,
+        default: ''
+    },
+    certifications: {
+        type: [String],
+        default: []
+    },
+    achievements: {
+        type: String,
+        maxlength: 1000,
+        default: ''
+    },
+    location: {
+        type: String,
+        maxlength: 200,
+        default: ''
+    },
+    availabilityStatus: {
+        type: String,
+        enum: ['immediate', 'notice_period', 'not_available'],
+        default: 'not_available'
+    },
+    desiredRoles: {
+        type: [String],
+        default: []
+    },
+    openToRemote: {
+        type: Boolean,
+        default: true
+    },
+    gpa: {
+        type: Number,
+        min: 0,
+        max: 10,
         default: null
+    },
+    projects: [{
+        title: String,
+        description: String,
+        link: String,
+        technologies: [String]
+    }],
+    socialLinks: {
+        github: String,
+        linkedin: String,
+        portfolio: String,
+        twitter: String
     }
   },
   { timestamps: true }

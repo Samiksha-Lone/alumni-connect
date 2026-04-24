@@ -2,47 +2,56 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/useToast';
+import { useNavigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import PasswordInput from '../components/ui/PasswordInput';
-import { User, Mail, GraduationCap, Building2, BookOpen, FileText, Upload, LogOut, Settings, Plus, ShieldCheck, CheckCircle2, ArrowUpRight, RefreshCw, X, AlertCircle } from 'lucide-react';
+import {
+  User, GraduationCap, Building2, BookOpen,
+  LogOut,
+  RefreshCw, X, AlertCircle, Pencil, Link as LinkIcon
+} from 'lucide-react';
 
+/* ─────────────────────────────────────────
+   MAIN PAGE
+───────────────────────────────────────── */
 export default function Profile() {
-  const { user, setUser, logout, users, fetchAllUsers } = useAuth();
+  const { user, logout } = useAuth();
   const { success, error } = useToast();
-  const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({});
+  const navigate = useNavigate();
+  const [editing, setEditing]   = useState(false);
+  const [form, setForm]         = useState({});
   const [updating, setUpdating] = useState(false);
-  const [resumeFile, setResumeFile] = useState(null);
-  const [resumeUploading, setResumeUploading] = useState(false);
+
+  // Redirect admin to their dedicated dashboard
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      navigate('/admin', { replace: true });
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
-    const loadProfile = async () => {
+    const load = async () => {
       if (!user?._id) return;
       try {
         const res = await axios.get(`/users/${user._id}`);
         setForm(res.data);
       } catch (err) {
-        console.error('Profile fetch error:', err);
         if (err.response?.status === 401) logout();
       }
     };
-    loadProfile();
+    load();
   }, [user?._id, logout]);
 
   if (!user) return (
-    <div className="flex flex-col items-center justify-center py-24 text-text-secondary animate-fade-in">
-       <div className="animate-spin mb-4 h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
-       <p className="font-medium">Authentication required...</p>
+    <div className="flex flex-col items-center justify-center py-28 text-text-secondary animate-fade-in">
+      <div className="w-5 h-5 mb-4 border-2 rounded-full animate-spin border-primary border-t-transparent" />
+      <p className="text-sm">Loading your profile…</p>
     </div>
   );
 
   const handleSave = async () => {
-    if (!user?._id) {
-      error('Please refresh and login again.');
-      return;
-    }
-
+    if (!user?._id) { error('Please refresh and log in again.'); return; }
     setUpdating(true);
     try {
       const payload = { ...form };
@@ -51,487 +60,582 @@ export default function Profile() {
       } else {
         delete payload.yearOfStudying;
       }
-
       const res = await axios.put(`/users/${user._id}`, payload);
       setForm(res.data);
       success('Profile updated successfully!');
       setEditing(false);
     } catch (err) {
-      console.error('Update error:', err);
-      if (err.response?.status === 401) {
-        error('Session expired. Please refresh and login.');
-        logout();
-      } else {
-        error(err.response?.data?.message || 'Update failed');
-      }
+      if (err.response?.status === 401) { error('Session expired.'); logout(); }
+      else error(err.response?.data?.message || 'Update failed');
     } finally {
       setUpdating(false);
     }
   };
 
-  const handleResumeUpload = async () => {
-    if (!resumeFile) {
-      error('Please select a resume file');
-      return;
-    }
+  /* derived info */
+  const roleLabel = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+  const subline = user.role === 'student'
+    ? [form.course, form.yearOfStudying ? `Year ${form.yearOfStudying}` : null].filter(Boolean).join(' · ') || 'Student'
+    : user.role === 'alumni'
+      ? [form.company, form.courseStudied].filter(Boolean).join(' · ') || 'Alumni'
+      : 'Administrator';
 
-    const formData = new FormData();
-    formData.append('resume', resumeFile);
-
-    setResumeUploading(true);
-    try {
-      const res = await axios.post(`/users/${user._id}/upload-resume`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      
-      const newResumeUrl = res.data.resumeUrl;
-      setUser(prev => ({ ...prev, resumeUrl: newResumeUrl }));
-      
-      success('Resume uploaded successfully!');
-      setResumeFile(null);
-      fetchAllUsers();
-    } catch (err) {
-      error(err.response?.data?.message || 'Upload failed');
-    } finally {
-      setResumeUploading(false);
-    }
-  };
+  const skillsArr = form.skills
+    ? (Array.isArray(form.skills) ? form.skills : form.skills.split(',').map(s => s.trim())).filter(Boolean)
+    : [];
+  const topicsArr = form.mentorshipTopics
+    ? (Array.isArray(form.mentorshipTopics) ? form.mentorshipTopics : form.mentorshipTopics.split(',').map(s => s.trim())).filter(Boolean)
+    : [];
+  const certificationsArr = form.certifications
+    ? (Array.isArray(form.certifications) ? form.certifications : form.certifications.split(',').map(c => c.trim())).filter(Boolean)
+    : [];
+  const languagesArr = form.languages
+    ? (Array.isArray(form.languages) ? form.languages : form.languages.split(',').map(l => l.trim())).filter(Boolean)
+    : [];
+  const desiredRolesArr = form.desiredRoles
+    ? (Array.isArray(form.desiredRoles) ? form.desiredRoles : form.desiredRoles.split(',').map(r => r.trim())).filter(Boolean)
+    : [];
 
   return (
-    <div className="section-container max-w-7xl">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6 animate-slide-up">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-primary text-white flex items-center justify-center text-xl font-bold shadow-xl shadow-primary/20 border-2 border-white dark:border-gray-900">
-            {user.name.charAt(0)}
+    <div className="max-w-5xl section-container animate-slide-up">
+
+      {/* ── PROFILE HEADER ── */}
+      <div className="flex flex-col gap-5 pb-8 mb-8 border-b sm:flex-row sm:items-start border-border">
+        {/* Avatar */}
+        <div className="relative shrink-0">
+          <div className="flex items-center justify-center w-16 h-16 text-2xl font-extrabold text-white shadow-md select-none rounded-2xl bg-primary shadow-primary/20">
+            {user.name.charAt(0).toUpperCase()}
           </div>
-          <div>
-            <h1 className="heading-lg mb-0">{user.name}</h1>
-            <p className="text-text-secondary text-xs font-semibold flex items-center gap-1.5">
-               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-               {user.role.charAt(0).toUpperCase() + user.role.slice(1)} Member
-            </p>
-          </div>
+          <span className="absolute w-4 h-4 border-2 rounded-full -bottom-1 -right-1 bg-emerald-500 border-card" title="Online" />
         </div>
-        <div className="flex gap-2.5 w-full md:w-auto">
-          <Button 
-            variant="secondary" 
-            onClick={() => setEditing(!editing)}
-            className="flex-1 md:flex-none h-10 text-xs px-5 border-border"
+
+        {/* Name + role */}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl font-extrabold leading-tight tracking-tight truncate text-text-primary">
+            {user.name}
+          </h1>
+          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full border bg-primary-soft text-primary border-primary/20">
+              {roleLabel}
+            </span>
+            {subline && (
+              <span className="text-xs text-text-secondary">{subline}</span>
+            )}
+          </div>
+          <p className="text-xs text-text-secondary mt-1.5 truncate">{form.email || user.email}</p>
+        </div>
+
+        {/* Actions */}
+        <div className="flex self-start gap-2 shrink-0">
+          <Button
+            variant="secondary"
+            onClick={() => { setEditing(!editing); }}
+            className="h-9 px-4 text-sm border-border gap-1.5"
           >
-            {editing ? 'Cancel Editing' : <span className="flex items-center gap-1.5 font-bold"><Settings size={16} /> Edit Profile</span>}
+            {editing
+              ? <><X size={14} /> Cancel</>
+              : <><Pencil size={14} /> Edit</>
+            }
           </Button>
-          <Button 
-            onClick={logout} 
-            className="flex-1 md:flex-none h-10 text-xs px-5 bg-red-500 hover:bg-red-600 border-none text-white font-bold"
+          <Button
+            onClick={logout}
+            className="px-4 text-sm text-white bg-red-500 border-transparent h-9 hover:bg-red-600"
           >
-            <LogOut size={16} className="mr-1.5" /> Logout
+            <LogOut size={14} className="mr-1" /> Sign out
           </Button>
         </div>
       </div>
 
-      <div className={user.role === 'admin' ? "grid lg:grid-cols-4 gap-8" : "grid lg:grid-cols-3 gap-6"}>
-        {/* Left Sidebar / Profile Card */}
-        <div className={user.role === 'admin' ? "lg:col-span-1 space-y-6" : "lg:col-span-2 space-y-6"}>
-          <Card className="p-5 border-primary/5 shadow-sm">
-            <h2 className="text-xs font-black uppercase tracking-widest text-text-secondary mb-6 flex items-center gap-2">
-              <User size={14} className="text-primary" /> Identity
-            </h2>
-            <div className="space-y-5">
-              <ProfileField icon={<User size={12} />} label="Full Name" name="name" value={form.name} editing={editing} onChange={setForm} className="border-b border-border/40 pb-4 last:border-0" />
-              <ProfileField icon={<Mail size={12} />} label="Work Email" name="email" value={form.email} editing={editing} onChange={setForm} type="email" className="border-b border-border/40 pb-4 last:border-0" />
+      {/* ── MAIN LAYOUT ── */}
+      <div className="grid items-start grid-cols-1 gap-6 lg:grid-cols-2">
 
-              {user.role === 'student' && (
-                <>
-                  <ProfileSelectField
-                    icon={<GraduationCap size={12} />}
-                    label="Year of Study"
-                    name="yearOfStudying"
-                    value={form.yearOfStudying}
-                    editing={editing}
-                    onChange={setForm}
-                    options={[
-                      { value: '', label: 'Select Year' },
-                      { value: '1', label: '1st Year' },
-                      { value: '2', label: '2nd Year' },
-                      { value: '3', label: '3rd Year' },
-                      { value: '4', label: '4th Year' }
-                    ]}
-                  />
-                  <ProfileField icon={<BookOpen size={12} />} label="Course Name" name="course" value={form.course} editing={editing} onChange={setForm} />
-                </>
+          {/* LEFT: Details */}
+          <div className="space-y-6">
+
+            {/* About / Bio */}
+            <Card className="p-5">
+              <SectionHeading icon={<User size={13} />} label="About" />
+              {editing ? (
+                <textarea
+                  value={form.bio || ''}
+                  onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
+                  className="form-input text-sm min-h-[100px] resize-none mt-3"
+                  placeholder="Write a short bio about your goals, expertise, or interests."
+                />
+              ) : form.bio ? (
+                <p className="mt-3 text-sm leading-relaxed text-text-secondary">{form.bio}</p>
+              ) : (
+                <EmptyHint editing={editing} message="Add a short bio to help people understand who you are." />
               )}
+            </Card>
 
-              {user.role === 'alumni' && (
-                <>
-                  <ProfileField icon={<GraduationCap size={12} />} label="Graduation Year" name="graduationYear" value={form.graduationYear} editing={editing} onChange={setForm} type="number" />
-                  <ProfileField icon={<Building2 size={12} />} label="Current Company" name="company" value={form.company} editing={editing} onChange={setForm} />
-                  <ProfileField icon={<BookOpen size={12} />} label="Course Studied" name="courseStudied" value={form.courseStudied} editing={editing} onChange={setForm} />
-                  <ProfileField icon={<ShieldCheck size={12} />} label="Expertise" name="expertise" value={form.expertise} editing={editing} onChange={setForm} />
-                  <ProfileField icon={<BookOpen size={12} />} label="Skills (comma separated)" name="skills" value={form.skills?.join ? form.skills.join(', ') : form.skills} editing={editing} onChange={setForm} />
-                  <div className="border-b border-border/40 pb-4">
-                    <label className="text-[11px] uppercase font-bold text-text-secondary tracking-widest pl-1 mb-1.5 block">Mentor Availability</label>
-                    <label className="inline-flex items-center gap-2 text-sm text-text-primary">
+            {/* Personal + Academic Info */}
+            <Card className="p-5">
+              <SectionHeading icon={<GraduationCap size={13} />} label={user.role === 'student' ? 'Academic Info' : 'Professional Info'} />
+              <div className="grid grid-cols-1 mt-4 sm:grid-cols-2 gap-x-8 gap-y-4">
+                <InfoRow
+                  label="Full Name"
+                  name="name"
+                  value={form.name}
+                  editing={editing}
+                  onChange={setForm}
+                />
+                <InfoRow
+                  label="Email Address"
+                  name="email"
+                  value={form.email}
+                  editing={editing}
+                  onChange={setForm}
+                  type="email"
+                />
+
+                {user.role === 'student' && (
+                  <>
+                    <InfoRowSelect
+                      label="Year of Study"
+                      name="yearOfStudying"
+                      value={form.yearOfStudying}
+                      editing={editing}
+                      onChange={setForm}
+                      options={[
+                        { value: '', label: 'Select year' },
+                        { value: '1', label: '1st Year' },
+                        { value: '2', label: '2nd Year' },
+                        { value: '3', label: '3rd Year' },
+                        { value: '4', label: '4th Year' },
+                      ]}
+                    />
+                    <InfoRow label="Course / Branch" name="course" value={form.course} editing={editing} onChange={setForm} />
+                  </>
+                )}
+
+                {user.role === 'alumni' && (
+                  <>
+                    <InfoRow label="Graduation Year" name="graduationYear" value={form.graduationYear} editing={editing} onChange={setForm} type="number" />
+                    <InfoRow label="Course Studied" name="courseStudied" value={form.courseStudied} editing={editing} onChange={setForm} />
+                    <InfoRow label="Current Company" name="company" value={form.company} editing={editing} onChange={setForm} />
+                    <InfoRow label="Expertise" name="expertise" value={form.expertise} editing={editing} onChange={setForm} />
+                  </>
+                )}
+              </div>
+            </Card>
+
+            {/* STUDENT JOB PROFILE SECTION */}
+            {user.role === 'student' && (
+              <>
+                {/* Job Preferences */}
+                <Card className="p-5">
+                  <SectionHeading icon={<Building2 size={13} />} label="Job Preferences" />
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-text-secondary">Desired Roles</p>
+                      {editing ? (
+                        <input
+                          className="text-sm form-input"
+                          placeholder="e.g. Frontend Developer, Data Scientist, QA Engineer (comma separated)"
+                          value={Array.isArray(form.desiredRoles) ? form.desiredRoles.join(', ') : form.desiredRoles || ''}
+                          onChange={e => setForm(p => ({ ...p, desiredRoles: e.target.value }))}
+                        />
+                      ) : desiredRolesArr.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {desiredRolesArr.map(r => (
+                            <span key={r} className="text-xs px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20 font-medium">
+                              {r}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <EmptyHint editing={editing} message="Specify your desired job roles." />
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-text-secondary">Availability</p>
+                        {editing ? (
+                          <select
+                            className="text-sm form-input"
+                            value={form.availabilityStatus || 'not_available'}
+                            onChange={e => setForm(p => ({ ...p, availabilityStatus: e.target.value }))}
+                          >
+                            <option value="not_available">Not Available</option>
+                            <option value="notice_period">Notice Period</option>
+                            <option value="immediate">Immediate</option>
+                          </select>
+                        ) : (
+                          <p className="text-sm font-medium text-text-primary">
+                            {form.availabilityStatus === 'immediate' ? 'Available Immediately' : 
+                             form.availabilityStatus === 'notice_period' ? 'Notice Period Required' :
+                             'Not Available'}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-text-secondary">GPA</p>
+                        {editing ? (
+                          <input
+                            type="number"
+                            min="0"
+                            max="10"
+                            step="0.1"
+                            className="text-sm form-input"
+                            placeholder="e.g. 3.5"
+                            value={form.gpa || ''}
+                            onChange={e => setForm(p => ({ ...p, gpa: e.target.value }))}
+                          />
+                        ) : (
+                          <p className="text-sm font-medium text-text-primary">
+                            {form.gpa ? `${form.gpa}/10` : 'Not specified'}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <label className="flex items-center gap-2.5 cursor-pointer group select-none">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(form.openToRemote)}
+                        disabled={!editing}
+                        onChange={e => setForm(p => ({ ...p, openToRemote: e.target.checked }))}
+                        className="w-4 h-4 rounded border-border accent-primary"
+                      />
+                      <span className={`text-sm ${form.openToRemote ? 'text-emerald-600 font-semibold' : 'text-text-secondary'}`}>
+                        Open to remote opportunities
+                      </span>
+                    </label>
+                  </div>
+                </Card>
+
+              </>
+            )}
+
+            {/* Save button */}
+            {editing && (
+              <Button onClick={handleSave} disabled={updating} className="w-full text-sm font-semibold h-11">
+                {updating
+                  ? <><RefreshCw size={14} className="mr-2 animate-spin" /> Saving…</>
+                  : 'Save Changes'
+                }
+              </Button>
+            )}
+          </div>
+
+          {/* RIGHT COLUMN */}
+          <div className="space-y-6">
+
+            {/* Skills (alumni only) */}
+            {user.role === 'alumni' && (
+              <Card className="p-5">
+                <SectionHeading icon={<BookOpen size={13} />} label="Skills & Mentorship" />
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-text-secondary">Skills</p>
+                    {editing ? (
+                      <input
+                        className="text-sm form-input"
+                        placeholder="e.g. React, Python, System Design (comma separated)"
+                        value={Array.isArray(form.skills) ? form.skills.join(', ') : form.skills || ''}
+                        onChange={e => setForm(p => ({ ...p, skills: e.target.value }))}
+                      />
+                    ) : skillsArr.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {skillsArr.map(s => (
+                          <span key={s} className="text-xs px-2.5 py-1 rounded-lg bg-primary-soft text-primary border border-primary/10 font-medium">
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <EmptyHint editing={editing} message="Add your skills to help students find the right mentor." />
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-text-secondary">Mentorship</p>
+                    <label className="inline-flex items-center gap-2.5 cursor-pointer group select-none">
                       <input
                         type="checkbox"
                         checked={Boolean(form.mentorAvailable)}
                         disabled={!editing}
-                        onChange={(e) => setForm((prev) => ({ ...prev, mentorAvailable: e.target.checked }))}
-                        className="form-checkbox"
+                        onChange={e => setForm(p => ({ ...p, mentorAvailable: e.target.checked }))}
+                        className="w-4 h-4 rounded border-border accent-primary"
                       />
-                      Available for mentorship
+                      <span className={`text-sm ${form.mentorAvailable ? 'text-emerald-600 font-semibold' : 'text-text-secondary'}`}>
+                        {form.mentorAvailable ? 'Available for mentorship' : 'Not accepting mentorship requests'}
+                      </span>
                     </label>
+                    {form.mentorAvailable && (
+                      <div className="mt-3">
+                        {editing ? (
+                          <input
+                            className="text-sm form-input"
+                            placeholder="e.g. Career advice, Interview prep (comma separated)"
+                            value={Array.isArray(form.mentorshipTopics) ? form.mentorshipTopics.join(', ') : form.mentorshipTopics || ''}
+                            onChange={e => setForm(p => ({ ...p, mentorshipTopics: e.target.value }))}
+                          />
+                        ) : topicsArr.length > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {topicsArr.map(t => (
+                              <span key={t} className="text-xs px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 font-medium">
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <EmptyHint editing={editing} message="Add your mentorship topics so students know what to reach out for." />
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <ProfileField icon={<User size={12} />} label="Mentorship Topics" name="mentorshipTopics" value={form.mentorshipTopics?.join ? form.mentorshipTopics.join(', ') : form.mentorshipTopics} editing={editing} onChange={setForm} />
-                </>
-              )}
-              <div className="border-b border-border/40 pb-4">
-                <label className="text-[11px] uppercase font-bold text-text-secondary tracking-widest pl-1 mb-1.5 block">About</label>
-                <textarea
-                  value={form.bio || ''}
-                  onChange={(e) => setForm((prev) => ({ ...prev, bio: e.target.value }))}
-                  disabled={!editing}
-                  className="form-input w-full text-sm min-h-[90px]"
-                  placeholder="Write a short bio about your goals, expertise, or interests."
-                />
+                </div>
+              </Card>
+            )}
+
+
+
+            {/* Skills & Experience (student only) */}
+            {user.role === 'student' && (
+              <>
+                {/* Work Experience & Skills */}
+                <Card className="p-5">
+                  <SectionHeading icon={<BookOpen size={13} />} label="Skills & Experience" />
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-text-secondary">Technical Skills</p>
+                      {editing ? (
+                        <input
+                          className="text-sm form-input"
+                          placeholder="e.g. Python, React, JavaScript, SQL (comma separated)"
+                          value={Array.isArray(form.skills) ? form.skills.join(', ') : form.skills || ''}
+                          onChange={e => setForm(p => ({ ...p, skills: e.target.value }))}
+                        />
+                      ) : skillsArr.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {skillsArr.map(s => (
+                            <span key={s} className="text-xs px-2.5 py-1 rounded-lg bg-primary-soft text-primary border border-primary/10 font-medium">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <EmptyHint editing={editing} message="Add your technical skills to improve job prospects." />
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-text-secondary">Work Experience</p>
+                      {editing ? (
+                        <textarea
+                          className="text-sm form-input resize-none min-h-[80px]"
+                          placeholder="Internship at Company (2023-2024), Project Lead at XYZ, Freelance work"
+                          value={form.experience || ''}
+                          onChange={e => setForm(p => ({ ...p, experience: e.target.value }))}
+                        />
+                      ) : form.experience ? (
+                        <p className="text-sm whitespace-pre-wrap text-text-secondary">{form.experience}</p>
+                      ) : (
+                        <EmptyHint editing={editing} message="Add internships, projects, or work experience." />
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-text-secondary">Certifications</p>
+                      {editing ? (
+                        <input
+                          className="text-sm form-input"
+                          placeholder="e.g. AWS Solutions Architect, Google Associate Cloud Engineer (comma separated)"
+                          value={Array.isArray(form.certifications) ? form.certifications.join(', ') : form.certifications || ''}
+                          onChange={e => setForm(p => ({ ...p, certifications: e.target.value }))}
+                        />
+                      ) : certificationsArr.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {certificationsArr.map(c => (
+                            <span key={c} className="text-xs px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 font-medium">
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <EmptyHint editing={editing} message="Add relevant certifications." />
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-text-secondary">Languages</p>
+                      {editing ? (
+                        <input
+                          className="text-sm form-input"
+                          placeholder="e.g. English, Hindi, Spanish (comma separated)"
+                          value={Array.isArray(form.languages) ? form.languages.join(', ') : form.languages || ''}
+                          onChange={e => setForm(p => ({ ...p, languages: e.target.value }))}
+                        />
+                      ) : languagesArr.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {languagesArr.map(l => (
+                            <span key={l} className="text-xs px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 font-medium">
+                              {l}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <EmptyHint editing={editing} message="Add languages you speak." />
+                      )}
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Portfolio & Links */}
+                <Card className="p-5">
+                  <SectionHeading icon={<LinkIcon size={13} />} label="Portfolio & Links" />
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-text-secondary">Location</p>
+                      {editing ? (
+                        <input
+                          className="text-sm form-input"
+                          placeholder="e.g. San Francisco, CA or Remote"
+                          value={form.location || ''}
+                          onChange={e => setForm(p => ({ ...p, location: e.target.value }))}
+                        />
+                      ) : (
+                        <p className="text-sm font-medium text-text-primary">
+                          {form.location || 'Not specified'}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-text-secondary">Portfolio Links</p>
+                      {editing ? (
+                        <textarea
+                          className="text-sm form-input resize-none min-h-[60px]"
+                          placeholder={`GitHub: https://github.com/yourprofile\nPortfolio: https://yourportfolio.com\nLinkedIn: https://linkedin.com/in/yourprofile`}
+                          value={form.portfolioLinks || ''}
+                          onChange={e => setForm(p => ({ ...p, portfolioLinks: e.target.value }))}
+                        />
+                      ) : form.portfolioLinks ? (
+                        <div className="space-y-2">
+                          {form.portfolioLinks.split('\n').filter(link => link.trim()).map((link, idx) => {
+                            const colonIndex = link.indexOf(':');
+                            const [label, url] = colonIndex > 0 
+                              ? [link.substring(0, colonIndex).trim(), link.substring(colonIndex + 1).trim()]
+                              : [link.trim(), ''];
+                            return url ? (
+                              <a key={idx} href={url.startsWith('http') ? url : `https://${url}`} target="_blank" rel="noopener noreferrer" 
+                                className="block px-3 py-2 text-xs font-medium text-purple-700 truncate transition-colors border border-purple-200 rounded-lg bg-purple-50 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20 hover:bg-purple-100 dark:hover:bg-purple-500/20">
+                                🔗 {label}
+                              </a>
+                            ) : null;
+                          })}
+                        </div>
+                      ) : (
+                        <EmptyHint editing={editing} message="Add GitHub, portfolio, or other profile links." />
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-text-secondary">Achievements</p>
+                      {editing ? (
+                        <textarea
+                          className="text-sm form-input resize-none min-h-[60px]"
+                          placeholder="e.g. Won Hackathon 2024, Published research paper, etc."
+                          value={form.achievements || ''}
+                          onChange={e => setForm(p => ({ ...p, achievements: e.target.value }))}
+                        />
+                      ) : form.achievements ? (
+                        <p className="text-sm whitespace-pre-wrap text-text-secondary">{form.achievements}</p>
+                      ) : (
+                        <EmptyHint editing={editing} message="Add notable achievements and awards." />
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              </>
+            )}
+
+          </div>
+
+        </div>
+        {/* Centered Tip */}
+        <div className="max-w-xl mx-auto mt-6">
+          <div className="p-4 border rounded-lg border-border bg-card/50">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-md bg-primary-soft text-primary flex items-center justify-center border border-primary/10 shrink-0 mt-0.5 flex-none">
+                <AlertCircle size={12} />
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-semibold text-text-primary">Make it easy for alumni</p>
+                <p className="text-xs leading-relaxed text-text-secondary">
+                  Your profile helps alumni recruiters understand your background and reach out with relevant opportunities.
+                </p>
               </div>
             </div>
-
-            {editing && (
-              <Button onClick={handleSave} disabled={updating} className="w-full mt-8 h-10 text-xs font-black shadow-lg shadow-primary/10">
-                {updating ? 'Saving...' : 'Sync Profile'}
-              </Button>
-            )}
-          </Card>
-        </div>
-
-        {/* Main Dashboard / Career Assets */}
-        <div className={user.role === 'admin' ? "lg:col-span-3 space-y-6" : "space-y-6"}>
-          {user.role === 'admin' ? (
-            <AdminPanel fetchAllUsers={fetchAllUsers} />
-          ) : (
-            <Card className="p-6 border-primary/5 shadow-sm h-full">
-              <div className="space-y-6">
-                <div>
-                  <h2 className="text-xs font-black uppercase tracking-widest text-text-secondary mb-6 flex items-center gap-2">
-                    <FileText size={14} className="text-primary" /> Career Assets
-                  </h2>
-
-                  <p className="text-[11px] text-text-secondary mb-3 uppercase tracking-wider font-extrabold flex items-center gap-1.5">
-                    {user.resumeUrl ? 'Resume Uploaded' : 'Upload Career Resume'}
-                  </p>
-                  
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    id="resume-upload"
-                    onChange={(e) => setResumeFile(e.target.files[0])}
-                    className="hidden"
-                  />
-                  
-                  <label 
-                    htmlFor="resume-upload"
-                    className="w-full py-2.5 px-4 rounded-lg border border-border bg-card hover:bg-gray-50 dark:hover:bg-primary-soft/5 transition-all cursor-pointer text-xs font-bold truncate flex items-center justify-center gap-2"
-                  >
-                    {resumeFile ? resumeFile.name : (user.resumeUrl ? 'Replace Resume' : 'Choose file...')}
-                  </label>
-                </div>
-
-                <Button 
-                  onClick={handleResumeUpload} 
-                  disabled={!resumeFile || resumeUploading}
-                  className="w-full h-10 text-xs font-black shadow-lg shadow-primary/10"
-                >
-                  {resumeUploading ? (
-                    <span className="flex items-center gap-2"><RefreshCw size={14} className="animate-spin" /> Uploading...</span>
-                  ) : 'Sync Resume to Profile'}
-                </Button>
-
-                {user.resumeUrl && (
-                  <div className="pt-2 border-t border-border/50">
-                    <a 
-                      href={user.resumeUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between p-3 rounded-lg bg-primary-soft/10 text-primary border border-primary/20 hover:bg-primary-soft/20 transition-all group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-md bg-white dark:bg-gray-800">
-                          <FileText size={16} />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-[10px] font-bold uppercase tracking-tight leading-none mb-1">Live Document</p>
-                          <p className="text-[11px] font-bold text-text-primary">Current_Resume.pdf</p>
-                        </div>
-                      </div>
-                      <ArrowUpRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </a>
-                  </div>
-                )}
-              </div>
-            </Card>
-          )}
-
-
+          </div>
         </div>
       </div>
-
-      <Card className="p-4 bg-primary-soft/20 border-primary/10 text-center w-full mt-2">
-        <h3 className="text-sm font-bold mb-1">Privacy Tip</h3>
-        <p className="text-[11px] text-text-secondary leading-relaxed">
-          Keeping your profile updated helps alumni find you for the right opportunities.
-        </p>
-      </Card>
-    </div>
-  );
-}
-
-function AdminPanel({ fetchAllUsers }) {
-  const { users } = useAuth();
-  const { success, error } = useToast();
-  const [showAddAdmin, setShowAddAdmin] = useState(false);
-  const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '' });
-  const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState(null);
-  const [loadingStats, setLoadingStats] = useState(false);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setLoadingStats(true);
-        const res = await axios.get('/debug/status');
-        setStats(res.data.counts);
-      } catch (err) {
-        console.error('Failed to fetch stats:', err);
-      } finally {
-        setLoadingStats(false);
-      }
-    };
-    fetchStats();
-  }, []);
-
-  async function handleAddAdmin(e) {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await axios.post('/auth/register', { ...newAdmin, role: 'admin' });
-      success('✅ New admin created successfully!');
-      setNewAdmin({ name: '', email: '', password: '' });
-      setShowAddAdmin(false);
-      fetchAllUsers();
-    } catch (err) {
-      error(err.response?.data?.message || 'Failed to create admin');
-    } finally {
-      setLoading(false);
-    }
+    );
   }
 
-  const StatBox = ({ label, value, icon, colorClass }) => (
-    <div className="bg-card border border-border/60 p-3.5 rounded-xl flex items-center gap-3 transition-all hover:border-primary/40 hover:shadow-sm">
-      <div className={`p-2.5 rounded-lg ${colorClass} opacity-90`}>
-        {React.cloneElement(icon, { size: 18 })}
-      </div>
-      <div>
-        <p className="text-[10px] uppercase tracking-wider font-bold text-text-secondary mb-0.5">{label}</p>
-        <p className="text-lg font-extrabold leading-none">{value !== undefined ? value : '...'}</p>
-      </div>
-    </div>
-  );
-
+/* ─────────────────────────────────────────
+   SECTION HEADING
+───────────────────────────────────────── */
+function SectionHeading({ icon, label }) {
   return (
-    <Card className="mt-8 p-0 border-primary/10 bg-primary-soft/5 overflow-hidden">
-      <div className="p-6 pb-2">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-sm font-bold flex items-center gap-2 uppercase tracking-tight">
-            <ShieldCheck size={18} className="text-primary" /> Admin Dashboard
-          </h2>
-          <Button 
-            onClick={() => setShowAddAdmin(!showAddAdmin)} 
-            variant={showAddAdmin ? 'secondary' : 'primary'}
-            className="h-9 px-4 text-[11px] font-bold"
-          >
-            {showAddAdmin ? <X size={16} /> : <span className="flex items-center gap-1.5"><Plus size={16} /> Add Admin</span>}
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <StatBox 
-            label="Students" 
-            value={stats?.students} 
-            icon={<GraduationCap />} 
-            colorClass="bg-blue-500/10 text-blue-500" 
-          />
-          <StatBox 
-            label="Alumni" 
-            value={stats?.alumni} 
-            icon={<User />} 
-            colorClass="bg-emerald-500/10 text-emerald-500" 
-          />
-          <StatBox 
-            label="Events" 
-            value={stats?.events} 
-            icon={<ShieldCheck />} 
-            colorClass="bg-amber-500/10 text-amber-500" 
-          />
-          <StatBox 
-            label="Jobs" 
-            value={stats?.jobs} 
-            icon={<Building2 />} 
-            colorClass="bg-purple-500/10 text-purple-500" 
-          />
-        </div>
-      </div>
-      
-      {/* Student Directory / Talent Pool (Admin Only) */}
-      <div className="p-6 border-t border-border/50 bg-gray-50/10">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">Student Directory</h3>
-          <p className="text-[10px] text-text-secondary/60 italic font-medium">All students currently on the platform</p>
-        </div>
-        
-        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-          {users.filter(u => u.role === 'student').length === 0 ? (
-            <div className="p-8 text-center text-[11px] text-text-secondary/60 bg-white/20 rounded-xl border border-dashed">
-              No students found in the database.
-            </div>
-          ) : (
-            users.filter(u => u.role === 'student').map((s) => (
-              <div key={s._id} className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/60 hover:border-primary/30 transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-primary-soft text-primary flex items-center justify-center font-bold text-xs">
-                    {s.name.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-bold text-text-primary leading-none mb-1">{s.name}</p>
-                    <p className="text-[10px] text-text-secondary">{s.course || 'Degree Member'} | Year {s.yearOfStudying || '?'}</p>
-                  </div>
-                </div>
-                
-                {s.resumeUrl ? (
-                  <a 
-                    href={s.resumeUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-all"
-                  >
-                    <FileText size={14} />
-                  </a>
-                ) : (
-                  <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-text-secondary opacity-30" title="No resume uploaded">
-                    <AlertCircle size={14} />
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      {showAddAdmin && (
-        <div className="p-6 pt-0 border-t border-border/50 bg-gray-50/20">
-          <form onSubmit={handleAddAdmin} className="space-y-4 animate-slide-up pt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                 <label className="text-[10px] uppercase font-bold text-text-secondary tracking-widest pl-1 mb-1.5 block">Full Name</label>
-                 <input
-                   type="text"
-                   placeholder="e.g. Rahul Sharma"
-                   value={newAdmin.name}
-                   onChange={(e) => setNewAdmin(prev => ({ ...prev, name: e.target.value }))}
-                   className="form-input h-9 text-xs"
-                   required
-                 />
-              </div>
-              <div>
-                 <label className="text-[10px] uppercase font-bold text-text-secondary tracking-widest pl-1 mb-1.5 block">Work Email</label>
-                 <input
-                   type="email"
-                   placeholder="admin@college.edu"
-                   value={newAdmin.email}
-                   onChange={(e) => setNewAdmin(prev => ({ ...prev, email: e.target.value }))}
-                   className="form-input h-9 text-xs"
-                   required
-                 />
-              </div>
-              <div>
-                 <label className="text-[10px] uppercase font-bold text-text-secondary tracking-widest pl-1 mb-1.5 block">Secure Password</label>
-                 <PasswordInput
-                   placeholder="••••••••"
-                   value={newAdmin.password}
-                   onChange={(e) => setNewAdmin(prev => ({ ...prev, password: e.target.value }))}
-                   className="h-9"
-                   required
-                 />
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 pt-2">
-               <Button 
-                type="button"
-                variant="ghost" 
-                onClick={() => setShowAddAdmin(false)} 
-                className="h-9 text-[11px] font-bold px-4"
-               >
-                 Cancel
-               </Button>
-               <Button 
-                type="submit" 
-                disabled={loading} 
-                className="h-9 px-6 text-[11px] font-black shadow-lg shadow-primary/10"
-               >
-                {loading ? 'Creating Account...' : 'Deploy Admin Account'}
-               </Button>
-            </div>
-          </form>
-        </div>
-      )}
-    </Card>
+    <div className="flex items-center gap-2">
+      <span className="text-primary opacity-70">{icon}</span>
+      <h2 className="text-[11px] font-bold uppercase tracking-widest text-text-secondary">{label}</h2>
+    </div>
   );
 }
 
-function ProfileField({ label, name, value, editing, onChange, type = "text", className = "", icon }) {
+/* ─────────────────────────────────────────
+   INFO ROW (2-col grid cell)
+───────────────────────────────────────── */
+function InfoRow({ label, name, value, editing, onChange, type = 'text' }) {
   return (
-    <div className={className}>
-      <label className="form-label flex items-center gap-2 text-[11px] opacity-70">
-        {icon} {label}
-      </label>
+    <div>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-text-secondary mb-1">{label}</p>
       {editing ? (
         <input
           type={type}
-          className="form-input h-11"
+          className="text-sm form-input h-9"
           value={value || ''}
-          onChange={(e) => onChange(prev => ({ ...prev, [name]: e.target.value }))}
+          onChange={e => onChange(prev => ({ ...prev, [name]: e.target.value }))}
         />
       ) : (
-        <div className="px-1 py-1 font-bold text-text-primary">
-           {value || <span className="text-text-secondary/40 font-normal italic">Not provided</span>}
-        </div>
+        <p className="text-sm font-medium text-text-primary">
+          {value || <span className="text-xs italic text-text-secondary/40">Not provided</span>}
+        </p>
       )}
     </div>
   );
 }
 
-function ProfileSelectField({ label, name, value, editing, onChange, options, className = "", icon }) {
+function InfoRowSelect({ label, name, value, editing, onChange, options }) {
   return (
-    <div className={className}>
-      <label className="form-label flex items-center gap-2 text-[11px] opacity-70">
-        {icon} {label}
-      </label>
+    <div>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-text-secondary mb-1">{label}</p>
       {editing ? (
-        <select 
-          className="form-input h-11 cursor-pointer"
+        <select
+          className="text-sm cursor-pointer form-input h-9"
           value={value || ''}
-          onChange={(e) => onChange(prev => ({ ...prev, [name]: e.target.value }))}
+          onChange={e => onChange(prev => ({ ...prev, [name]: e.target.value }))}
         >
-          {options.map(opt => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
+          {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
       ) : (
-        <div className="px-1 py-1 font-bold text-text-primary">
-          {options.find(o => String(o.value) === String(value))?.label || <span className="text-text-secondary/40 font-normal italic">Not provided</span>}
-        </div>
+        <p className="text-sm font-medium text-text-primary">
+          {options.find(o => String(o.value) === String(value))?.label
+            || <span className="text-xs italic text-text-secondary/40">Not provided</span>}
+        </p>
       )}
     </div>
+  );
+}
+
+function EmptyHint({ message }) {
+  return (
+    <p className="mt-2 text-xs italic text-text-secondary/50">{message}</p>
   );
 }

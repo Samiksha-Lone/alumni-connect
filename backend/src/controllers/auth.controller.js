@@ -209,37 +209,28 @@ async function meUser(req, res, next) {
 async function forgotPassword(req, res, next) {
   try {
     const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({
-        message: 'Email is required',
-        errors: [{ field: 'email', message: 'Email is required' }]
-      });
-    }
+    if (!email) return res.status(400).json({ message: 'Email is required' });
 
     const user = await userModel.findOne({ email });
     if (!user) {
-      logger.warn(`Forgot password attempt with non-existent email: ${email}`);
-      return res.status(200).json({
-        message: 'If email exists, a reset link has been sent'
-      });
+      return res.status(200).json({ message: 'If email exists, a reset code has been sent' });
     }
 
-    const resetToken = jwt.sign(
-      {
-        id: user._id,
-        email: user.email,
-        type: 'reset'
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-
-    logger.info(`Password reset token generated for user: ${user._id}`);
+    // Generate 6-digit numeric code
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
     
+    // Store in DB with 15-minute expiration
+    user.resetCode = resetCode;
+    user.resetCodeExpires = new Date(Date.now() + 15 * 60 * 1000);
+    await user.save();
+
+    logger.info(`Reset code generated for user ${user._id}: ${resetCode}`);
+    
+    const { sendResetEmail } = require('../utils/mail');
+    await sendResetEmail(user.email, resetCode);
+
     res.status(200).json({
-      message: 'If email exists, a reset link has been sent',
-      resetToken
+      message: 'A 6-digit recovery code has been sent to your email address.'
     });
   } catch (err) {
     logger.error(`Forgot password error: ${err.message}`);
@@ -249,54 +240,30 @@ async function forgotPassword(req, res, next) {
 
 async function resetPassword(req, res, next) {
   try {
-    const { token } = req.params;
-    const { newPassword, confirmPassword } = req.body;
+    const { email, resetCode, newPassword } = req.body;
 
-    if (!newPassword || !confirmPassword) {
-      return res.status(400).json({
-        message: 'New password is required'
-      });
+    if (!email || !resetCode || !newPassword) {
+      return res.status(400).json({ message: 'All fields are required' });
     }
 
-    if (newPassword !== confirmPassword) {
-      return res.status(400).json({
-        message: 'Passwords do not match'
-      });
-    }
-
-    if (newPassword.length < 6) {
-      return res.status(400).json({
-        message: 'Password must be at least 6 characters long'
-      });
-    }
-
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (err) {
-      logger.warn(`Invalid or expired reset token`);
-      return res.status(400).json({
-        message: 'Reset link expired or invalid'
-      });
-    }
-
-    if (decoded.type !== 'reset') {
-      return res.status(400).json({
-        message: 'Invalid token type'
-      });
-    }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
-    await userModel.findByIdAndUpdate(
-      decoded.id,
-      { password: hashedPassword }
-    );
-
-    logger.info(`Password reset successful for user: ${decoded.id}`);
-
-    res.status(200).json({
-      message: 'Password reset successfully'
+    const user = await userModel.findOne({ 
+      email, 
+      resetCode,
+      resetCodeExpires: { $gt: Date.now() }
     });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired reset code' });
+    }
+
+    // Update password and clear reset fields
+    user.password = await bcrypt.hash(newPassword, 12);
+    user.resetCode = null;
+    user.resetCodeExpires = null;
+    await user.save();
+
+    logger.info(`Password reset successful for user: ${user._id}`);
+    res.status(200).json({ message: 'Password reset successfully' });
   } catch (err) {
     logger.error(`Reset password error: ${err.message}`);
     next(err);

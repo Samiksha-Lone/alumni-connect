@@ -1,8 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer')  
-const path = require('path')
-const fs = require('fs')
 
 const User = require('../models/user.model');
 const userController = require('../controllers/user.controller');
@@ -39,15 +36,6 @@ router.put('/:id', verifyToken, userController.updateUser);
 
 router.delete('/:id', verifyToken, userController.deleteUser);
 
-const resumesDir = path.join(__dirname, '..', '..', 'uploads', 'resumes');
-fs.mkdirSync(resumesDir, { recursive: true });
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, resumesDir),
-    filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
-});
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
-
-router.post('/:id/upload-resume', verifyToken, upload.single('resume'), userController.uploadResume);
 router.patch('/:id/verify', verifyToken, authorizeRoles('admin'), userController.verifyUserProfile);
 
 module.exports = router;

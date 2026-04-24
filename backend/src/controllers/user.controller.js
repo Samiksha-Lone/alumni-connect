@@ -17,6 +17,19 @@ async function updateUser(req, res) {
       bio,
       mentorAvailable,
       mentorshipTopics,
+      // Student job profile fields
+      experience,
+      languages,
+      portfolioLinks,
+      certifications,
+      achievements,
+      location,
+      availabilityStatus,
+      desiredRoles,
+      openToRemote,
+      gpa,
+      projects,
+      socialLinks
     } = req.body;
     const currentUserId = req.user.id || req.user._id;
     
@@ -35,6 +48,25 @@ async function updateUser(req, res) {
     if (user.role === "student") {
       if (yearOfStudying !== undefined) user.yearOfStudying = yearOfStudying;
       if (course) user.course = course;
+      // Student job profile fields
+      if (experience !== undefined) user.experience = experience;
+      if (languages !== undefined) {
+        user.languages = Array.isArray(languages) ? languages : String(languages).split(',').map(l => l.trim()).filter(Boolean);
+      }
+      if (portfolioLinks !== undefined) user.portfolioLinks = portfolioLinks;
+      if (certifications !== undefined) {
+        user.certifications = Array.isArray(certifications) ? certifications : String(certifications).split(',').map(c => c.trim()).filter(Boolean);
+      }
+      if (achievements !== undefined) user.achievements = achievements;
+      if (location !== undefined) user.location = location;
+      if (availabilityStatus !== undefined) user.availabilityStatus = availabilityStatus;
+      if (desiredRoles !== undefined) {
+        user.desiredRoles = Array.isArray(desiredRoles) ? desiredRoles : String(desiredRoles).split(',').map(r => r.trim()).filter(Boolean);
+      }
+      if (openToRemote !== undefined) user.openToRemote = openToRemote === true || openToRemote === 'true';
+      if (gpa !== undefined && gpa !== null) user.gpa = parseFloat(gpa);
+      if (projects !== undefined) user.projects = projects;
+      if (socialLinks !== undefined) user.socialLinks = socialLinks;
     } else if (user.role === "alumni") {
       if (graduationYear !== undefined) user.graduationYear = graduationYear;
       if (courseStudied) user.courseStudied = courseStudied;
@@ -63,7 +95,21 @@ async function updateUser(req, res) {
       graduationYear: updatedUser.graduationYear,
       yearOfStudying: updatedUser.yearOfStudying,
       course: updatedUser.course,
-      resumeUrl: updatedUser.resumeUrl,
+      // Return student job profile fields
+      experience: updatedUser.experience,
+      languages: updatedUser.languages,
+      portfolioLinks: updatedUser.portfolioLinks,
+      certifications: updatedUser.certifications,
+      achievements: updatedUser.achievements,
+      location: updatedUser.location,
+      availabilityStatus: updatedUser.availabilityStatus,
+      desiredRoles: updatedUser.desiredRoles,
+      openToRemote: updatedUser.openToRemote,
+      gpa: updatedUser.gpa,
+      projects: updatedUser.projects,
+      socialLinks: updatedUser.socialLinks,
+      skills: updatedUser.skills,
+      bio: updatedUser.bio,
       createdAt: updatedUser.createdAt,
       updatedAt: updatedUser.updatedAt
     });
@@ -119,48 +165,33 @@ async function getUserById(req, res) {
   }
 }
 
-async function uploadResume(req, res) {
-  try {
-    const userId = req.params.id;
-    const currentUserId = req.user.id || req.user._id;
-
-    if (currentUserId.toString() !== userId && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Unauthorized to upload for this user' });
-    }
-
-    if (!req.file) {
-      return res.status(400).json({ message: 'No resume file uploaded' });
-    }
-
-    const filename = req.file.filename;
-    const resumePath = `/uploads/resumes/${filename}`;
-
-    const user = await userModel.findById(userId);
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    user.resumeUrl = `${req.protocol}://${req.get('host')}${resumePath}`;
-    await user.save();
-
-    res.status(200).json({ message: 'Resume uploaded', resumeUrl: user.resumeUrl });
-  } catch (err) {
-    res.status(500).json({ message: 'Server error uploading resume', error: err.message });
-  }
-}
-
 async function verifyUserProfile(req, res) {
   try {
     const userId = req.params.id;
+    // Ensure we get a boolean, defaulting to true if not provided (for backward compatibility if needed)
+    const isVerified = req.body.isVerified !== undefined ? Boolean(req.body.isVerified) : true;
+    
     const user = await userModel.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    user.isVerified = true;
-    user.profileStatus = 'verified';
-    user.verifiedAt = new Date();
-    user.verificationHash = createVerificationHash(user._id, user.email);
-    user.fakeProfileScore = calculateFakeProfileScore(user);
+    user.isVerified = isVerified;
+    user.profileStatus = isVerified ? 'verified' : 'pending';
+    
+    if (isVerified) {
+      user.verifiedAt = new Date();
+      user.verificationHash = createVerificationHash(user._id, user.email);
+      user.fakeProfileScore = calculateFakeProfileScore(user);
+    } else {
+      user.verifiedAt = null;
+      user.verificationHash = null;
+    }
+    
     await user.save();
 
-    res.json({ message: 'User profile verified successfully', user });
+    res.json({ 
+      message: `User ${isVerified ? 'verified' : 'unverified'} successfully`, 
+      isVerified: user.isVerified 
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error verifying user', error: error.message });
   }
@@ -171,7 +202,6 @@ module.exports = {
   deleteUser,
   getAllUsers,
   getUserById,
-  uploadResume,
   verifyUserProfile,
 };
 

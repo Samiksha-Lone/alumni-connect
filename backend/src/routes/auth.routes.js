@@ -8,7 +8,7 @@ const { validateRegister, validateLogin } = require('../middlewares/validation.m
 router.post('/register', validateRegister, authController.registerUser);
 router.post('/login', validateLogin, authController.loginUser);
 router.post('/forgot-password', authController.forgotPassword);
-router.post('/reset-password/:token', authController.resetPassword);
+router.post('/reset-password', authController.resetPassword);
 router.get('/logout', verifyToken, authController.logoutUser);
 router.get('/me', verifyToken, authController.meUser);
 

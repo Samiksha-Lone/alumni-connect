@@ -78,21 +78,13 @@ export default function AuthPage() {
   async function handleForgotPassword(e) {
     e.preventDefault();
     setForgotLoading(true);
-    if (!forgotEmail.trim()) {
-      showError('Please enter your email address');
-      setForgotLoading(false);
-      return;
-    }
+    setResetToken(''); // Clear any previous or stale code
     try {
       const response = await axios.post('/auth/forgot-password', { email: forgotEmail });
-      showSuccess('Reset link sent if account exists');
-      if (response.data.resetToken) {
-        setResetToken(response.data.resetToken);
-        setShowResetForm(true);
-        setForgotEmail('');
-      }
+      showSuccess(response.data.message);
+      setShowResetForm(true);
     } catch (err) {
-      showError(err.response?.data?.message || 'Failed to send reset link.');
+      showError(err.response?.data?.message || 'Failed to request reset.');
     } finally {
       setForgotLoading(false);
     }
@@ -101,19 +93,21 @@ export default function AuthPage() {
   async function handleResetPassword(e) {
     e.preventDefault();
     if (newPassword !== confirmPassword) return showError('Passwords do not match');
-    if (newPassword.length < 6) return showError('Password must be at least 6 characters');
     setForgotLoading(true);
     try {
-      await axios.post(`/auth/reset-password/${resetToken}`, { newPassword, confirmPassword });
-      showSuccess('Password reset successful! login now.');
+      await axios.post('/auth/reset-password', { 
+        email: forgotEmail, 
+        resetCode: resetToken, 
+        newPassword 
+      });
+      showSuccess('Password reset successful! Please login.');
       setTimeout(() => {
         setShowForgotModal(false);
         setShowResetForm(false);
-        setResetToken('');
         setMode('login');
       }, 1500);
     } catch (err) {
-      showError(err.response?.data?.message || 'Failed to reset password.');
+      showError(err.response?.data?.message || 'Invalid code or password reset failed.');
     } finally {
       setForgotLoading(false);
     }
@@ -121,26 +115,26 @@ export default function AuthPage() {
 
   return (
     <div className="section-container min-h-[80vh] flex items-center justify-center py-16">
-      <div className="w-full max-w-md animate-fade-in">
-        <div className="text-center mb-10">
-          <h1 className="heading-lg mb-2">
-            {mode === 'login' ? 'Welcome back' : 'Join the community'}
+      <div className="w-full max-w-md animate-slide-up">
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold mb-1.5">
+            {mode === 'login' ? 'Welcome back' : 'Create your account'}
           </h1>
-          <p className="text-text-secondary">
-            {mode === 'login' 
-              ? 'Enter your credentials to access your account' 
-              : 'Register to connect with your alma mater'}
+          <p className="text-text-secondary text-sm">
+            {mode === 'login'
+              ? 'Sign in to access alumni, opportunities, and events'
+              : 'Join the network of students and alumni from your institution'}
           </p>
         </div>
 
-        <Card className="p-8">
+        <Card className="p-6 md:p-8">
           {/* Mode Switcher */}
-          <div className="flex p-1 mb-8 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-border">
+          <div className="flex p-1 mb-6 rounded-xl bg-gray-100 dark:bg-gray-800/60 border border-border">
             <button
               onClick={() => setMode('login')}
-              className={`flex-1 py-2 px-4 rounded-lg text-sm font-bold transition-all ${
-                mode === 'login' 
-                  ? 'bg-white dark:bg-gray-900 shadow-sm text-primary' 
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all ${
+                mode === 'login'
+                  ? 'bg-white dark:bg-gray-900 shadow-sm text-primary'
                   : 'text-text-secondary hover:text-text-primary'
               }`}
             >
@@ -148,9 +142,9 @@ export default function AuthPage() {
             </button>
             <button
               onClick={() => setMode('register')}
-              className={`flex-1 py-2 px-4 rounded-lg text-sm font-bold transition-all ${
-                mode === 'register' 
-                  ? 'bg-white dark:bg-gray-900 shadow-sm text-primary' 
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all ${
+                mode === 'register'
+                  ? 'bg-white dark:bg-gray-900 shadow-sm text-primary'
                   : 'text-text-secondary hover:text-text-primary'
               }`}
             >
@@ -162,23 +156,23 @@ export default function AuthPage() {
             {mode === 'register' && (
               <>
                 <div>
-                  <label className="form-label">Are you a...</label>
+                  <label className="form-label text-xs text-text-secondary mb-2 block">I am a...</label>
                   <div className="grid grid-cols-2 gap-3">
-                     {['student', 'alumni'].map((r) => (
-                        <button
-                          key={r}
-                          type="button"
-                          onClick={() => setRole(r)}
-                          className={`py-2.5 px-4 rounded-xl text-sm font-bold border transition-all flex items-center justify-center gap-2 ${
-                            role === r 
-                              ? 'bg-primary-soft border-primary/20 text-primary' 
-                              : 'bg-transparent border-border text-text-secondary hover:border-primary/20'
-                          }`}
-                        >
-                          {r === 'student' ? <BookOpen size={16} /> : <GraduationCap size={16} />}
-                          {r.charAt(0).toUpperCase() + r.slice(1)}
-                        </button>
-                     ))}
+                    {['student', 'alumni'].map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setRole(r)}
+                        className={`py-2.5 px-4 rounded-xl text-sm font-semibold border transition-all flex items-center justify-center gap-2 ${
+                          role === r
+                            ? 'bg-primary-soft border-primary/30 text-primary'
+                            : 'bg-transparent border-border text-text-secondary hover:border-primary/20 hover:text-text-primary'
+                        }`}
+                      >
+                        {r === 'student' ? <BookOpen size={15} /> : <GraduationCap size={15} />}
+                        {r.charAt(0).toUpperCase() + r.slice(1)}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -285,11 +279,19 @@ export default function AuthPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 justify-between group mt-4"
+              className="w-full h-11 justify-between group mt-2"
             >
               <span>{loading ? 'Processing...' : (mode === 'login' ? 'Sign In' : 'Create Account')}</span>
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </Button>
+
+            <p className="text-center text-xs text-text-secondary pt-1">
+              {mode === 'login' ? (
+                <>New here?{' '}<button type="button" onClick={() => setMode('register')} className="font-semibold text-primary hover:underline">Create an account</button></>
+              ) : (
+                <>Already have an account?{' '}<button type="button" onClick={() => setMode('login')} className="font-semibold text-primary hover:underline">Sign in</button></>
+              )}
+            </p>
           </form>
         </Card>
       </div>
@@ -313,7 +315,7 @@ export default function AuthPage() {
             </div>
 
             {!showResetForm ? (
-              <form onSubmit={handleForgotPassword} className="space-y-4">
+              <form onSubmit={handleForgotPassword} className="space-y-4" autoComplete="off">
                 <div>
                   <label className="form-label">Email Address</label>
                   <input
@@ -323,6 +325,7 @@ export default function AuthPage() {
                     required
                     className="form-input"
                     placeholder="name@example.com"
+                    autoComplete="email"
                   />
                 </div>
                 <Button type="submit" disabled={forgotLoading} className="w-full">
@@ -330,12 +333,26 @@ export default function AuthPage() {
                 </Button>
               </form>
             ) : (
-              <form onSubmit={handleResetPassword} className="space-y-4">
-                <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3 text-emerald-600 text-xs mb-4 font-medium">
-                  <AlertCircle size={16} /> Check your email for the reset code and paste it below.
+              <form onSubmit={handleResetPassword} className="space-y-4" autoComplete="off">
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3 text-emerald-600 text-[11px] mb-4 font-medium leading-tight">
+                  <AlertCircle size={14} className="shrink-0" />
+                  Enter the 6-digit code we just sent to your email address.
                 </div>
                 <div>
-                  <label className="form-label">New Password</label>
+                  <label className="form-label">Recovery Code</label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={resetToken}
+                    onChange={e => setResetToken(e.target.value)}
+                    required
+                    className="form-input text-center tracking-[0.5em] font-mono text-lg"
+                    placeholder="000000"
+                    autoComplete="one-time-code"
+                  />
+                </div>
+                <div>
+                  <label className="form-label text-xs">New Password</label>
                   <PasswordInput
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}

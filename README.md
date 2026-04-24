@@ -20,43 +20,40 @@ This project addresses these challenges by providing a centralized platform for 
 
 ## Problem–Solution Mapping
 
-Alumni Connect solves key challenges by centralizing alumni data through a MongoDB-based directory, enabling real-time interactions via chat and forums, and providing career guidance through job boards and mentorship matching. It enhances engagement with events and combats misuse through authentication and moderation.
+Alumni Connect solves key challenges by centralizing alumni data through a MongoDB-based directory, enabling real-time interactions via chat, and providing career guidance through job boards and mentorship. It enhances engagement with events and ensures platform integrity through admin moderation and profile verification.
 
 ## System Architecture
 
-- **Frontend**: React-based user interface with responsive design
-- **Backend**: Node.js and Express.js for REST APIs and server logic
-- **Database**: MongoDB for data storage and management
-- **Real-time Features**: Socket.IO for live chat and notifications
-- **Authentication**: JWT-based security for role-based access
+- **Frontend**: React 19 + Vite + Tailwind CSS with responsive, glassmorphic design (Vercel deployment)
+- **Backend**: Node.js 20 + Express 5 REST APIs with Socket.IO for real-time communication (Render deployment)
+- **Database**: MongoDB Atlas with Mongoose ODM for flexible data storage and management
+- **Real-time Features**: Socket.IO for live one-to-one messaging and typing indicators
+- **Authentication**: JWT tokens (7-day expiration) + bcrypt password hashing with role-based access control
+- **Security**: Helmet.js, CORS configuration, rate limiting (5 login attempts/15min), text moderation, profile verification
+- **Deployment**: Frontend on Vercel, Backend on Render, Database on MongoDB Atlas
 
 ## 🚀 Features
 
 Core platform features include:
 
-- 🔐 Role-based authentication (Student, Alumni, Admin)
-- 👤 Profile management with education, career details, and resume uploads
-- 👥 Alumni directory with search functionality
-- 📊 Weighted matching algorithm for personalized alumni recommendations
-- 💬 Real-time messaging with Socket.IO
-- 🗣️ Discussion forum with threads and comments
-- 🤝 Mentorship network with mentor search and requests
-- 🛡️ Profile verification and fraud screening
-- 🧹 Content moderation for posts and requests
-- 📅 Event creation and RSVP system
-- 💼 Job board for career opportunities
-- 🖼️ Gallery for image uploads
-- 🤖 AI-powered chatbot for user assistance
-- ❄️ AI-generated icebreaker suggestions for conversations
+- 🔐 **Role-based Authentication**: Secure access for Students, Alumni, and Administrators.
+- 👤 **Profile Management**: Detailed user profiles with education, career paths, and expertise.
+- 👥 **Alumni Directory**: Real-time searchable directory with filtering by name, company, and course.
+- 💬 **Real-time Messaging**: Instant messaging between students and alumni via Socket.IO.
+- 🛡️ **Admin Dashboard**: Comprehensive management of users, events, jobs, and the gallery.
+- 🛡️ **Profile Verification**: Admin-led verification process to ensure platform trust.
+- 📅 **Event RSVP System**: Stay updated with campus events and track attendance.
+- 💼 **Opportunities Board**: Direct access to career openings and internship postings.
+- 🖼️ **Campus Gallery**: A curated visual collection of campus life and events.
+- 🎨 **Modern UI/UX**: Premium glassmorphic design with full Dark/Light mode support.
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React, Vite, Tailwind CSS
+- **Frontend**: React, Vite, Tailwind CSS, Lucide React
 - **Backend**: Node.js, Express.js
 - **Database**: MongoDB Atlas
 - **Real-time**: Socket.IO
 - **Authentication**: JWT, bcrypt
-- **AI**: AI Inegration
 
 ## ⚙️ Installation / Setup
 
@@ -78,8 +75,28 @@ Core platform features include:
    ```
 
 3. **Set up environment variables**
-   - Copy `backend/.env.example` to `backend/.env`
-   - Add your MongoDB URI and JWT secret
+   
+   Create `.env` file in the `/backend` directory:
+   ```env
+   # Server Configuration
+   PORT=3000
+   NODE_ENV=development
+   
+   # Database
+   MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/alumni-connect
+   
+   # Authentication
+   JWT_SECRET=your-secret-key-here-min-32-chars
+
+   # Email Configuration (Nodemailer)
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASS=your-gmail-app-password
+   ```
+   
+   Create `.env.local` file in the `/frontend` directory:
+   ```env
+   VITE_API_BASE=http://localhost:3000/api
+   ```
 
 4. **Run the application**
    ```bash
@@ -94,9 +111,17 @@ Core platform features include:
 
 ## 📸 Screenshots
 
-![Home Screen](outputs/home-section.webp)
+### Home Page
+![Home Page](outputs/Home.webp)
 
-![Discussion Forum](outputs/discussion-forum-section.webp)
+### Real-time Chat
+![Chat Interface](outputs/Chat.webp)
+
+### Opportunities Board
+![Opportunities](outputs/Opportunities.webp)
+
+### Admin Dashboard
+![Admin Dashboard](outputs/Admin-Dashboard.webp)
 
 ## License
 

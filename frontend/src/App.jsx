@@ -10,18 +10,14 @@ import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 import ToastContainer from './components/ToastContainer';
 import Home from './pages/Home';
-import About from './pages/About';
 import Gallery from './pages/Gallery';
 import Events from './pages/Events';
 import AlumniPage from './pages/Alumni';
 import Opportunities from './pages/Opportunities';
-import Discussion from './pages/Discussion';
-import Mentorship from './pages/Mentorship';
-import Recommendations from './pages/Recommendations';
-import Chatbot from './pages/Chatbot';
 import AuthPage from './pages/AuthPage';
 import Profile from './pages/Profile';
 import ChatPage from './pages/ChatPage';
+import AdminDashboard from './pages/AdminDashboard';
 
 import './styles/common.css';
 
@@ -51,15 +47,10 @@ export default function App() {
                 <main className="flex-grow w-full max-w-6xl px-4 py-8 mx-auto">
                   <Routes>
                     <Route path="/" element={<Home />} />
-                    <Route path="/about" element={<About />} />
                     <Route path="/gallery" element={<Gallery />} />
                     <Route path="/events" element={<Events />} />
                     <Route path="/alumni" element={<AlumniPage />} />
                     <Route path="/opportunities" element={<Opportunities />} />
-                    <Route path="/discussion" element={<Discussion />} />
-                    <Route path="/mentorship" element={<Mentorship />} />
-                    <Route path="/recommendations" element={<Recommendations />} />
-                    <Route path="/chatbot" element={<Chatbot />} />
                     <Route path="/auth" element={<AuthPage />} />
 
                     <Route
@@ -76,6 +67,15 @@ export default function App() {
                       element={
                         <PrivateRoute>
                           <ChatPage />
+                        </PrivateRoute>
+                      }
+                    />
+
+                    <Route
+                      path="/admin"
+                      element={
+                        <PrivateRoute>
+                          <AdminDashboard />
                         </PrivateRoute>
                       }
                     />
