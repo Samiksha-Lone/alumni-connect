@@ -22,16 +22,6 @@ This project addresses these challenges by providing a centralized platform for 
 
 Alumni Connect solves key challenges by centralizing alumni data through a MongoDB-based directory, enabling real-time interactions via chat, and providing career guidance through job boards and mentorship. It enhances engagement with events and ensures platform integrity through admin moderation and profile verification.
 
-## System Architecture
-
-- **Frontend**: React 19 + Vite + Tailwind CSS with responsive, glassmorphic design (Vercel deployment)
-- **Backend**: Node.js 20 + Express 5 REST APIs with Socket.IO for real-time communication (Render deployment)
-- **Database**: MongoDB Atlas with Mongoose ODM for flexible data storage and management
-- **Real-time Features**: Socket.IO for live one-to-one messaging and typing indicators
-- **Authentication**: JWT tokens (7-day expiration) + bcrypt password hashing with role-based access control
-- **Security**: Helmet.js, CORS configuration, rate limiting (5 login attempts/15min), text moderation, profile verification
-- **Deployment**: Frontend on Vercel, Backend on Render, Database on MongoDB Atlas
-
 ## 🚀 Features
 
 Core platform features include:
