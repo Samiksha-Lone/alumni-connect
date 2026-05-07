@@ -38,6 +38,15 @@ const messageSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isMentorshipRequest: {
+        type: Boolean,
+        default: false
+    },
+    status: {
+        type: String,
+        enum: ['sending', 'sent', 'delivered', 'failed'],
+        default: 'sent'
+    },
     timestamp: {
         type: Date,
         default: Date.now

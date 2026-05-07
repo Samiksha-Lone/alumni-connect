@@ -34,8 +34,28 @@ exports.addImage = async (req, res) => {
 
 exports.getImages = async (req, res) => {
   try {
-    const images = await Gallery.find().sort({ createdAt: -1 });
-    res.status(200).json(images);
+    // Pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination
+    const total = await Gallery.countDocuments();
+    
+    // Fetch paginated images
+    const images = await Gallery.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(); // Use lean() for better performance
+
+    res.status(200).json({
+      images,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      hasMore: page < Math.ceil(total / limit)
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error fetching images" });
   }

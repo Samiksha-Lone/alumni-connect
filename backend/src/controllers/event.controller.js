@@ -30,7 +30,8 @@ async function createEvent(req, res) {
 
 async function getEvents(req, res) {
   try {
-    const events = await eventModel.find().sort({ eventDate: 1 });
+    // Get only events not marked for deletion and sort by date
+    const events = await eventModel.find({ markedForDeletion: false }).sort({ eventDate: 1 });
     res.status(200).json(events);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch events" });
@@ -89,31 +90,45 @@ async function deleteEvent(req, res) {
   }
 }
 
-async function rsvpEvent(req, res) {
+// Mark past events for deletion (1-2 days after event date)
+async function markPastEventsForDeletion(req, res) {
   try {
-    const eventId = req.params.id;
-    const userId = req.user._id;
-
-    const event = await eventModel.findById(eventId);
-    if (!event) {
-      return res.status(404).json({ error: "Event not found" });
-    }
-
-    if (event.rsvps && event.rsvps.includes(userId)) {
-      return res.status(400).json({ error: "Already RSVP'd for this event" });
-    }
-
-    if (!event.rsvps) event.rsvps = [];
-
-    event.rsvps.push(userId);
-    await event.save();
+    const now = new Date();
+    
+    // Mark events that ended 1-2 days ago for deletion
+    const deletionThreshold = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000); // 2 days ago
+    
+    const markedEvents = await eventModel.updateMany(
+      {
+        eventDate: { $lt: deletionThreshold },
+        markedForDeletion: false
+      },
+      {
+        markedForDeletion: true,
+        deletionScheduledAt: now
+      }
+    );
 
     return res.status(200).json({
-      message: 'RSVP confirmed successfully',
-      rsvps: event.rsvps.length
+      message: 'Past events marked for deletion',
+      modifiedCount: markedEvents.modifiedCount
     });
   } catch (error) {
-    return res.status(500).json({ error: "Server error with RSVP" });
+    return res.status(500).json({ error: "Server error marking past events" });
+  }
+}
+
+// Permanently delete events marked for deletion
+async function cleanupMarkedEvents(req, res) {
+  try {
+    const deletedEvents = await eventModel.deleteMany({ markedForDeletion: true });
+
+    return res.status(200).json({
+      message: 'Marked events cleaned up successfully',
+      deletedCount: deletedEvents.deletedCount
+    });
+  } catch (error) {
+    return res.status(500).json({ error: "Server error cleaning up events" });
   }
 }
 
@@ -122,6 +137,7 @@ module.exports = {
   getEvents,
   updateEvent,
   deleteEvent,
-  rsvpEvent  
+  markPastEventsForDeletion,
+  cleanupMarkedEvents
 };
 

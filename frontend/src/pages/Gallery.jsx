@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { X, ChevronLeft, ChevronRight, Image as ImageIcon, Maximize2 } from 'lucide-react';
 import LazyImage from '../components/ui/LazyImage';
@@ -58,27 +58,63 @@ export default function Gallery() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadMoreRef = useRef(null);
 
-  const fetchGallery = useCallback(async () => {
+  const fetchGallery = useCallback(async (pageNum = 1) => {
     try {
-      setLoading(true);
-      const res = await axios.get('/gallery');
-      if (Array.isArray(res.data)) {
-        setItems(res.data);
-      } else if (res.data && Array.isArray(res.data.gallery)) {
-        setItems(res.data.gallery);
+      if (pageNum === 1) setLoading(true);
+      else setIsLoadingMore(true);
+
+      const res = await axios.get('/gallery', {
+        params: { page: pageNum, limit: 12 }
+      });
+
+      const data = Array.isArray(res.data) ? res.data : res.data.images || [];
+      const hasMorePages = res.data.hasMore ?? (pageNum === 1 ? data.length > 0 : false);
+
+      if (pageNum === 1) {
+        setItems(data);
       } else {
-        setItems([]);
+        setItems(prev => [...prev, ...data]);
       }
+
+      setHasMore(hasMorePages);
       setError('');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load gallery');
     } finally {
-      setLoading(false);
+      if (pageNum === 1) setLoading(false);
+      else setIsLoadingMore(false);
     }
   }, []);
 
-  useEffect(() => { fetchGallery(); }, [fetchGallery]);
+  // Initial load
+  useEffect(() => {
+    fetchGallery(1);
+  }, []);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !loading) {
+          const nextPage = page + 1;
+          setPage(nextPage);
+          fetchGallery(nextPage);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, loading, page, fetchGallery]);
 
   function handleImageClick(index) {
     setSelectedImage(index);
@@ -140,6 +176,19 @@ export default function Gallery() {
           ))
         )}
       </div>
+
+      {/* Loading indicator for infinite scroll */}
+      {hasMore && items.length > 0 && (
+        <div ref={loadMoreRef} className="mt-8 flex justify-center">
+          {isLoadingMore && (
+            <div className="flex gap-2">
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+          )}
+        </div>
+      )}
 
       <ImageModal
         index={selectedImage}

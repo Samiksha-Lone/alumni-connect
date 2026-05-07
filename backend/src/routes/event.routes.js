@@ -11,6 +11,8 @@ router.put('/:id', authenticate, eventController.updateEvent);
 
 router.delete('/:id', authenticate, eventController.deleteEvent);
 
-router.post('/:id/rsvp', authenticate, eventController.rsvpEvent);
+// Cleanup routes for automatic deletion of past events
+router.post('/cleanup/mark-past', eventController.markPastEventsForDeletion);
+router.post('/cleanup/delete-marked', eventController.cleanupMarkedEvents);
 
 module.exports = router;

@@ -14,7 +14,6 @@ export default function AlumniPage() {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showMentorsOnly, setShowMentorsOnly] = useState(false);
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   const fetchAlumni = useCallback(async () => {
@@ -45,32 +44,24 @@ export default function AlumniPage() {
     return showMentorsOnly ? matchesSearch && a.mentorAvailable : matchesSearch;
   });
 
-  const handleMessageClick = (alumniUser, isMentorshipRequest = false) => {
-    const state = { partnerId: alumniUser._id, partnerName: alumniUser.name };
-    if (isMentorshipRequest) {
-      state.initialMessage = `Hi ${alumniUser.name.split(' ')[0]}, I would like to request mentorship from you regarding your expertise in ${alumniUser.expertise || 'your field'}.`;
-    }
-    navigate('/chat', { state });
-  };
-
   return (
     <div className="section-container">
       {/* Header */}
       <div className="flex flex-col items-center mb-10 text-center animate-slide-up">
-        <h1 className="text-3xl font-bold mb-2">Alumni Directory</h1>
-        <p className="text-text-secondary text-sm max-w-md">
+        <h1 className="mb-2 text-3xl font-bold">Alumni Directory</h1>
+        <p className="max-w-md text-sm text-text-secondary">
           Connect with our global network of professional graduates.
         </p>
       </div>
 
       {/* Search + Refresh */}
-      <div className="flex flex-col sm:flex-row items-center gap-3 max-w-xl mx-auto mb-6">
+      <div className="flex flex-col items-center max-w-xl gap-3 mx-auto mb-6 sm:flex-row">
         <div className="relative flex-grow w-full group">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors" size={15} />
           <input
             type="text"
             placeholder="Search by name, company or course..."
-            className="form-input pl-10 h-10 text-sm w-full"
+            className="w-full h-10 pl-10 text-sm form-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -106,15 +97,15 @@ export default function AlumniPage() {
       ) : filteredAlumni.length > 0 ? (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {filteredAlumni.map((a) => (
-            <AlumniCard key={a._id} alumni={a} onMessage={(isMentorship) => handleMessageClick(a, isMentorship)} />
+            <AlumniCard key={a._id} alumni={a} />
           ))}
         </div>
       ) : (
         <div className="max-w-sm py-16 mx-auto text-center border border-dashed border-border rounded-2xl bg-gray-50/50 dark:bg-gray-900/10">
-          <div className="w-12 h-12 rounded-xl bg-card border border-border flex items-center justify-center mx-auto mb-3 text-text-secondary">
+          <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 border rounded-xl bg-card border-border text-text-secondary">
             <Search size={22} />
           </div>
-          <h3 className="font-bold mb-1">No results found</h3>
+          <h3 className="mb-1 font-bold">No results found</h3>
           <p className="text-xs text-text-secondary">Try a different name, company, or clear the filter.</p>
         </div>
       )}
@@ -122,66 +113,136 @@ export default function AlumniPage() {
   );
 }
 
-function AlumniCard({ alumni, onMessage }) {
+function AlumniCard({ alumni }) {
+  const [mentorshipStatus, setMentorshipStatus] = useState(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const checkMentorshipStatus = useCallback(async () => {
+    try {
+      const res = await axios.get(`/chat/mentorship-status/${alumni._id}`);
+      setMentorshipStatus(res.data);
+    } catch (err) {
+      console.log('Error checking mentorship status:', err);
+    }
+  }, [alumni._id]);
+
+  useEffect(() => {
+    if (alumni.mentorAvailable && user) {
+      checkMentorshipStatus();
+    }
+  }, [alumni.mentorAvailable, alumni._id, user, checkMentorshipStatus]);
+
+  const handleMentorshipClick = () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
+    const templateMessage = `Hi ${alumni.name.split(' ')[0]},\n\nI hope you are doing well. I would love to connect with you for mentorship and learn more about your experience in ${alumni.company || 'your field'}.\n\nCould we chat about career guidance, skills I should focus on, and how to approach similar opportunities?\n\nThank you!`;
+
+    navigate('/chat', {
+      state: {
+        partnerId: alumni._id,
+        partnerName: alumni.name,
+        initialMessage: templateMessage
+      }
+    });
+  };
+
+  const handleMessageClick = () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    navigate('/chat', { state: { partnerId: alumni._id, partnerName: alumni.name } });
+  };
+
   return (
-    <Card className="flex flex-col h-full group hover:border-primary/30 transition-all duration-200 !p-0 overflow-hidden bg-card">
-      {/* Body */}
-      <div className="flex-1 p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="w-11 h-11 rounded-xl bg-primary-soft text-primary flex items-center justify-center text-base font-bold border border-primary/10 group-hover:scale-105 transition-transform">
-            {alumni.name?.charAt(0)}
+    <>
+      <Card className="flex flex-col h-full group hover:border-primary/30 transition-all duration-200 !p-0 overflow-hidden bg-card">
+        {/* Body */}
+        <div className="flex-1 p-4">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center justify-center text-base font-bold transition-transform border w-11 h-11 rounded-xl bg-primary-soft text-primary border-primary/10 group-hover:scale-105">
+              {alumni.name?.charAt(0)}
+            </div>
+            <div className="flex items-center gap-1.5">
+              {alumni.mentorAvailable && (
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase tracking-wide">
+                  Mentor
+                </span>
+              )}
+              {alumni.linkedin && (
+                <a
+                  href={alumni.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-text-secondary hover:text-blue-600 transition-colors border border-border"
+                >
+                  <FaLinkedin size={13} />
+                </a>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            {alumni.mentorAvailable && (
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase tracking-wide">
-                Mentor
-              </span>
+
+          <div className="flex items-center gap-1.5 mb-3">
+            <h3 className="text-sm font-bold leading-tight truncate transition-colors group-hover:text-primary">
+              {alumni.name}
+            </h3>
+            {alumni.isVerified && (
+              <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
             )}
-            {alumni.linkedin && (
-              <a
-                href={alumni.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-text-secondary hover:text-blue-600 transition-colors border border-border"
-              >
-                <FaLinkedin size={13} />
-              </a>
-            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 text-xs text-text-secondary">
+              <Briefcase size={12} className="shrink-0 text-primary/60" />
+              <span className="font-medium truncate">{alumni.company || 'Professional Member'}</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-text-secondary">
+              <GraduationCap size={12} className="shrink-0 text-primary/60" />
+              <span className="truncate">Class of {alumni.graduationYear || 'N/A'} · {alumni.courseStudied || 'Member'}</span>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 mb-3">
-          <h3 className="text-sm font-bold leading-tight truncate group-hover:text-primary transition-colors">
-            {alumni.name}
-          </h3>
-          {alumni.isVerified && (
-            <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+        {/* Footer */}
+        <div className="px-4 py-3 border-t border-border bg-gray-50/50 dark:bg-gray-800/10">
+          {alumni.mentorAvailable && mentorshipStatus?.hasMentorshipRequest ? (
+            // Second interaction - show Message button only
+            <Button
+              onClick={handleMessageClick}
+              variant="secondary"
+              className="w-full text-xs font-semibold h-9 border-border"
+            >
+              <MessageSquare size={12} className="mr-1.5 shrink-0" />
+              Message
+            </Button>
+          ) : alumni.mentorAvailable ? (
+            // First interaction - show Request Mentorship
+            <Button
+              onClick={handleMentorshipClick}
+              variant="primary"
+              className="w-full text-xs font-semibold h-9"
+            >
+              <MessageSquare size={12} className="mr-1.5 shrink-0" />
+              Request Mentorship
+            </Button>
+          ) : (
+            // Not a mentor - show Message
+            <Button
+              onClick={handleMessageClick}
+              variant="secondary"
+              className="w-full text-xs font-semibold h-9 border-border"
+            >
+              <MessageSquare size={12} className="mr-1.5 shrink-0" />
+              Message
+            </Button>
           )}
         </div>
+      </Card>
 
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2 text-xs text-text-secondary">
-            <Briefcase size={12} className="shrink-0 text-primary/60" />
-            <span className="truncate font-medium">{alumni.company || 'Professional Member'}</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-text-secondary">
-            <GraduationCap size={12} className="shrink-0 text-primary/60" />
-            <span className="truncate">Class of {alumni.graduationYear || 'N/A'} · {alumni.courseStudied || 'Member'}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="px-4 py-3 border-t border-border bg-gray-50/50 dark:bg-gray-800/10">
-        <Button
-          onClick={() => onMessage(alumni.mentorAvailable)}
-          variant={alumni.mentorAvailable ? 'primary' : 'secondary'}
-          className="w-full text-xs h-9 font-semibold border-border"
-        >
-          <MessageSquare size={12} className="mr-1.5 shrink-0" />
-          {alumni.mentorAvailable ? 'Request Mentorship' : 'Message'}
-        </Button>
-      </div>
-    </Card>
+    </>
   );
 }

@@ -16,6 +16,14 @@ const eventSchema = new mongoose.Schema({
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
+    },
+    markedForDeletion: {
+        type: Boolean,
+        default: false
+    },
+    deletionScheduledAt: {
+        type: Date,
+        default: null
     }
 },
 { timestamps: true });

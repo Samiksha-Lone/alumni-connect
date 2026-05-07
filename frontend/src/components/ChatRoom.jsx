@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
-import { SendHorizontal, User, ShieldCheck, Clock, Paperclip, FileText, Download, X } from 'lucide-react';
+import { SendHorizontal, User, ShieldCheck, Clock, Paperclip, FileText, Download, X, Check, CheckCheck } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useToast } from '../context/useToast';
 import Button from './ui/Button';
@@ -59,8 +59,10 @@ const ChatRoom = ({ partnerId, initialMessage }) => {
       const pId = partnerId.toString();
       if (sId.toString() === pId || rId.toString() === pId) {
         setMessages((prev) => {
-          if (prev.some(m => m._id === msg._id)) return prev;
-          return [...prev, msg];
+          // Replace pending message with actual message, or add new message
+          return prev.map(m => 
+            (m._id?.startsWith('temp_') && m.tempId === msg.tempId) ? msg : m
+          ).some(m => m._id === msg._id) ? prev : [...prev, msg];
         });
       }
     };
@@ -74,23 +76,49 @@ const ChatRoom = ({ partnerId, initialMessage }) => {
 
   const sendMessage = async () => {
     if (!text.trim() && !file) return;
+    
     try {
       if (file) {
         setUploading(true);
         const formData = new FormData();
         formData.append('receiverId', partnerId);
         formData.append('file', file);
-        await api.post('/chat/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        const res = await api.post('/chat/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+        setMessages(prev => [...prev, res.data]);
         setFile(null);
         setUploading(false);
       } else {
-        await api.post('/chat/message', { receiverId: partnerId, content: text.trim() });
+        const messageText = text.trim();
+        
+        // Add optimistic message
+        const tempId = `temp_${Date.now()}`;
+        const optimisticMsg = {
+          _id: `temp_${Date.now()}`,
+          tempId,
+          senderId: { _id: 'me' },
+          receiverId: partnerId,
+          content: messageText,
+          status: 'sending',
+          createdAt: new Date(),
+          isMentorshipRequest: false
+        };
+        setMessages(prev => [...prev, optimisticMsg]);
+        
+        // Send to server
+        const res = await api.post('/chat/message', { receiverId: partnerId, content: messageText, tempId });
+        
+        // Replace optimistic message with real message
+        setMessages(prev => 
+          prev.map(m => (m.tempId === tempId ? { ...res.data, status: 'sent' } : m))
+        );
       }
       setText('');
     } catch (e) {
       console.error('sendMessage error', e);
       showError('Failed to send message');
       setUploading(false);
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(m => !m._id?.startsWith('temp_')));
     }
   };
 
@@ -162,8 +190,23 @@ const ChatRoom = ({ partnerId, initialMessage }) => {
                     )}
                   </div>
                   <div className={`flex items-center gap-1 text-[10px] text-text-secondary/60 ${isMe ? 'justify-end pr-1' : 'justify-start pl-1'}`}>
-                    <Clock size={9} />
-                    {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <span>{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    {isMe && (
+                      <>
+                        {m.status === 'sending' && (
+                          <div className="w-3 h-3 rounded-full border-2 border-transparent border-t-text-secondary/60 animate-spin" />
+                        )}
+                        {m.status === 'sent' && (
+                          <Check size={11} className="opacity-70" />
+                        )}
+                        {m.status === 'delivered' && (
+                          <CheckCheck size={11} className="opacity-70" />
+                        )}
+                        {m.status === 'failed' && (
+                          <span className="text-red-500">✕</span>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

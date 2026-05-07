@@ -1,22 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import { Calendar, CheckCircle2, ArrowRight, AlertCircle, Search } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
-import { useAuth } from '../context/AuthContext';
+import { Calendar, AlertCircle, Search } from 'lucide-react';
 import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
 import { CardSkeleton } from '../components/ui/Skeleton';
 
 export default function Events() {
-  const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [rsvpStatus, setRsvpStatus] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
-  const navigate = useNavigate();
-
   const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
@@ -38,21 +30,6 @@ export default function Events() {
 
   useEffect(() => { fetchEvents(); }, [fetchEvents]);
 
-  const handleRsvp = async (eventId, title) => {
-    if (!user) { navigate('/auth'); return; }
-    try {
-      setLoading(true);
-      await axios.post(`/events/${eventId}/rsvp`);
-      setRsvpStatus(prev => ({ ...prev, [eventId]: true }));
-      toast.success(`RSVP confirmed for ${title}`);
-      fetchEvents();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to RSVP');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const filteredItems = items.filter(e =>
     e.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     e.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -61,21 +38,21 @@ export default function Events() {
   return (
     <div className="section-container">
       {/* Page Header */}
-      <div className="flex flex-col items-center text-center mb-10 animate-slide-up">
-        <h1 className="text-3xl font-bold mb-2">Campus Events</h1>
-        <p className="text-text-secondary text-sm max-w-md">
+      <div className="flex flex-col items-center mb-10 text-center animate-slide-up">
+        <h1 className="mb-2 text-3xl font-bold">Campus Events</h1>
+        <p className="max-w-md text-sm text-text-secondary">
           Stay engaged through workshops, reunions, and professional networking meetups.
         </p>
       </div>
 
       {/* Search */}
       <div className="flex max-w-xl mx-auto mb-10">
-        <div className="relative group flex-grow">
+        <div className="relative flex-grow group">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors" size={15} />
           <input
             type="text"
             placeholder="Search events..."
-            className="form-input pl-10 h-10 text-sm w-full"
+            className="w-full h-10 pl-10 text-sm form-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -89,22 +66,22 @@ export default function Events() {
       )}
 
       {/* Events Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+      <div className="grid grid-cols-1 gap-6 mt-4 md:grid-cols-2 lg:grid-cols-3">
         {loading && items.length === 0 ? (
           [1,2,3,4,5,6].map(i => <CardSkeleton key={i} />)
         ) : filteredItems.length === 0 ? (
           <div className="py-20 text-center border-2 border-dashed col-span-full border-border rounded-2xl">
-            <Calendar size={40} className="mx-auto text-text-secondary/20 mb-3" />
+            <Calendar size={40} className="mx-auto mb-3 text-text-secondary/20" />
             <p className="text-lg font-medium text-text-secondary">No events scheduled yet.</p>
             <p className="text-xs text-text-secondary/60">Check back later for new updates.</p>
           </div>
         ) : (
           filteredItems.map((e) => (
-            <Card key={e._id} className="flex flex-col h-full group overflow-hidden !p-0">
-              <div className="p-4 flex-grow">
+            <Card key={e._id} className="flex flex-col h-full overflow-hidden group">
+              <div className="flex-grow p-4">
                 {/* Date Badge */}
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex flex-col items-center justify-center w-11 h-11 rounded-xl bg-primary-soft border border-primary/15 text-primary shrink-0">
+                  <div className="flex flex-col items-center justify-center border w-11 h-11 rounded-xl bg-primary-soft border-primary/15 text-primary shrink-0">
                     <span className="text-[10px] font-bold uppercase leading-none">
                       {new Date(e.eventDate).toLocaleDateString(undefined, { month: 'short' })}
                     </span>
@@ -122,25 +99,7 @@ export default function Events() {
                 <h3 className="text-sm font-bold mb-1.5 text-text-primary group-hover:text-primary transition-colors leading-snug">
                   {e.title}
                 </h3>
-                <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">{e.description}</p>
-              </div>
-
-              <div className="px-4 py-3 border-t border-border mt-auto bg-gray-50/30 dark:bg-gray-800/10">
-                {rsvpStatus[e._id] ? (
-                  <div className="flex items-center justify-center gap-2 text-emerald-600 font-semibold text-xs bg-emerald-50 dark:bg-emerald-500/10 py-2 rounded-lg border border-emerald-500/20">
-                    <CheckCircle2 size={14} /> Registered
-                  </div>
-                ) : (
-                  <Button
-                    onClick={() => handleRsvp(e._id, e.title)}
-                    disabled={loading || e.isFull}
-                    variant={e.isFull ? 'secondary' : 'primary'}
-                    className="w-full justify-between h-9 text-xs font-semibold px-3"
-                  >
-                    <span>{e.isFull ? 'Event Full' : 'Register Now'}</span>
-                    <ArrowRight size={13} />
-                  </Button>
-                )}
+                <p className="text-xs leading-relaxed text-text-secondary line-clamp-2">{e.description}</p>
               </div>
             </Card>
           ))

@@ -16,6 +16,8 @@ router.get('/conversations', verifyToken, chatController.getConversations);
 
 router.get('/users', verifyToken, chatController.getChatUsers);
 
+router.get('/mentorship-status/:mentorId', verifyToken, chatController.checkMentorshipStatus);
+
 router.put('/read/:userId', verifyToken, chatController.markAsRead);
 router.delete('/conversation/:userId', verifyToken, chatController.deleteConversation);
 

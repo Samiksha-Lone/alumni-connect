@@ -35,7 +35,24 @@ export default function Profile() {
       if (!user?._id) return;
       try {
         const res = await axios.get(`/users/${user._id}`);
-        setForm(res.data);
+        const data = res.data || {};
+        const socialLinks = { ...(data.socialLinks || {}) };
+
+        if (data.portfolioLinks) {
+          data.portfolioLinks.split('\n').forEach((line) => {
+            const [label, ...rest] = line.split(':');
+            if (!rest.length) return;
+            const url = rest.join(':').trim();
+            const key = label?.trim().toLowerCase();
+            if (key.includes('github') && !socialLinks.github) socialLinks.github = url;
+            if (key.includes('portfolio') && !socialLinks.portfolio) socialLinks.portfolio = url;
+            if (key.includes('linkedin') && !socialLinks.linkedin) socialLinks.linkedin = url;
+          });
+        }
+
+        data.socialLinks = socialLinks;
+        data.portfolioLinks = '';
+        setForm(data);
       } catch (err) {
         if (err.response?.status === 401) logout();
       }
@@ -506,28 +523,78 @@ export default function Profile() {
                     </div>
 
                     <div>
-                      <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-text-secondary">Portfolio Links</p>
+                      <p className="mb-2 text-xs font-semibold tracking-wider uppercase text-text-secondary">Links</p>
                       {editing ? (
-                        <textarea
-                          className="text-sm form-input resize-none min-h-[60px]"
-                          placeholder={`GitHub: https://github.com/yourprofile\nPortfolio: https://yourportfolio.com\nLinkedIn: https://linkedin.com/in/yourprofile`}
-                          value={form.portfolioLinks || ''}
-                          onChange={e => setForm(p => ({ ...p, portfolioLinks: e.target.value }))}
-                        />
-                      ) : form.portfolioLinks ? (
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block mb-2 text-xs font-semibold text-text-primary">GitHub URL</label>
+                            <input
+                              className="text-sm form-input"
+                              placeholder="https://github.com/yourprofile"
+                              value={form.socialLinks?.github || ''}
+                              onChange={e => setForm(p => ({
+                                ...p,
+                                socialLinks: { ...p.socialLinks, github: e.target.value }
+                              }))}
+                            />
+                          </div>
+                          <div>
+                            <label className="block mb-2 text-xs font-semibold text-text-primary">Portfolio URL</label>
+                            <input
+                              className="text-sm form-input"
+                              placeholder="https://yourportfolio.com"
+                              value={form.socialLinks?.portfolio || ''}
+                              onChange={e => setForm(p => ({
+                                ...p,
+                                socialLinks: { ...p.socialLinks, portfolio: e.target.value }
+                              }))}
+                            />
+                          </div>
+                          <div>
+                            <label className="block mb-2 text-xs font-semibold text-text-primary">LinkedIn URL</label>
+                            <input
+                              className="text-sm form-input"
+                              placeholder="https://linkedin.com/in/yourprofile"
+                              value={form.socialLinks?.linkedin || ''}
+                              onChange={e => setForm(p => ({
+                                ...p,
+                                socialLinks: { ...p.socialLinks, linkedin: e.target.value }
+                              }))}
+                            />
+                          </div>
+                        </div>
+                      ) : (form.socialLinks?.github || form.socialLinks?.portfolio || form.socialLinks?.linkedin) ? (
                         <div className="space-y-2">
-                          {form.portfolioLinks.split('\n').filter(link => link.trim()).map((link, idx) => {
-                            const colonIndex = link.indexOf(':');
-                            const [label, url] = colonIndex > 0 
-                              ? [link.substring(0, colonIndex).trim(), link.substring(colonIndex + 1).trim()]
-                              : [link.trim(), ''];
-                            return url ? (
-                              <a key={idx} href={url.startsWith('http') ? url : `https://${url}`} target="_blank" rel="noopener noreferrer" 
-                                className="block px-3 py-2 text-xs font-medium text-purple-700 truncate transition-colors border border-purple-200 rounded-lg bg-purple-50 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20 hover:bg-purple-100 dark:hover:bg-purple-500/20">
-                                🔗 {label}
-                              </a>
-                            ) : null;
-                          })}
+                          {form.socialLinks?.github && (
+                            <a
+                              href={form.socialLinks.github.startsWith('http') ? form.socialLinks.github : `https://${form.socialLinks.github}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block px-3 py-2 text-xs font-medium text-purple-700 truncate transition-colors border border-purple-200 rounded-lg bg-purple-50 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20 hover:bg-purple-100 dark:hover:bg-purple-500/20"
+                            >
+                              🔗 GitHub
+                            </a>
+                          )}
+                          {form.socialLinks?.portfolio && (
+                            <a
+                              href={form.socialLinks.portfolio.startsWith('http') ? form.socialLinks.portfolio : `https://${form.socialLinks.portfolio}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block px-3 py-2 text-xs font-medium text-purple-700 truncate transition-colors border border-purple-200 rounded-lg bg-purple-50 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20 hover:bg-purple-100 dark:hover:bg-purple-500/20"
+                            >
+                              🔗 Portfolio
+                            </a>
+                          )}
+                          {form.socialLinks?.linkedin && (
+                            <a
+                              href={form.socialLinks.linkedin.startsWith('http') ? form.socialLinks.linkedin : `https://${form.socialLinks.linkedin}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block px-3 py-2 text-xs font-medium text-purple-700 truncate transition-colors border border-purple-200 rounded-lg bg-purple-50 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20 hover:bg-purple-100 dark:hover:bg-purple-500/20"
+                            >
+                              🔗 LinkedIn
+                            </a>
+                          )}
                         </div>
                       ) : (
                         <EmptyHint editing={editing} message="Add GitHub, portfolio, or other profile links." />

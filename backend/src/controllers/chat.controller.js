@@ -5,7 +5,7 @@ const User = require('../models/user.model');
 
 exports.sendMessage = async (req, res) => {
   try {
-    const { receiverId, content } = req.body;
+    const { receiverId, content, isMentorshipRequest, tempId } = req.body;
     
     const receiver = await User.findById(receiverId);
     if (!receiver) {
@@ -18,20 +18,26 @@ exports.sendMessage = async (req, res) => {
       chatId,
       senderId: req.user.id,
       receiverId,
-      content: content.trim()
+      content: content.trim(),
+      isMentorshipRequest: isMentorshipRequest || false,
+      status: 'sent'
     });
     
     await message.save();
     
     await message.populate('senderId', 'name email role avatar');
     
+    // Include tempId in response for frontend to match with optimistic update
+    const messageData = message.toObject ? message.toObject() : message;
+    if (tempId) messageData.tempId = tempId;
+    
     const io = req.app.get('io');
-    io.to(receiverId.toString()).emit('newMessage', message);
-    io.to(req.user.id.toString()).emit('newMessage', message); // Also emit to sender to handle multiple tabs/devices
+    io.to(receiverId.toString()).emit('newMessage', messageData);
+    io.to(req.user.id.toString()).emit('newMessage', messageData);
     
     await User.findByIdAndUpdate(req.user.id, { isOnline: true, lastSeen: new Date() });
     
-    res.status(201).json(message);
+    res.status(201).json(messageData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -59,12 +65,40 @@ exports.getMessages = async (req, res) => {
       .skip(((parseInt(page, 10) || 1) - 1) * (parseInt(limit, 10) || 50))
       .lean();
 
+    // Mark messages as read and delivered
     await Message.updateMany(
       { chatId, receiverId: req.user.id, isRead: false },
-      { isRead: true }
+      { isRead: true, status: 'delivered' }
     );
 
     res.json(messages.reverse());
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.checkMentorshipStatus = async (req, res) => {
+  try {
+    const { mentorId } = req.params;
+    
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const chatId = [req.user.id, mentorId].sort().join('_');
+    
+    // Check if there's any mentorship request message from the user to the mentor
+    const mentorshipRequest = await Message.findOne({
+      chatId,
+      senderId: req.user.id,
+      receiverId: mentorId,
+      isMentorshipRequest: true
+    });
+
+    res.json({
+      hasMentorshipRequest: !!mentorshipRequest,
+      hasConversation: !!(await Message.findOne({ chatId }))
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -179,7 +213,7 @@ exports.markAsRead = async (req, res) => {
     
     const result = await Message.updateMany(
       { chatId, receiverId: req.user.id, isRead: false },
-      { isRead: true }
+      { isRead: true, status: 'delivered' }
     );
     
     res.json({ updated: result.modifiedCount });
