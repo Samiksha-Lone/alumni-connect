@@ -31,7 +31,7 @@ const loginLimiter = rateLimit({
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 600,
   standardHeaders: true,
   legacyHeaders: false,
 });

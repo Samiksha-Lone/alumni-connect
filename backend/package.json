@@ -7,7 +7,14 @@
     "test": "jest --detectOpenHandles",
     "test:watch": "jest --watch",
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "seed": "node -e \"process.env.USE_LOCAL_DB='true'; require('./seed/index.js');\"",
+    "seed:local": "node -e \"process.env.USE_LOCAL_DB='true'; require('./seed/index.js');\"",
+    "seed:cluster": "node -e \"process.env.USE_LOCAL_DB='false'; require('./seed/index.js');\"",
+    "seed:users": "node seed/users.seed.js",
+    "seed:jobs": "node seed/jobs.seed.js",
+    "seed:events": "node seed/events.seed.js",
+    "seed:messages": "node seed/messages.seed.js"
   },
   "keywords": [],
   "author": "",
@@ -17,8 +24,10 @@
     "node": "20.x"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.5.0",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -28,9 +37,9 @@
     "helmet": "^7.2.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.19.2",
+    "multer": "^1.4.4",
     "nodemailer": "^6.9.16",
     "socket.io": "^4.8.3",
-    "multer": "^1.4.4",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "winston": "^3.19.0"

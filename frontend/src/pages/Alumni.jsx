@@ -114,24 +114,8 @@ export default function AlumniPage() {
 }
 
 function AlumniCard({ alumni }) {
-  const [mentorshipStatus, setMentorshipStatus] = useState(null);
   const { user } = useAuth();
   const navigate = useNavigate();
-
-  const checkMentorshipStatus = useCallback(async () => {
-    try {
-      const res = await axios.get(`/chat/mentorship-status/${alumni._id}`);
-      setMentorshipStatus(res.data);
-    } catch (err) {
-      console.log('Error checking mentorship status:', err);
-    }
-  }, [alumni._id]);
-
-  useEffect(() => {
-    if (alumni.mentorAvailable && user) {
-      checkMentorshipStatus();
-    }
-  }, [alumni.mentorAvailable, alumni._id, user, checkMentorshipStatus]);
 
   const handleMentorshipClick = () => {
     if (!user) {
@@ -209,18 +193,7 @@ function AlumniCard({ alumni }) {
 
         {/* Footer */}
         <div className="px-4 py-3 border-t border-border bg-gray-50/50 dark:bg-gray-800/10">
-          {alumni.mentorAvailable && mentorshipStatus?.hasMentorshipRequest ? (
-            // Second interaction - show Message button only
-            <Button
-              onClick={handleMessageClick}
-              variant="secondary"
-              className="w-full text-xs font-semibold h-9 border-border"
-            >
-              <MessageSquare size={12} className="mr-1.5 shrink-0" />
-              Message
-            </Button>
-          ) : alumni.mentorAvailable ? (
-            // First interaction - show Request Mentorship
+          {alumni.mentorAvailable ? (
             <Button
               onClick={handleMentorshipClick}
               variant="primary"
@@ -230,7 +203,6 @@ function AlumniCard({ alumni }) {
               Request Mentorship
             </Button>
           ) : (
-            // Not a mentor - show Message
             <Button
               onClick={handleMessageClick}
               variant="secondary"

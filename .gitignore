@@ -141,6 +141,7 @@ backend/.env.local
 backend/.env.production
 backend/uploads/
 backend/temp/
+backend/seed/
 
 # ============================================
 # Frontend Specific

@@ -6,7 +6,7 @@ import { useAuth } from './AuthContext'
 const SocketContext = createContext(null)
 export const useSocket = () => useContext(SocketContext)
 
-const SOCKET_URL = import.meta.env.DEV ? 'http://localhost:3000' : import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com'
+const SOCKET_URL = import.meta.env.VITE_API_BASE ? import.meta.env.VITE_API_BASE.replace(/\/api$/, '') : (import.meta.env.DEV ? 'http://localhost:3000' : 'https://alumni-connect-backend-hrsc.onrender.com')
 
 export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null)

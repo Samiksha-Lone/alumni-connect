@@ -6,11 +6,11 @@ import { useToast } from '../context/useToast';
 import Button from './ui/Button';
 
 const api = axios.create({
-  baseURL: import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com') + '/api',
+  baseURL: import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? '/api' : 'https://alumni-connect-backend-hrsc.onrender.com/api'),
   withCredentials: true,
 });
 
-const FILE_BASE = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE || 'https://alumni-connect-backend-hrsc.onrender.com');
+const FILE_BASE = import.meta.env.VITE_API_BASE ? import.meta.env.VITE_API_BASE.replace(/\/api$/, '') : (import.meta.env.DEV ? '' : 'https://alumni-connect-backend-hrsc.onrender.com');
 
 const ChatRoom = ({ partnerId, initialMessage }) => {
   const socket = useSocket();
