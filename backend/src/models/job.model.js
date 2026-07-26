@@ -5,7 +5,10 @@ const jobSchema = new mongoose.Schema({
   company: { type: String, required: true },
   description: { type: String, required: true },
   link: String,
-  author: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+  location: String,
+  salary: String,
+  skills: [{ type: String }],
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   closingDate: { type: Date },
 }, { timestamps: true });
 

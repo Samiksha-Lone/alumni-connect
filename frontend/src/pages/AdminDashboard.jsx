@@ -15,6 +15,8 @@ import { userService } from '../services/user.service';
 import { eventService } from '../services/event.service';
 import { jobService } from '../services/job.service';
 import { galleryService } from '../services/gallery.service';
+import JobCard from '../components/jobs/JobCard';
+import EventCard from '../components/events/EventCard';
 
 /* ── Tab IDs ── */
 const TABS = [
@@ -54,13 +56,13 @@ export default function AdminDashboard() {
         dashboardService.getDebugStatus(),
         userService.getAllUsers(),
         eventService.getEvents(),
-        jobService.getJobs(),
+        jobService.getJobs({ page: 1, limit: 100 }),
         galleryService.getGallery(1, 50),
       ]);
       if (statsRes.status === 'fulfilled') setStats(statsRes.value?.counts);
       if (usersRes.status === 'fulfilled') setUsers(Array.isArray(usersRes.value) ? usersRes.value : usersRes.value?.data || []);
-      if (eventsRes.status === 'fulfilled') setEvents(Array.isArray(eventsRes.value) ? eventsRes.value : eventsRes.value?.data || []);
-      if (jobsRes.status === 'fulfilled') setJobs(Array.isArray(jobsRes.value) ? jobsRes.value : jobsRes.value?.data || []);
+      if (eventsRes.status === 'fulfilled') setEvents(eventsRes.value || []);
+      if (jobsRes.status === 'fulfilled') setJobs(jobsRes.value || []);
       if (galleryRes.status === 'fulfilled') {
         const galleryData = galleryRes.value;
         setGallery(Array.isArray(galleryData)
@@ -78,6 +80,12 @@ export default function AdminDashboard() {
   }, [error]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      fetchAll();
+    }
+  }, [user, fetchAll]);
 
   useEffect(() => {
     const interval = setInterval(fetchAll, 60000);
@@ -317,7 +325,7 @@ function UsersTab({ users, reload, success, error }) {
 
 /* ── EVENTS ── */
 function EventsTab({ events, reload, success, error }) {
-  const [form, setForm] = useState({ title:'', eventDate:'', description:'' });
+  const [form, setForm] = useState({ title:'', eventDate:'', description:'', location:'Seminar Hall, MGM Campus', eventTime:'10:30 AM · 2 hours', category:'Alumni Event' });
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -347,9 +355,12 @@ function EventsTab({ events, reload, success, error }) {
         title: form.title.trim(),
         description: form.description?.trim() || '',
         eventDate,
+        location: form.location?.trim() || 'Seminar Hall, MGM Campus',
+        eventTime: form.eventTime?.trim() || '10:30 AM · 2 hours',
+        category: form.category?.trim() || 'Alumni Event',
       });
       success('Event created!');
-      setForm({ title:'', eventDate:'', description:'' });
+      setForm({ title:'', eventDate:'', description:'', location:'Seminar Hall, MGM Campus', eventTime:'10:30 AM · 2 hours', category:'Alumni Event' });
       setShowForm(false);
       reload();
     } catch (err) {
@@ -387,6 +398,20 @@ function EventsTab({ events, reload, success, error }) {
                 <input type="date" className="text-sm form-input h-9" value={form.eventDate} onChange={e=>setForm(p=>({...p,eventDate:e.target.value}))} required/>
               </div>
             </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div>
+                <label className="form-label">Location</label>
+                <input className="text-sm form-input h-9" placeholder="Seminar Hall, MGM Campus" value={form.location} onChange={e=>setForm(p=>({...p,location:e.target.value}))} />
+              </div>
+              <div>
+                <label className="form-label">Event Time</label>
+                <input className="text-sm form-input h-9" placeholder="10:30 AM · 2 hours" value={form.eventTime} onChange={e=>setForm(p=>({...p,eventTime:e.target.value}))} />
+              </div>
+              <div>
+                <label className="form-label">Category</label>
+                <input className="text-sm form-input h-9" placeholder="Alumni Event" value={form.category} onChange={e=>setForm(p=>({...p,category:e.target.value}))} />
+              </div>
+            </div>
             <div>
               <label className="form-label">Description</label>
               <textarea className="text-sm resize-none form-input" rows={2} placeholder="Describe the event..." value={form.description} onChange={e=>setForm(p=>({...p,description:e.target.value}))}/>
@@ -405,18 +430,20 @@ function EventsTab({ events, reload, success, error }) {
             <CalendarDays size={36} className="mx-auto mb-2 opacity-20"/><p>No events yet.</p>
           </div>
         ) : events.map(ev => (
-          <Card key={ev._id} className="relative flex flex-col gap-2 p-4 group">
-            <button onClick={()=>del(ev._id)} className="absolute top-3 right-3 p-1.5 rounded-lg text-red-500 bg-red-50 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-100">
+          <div key={ev._id} className="relative group">
+            <button onClick={()=>del(ev._id)} className="absolute right-3 top-3 z-10 rounded-lg bg-red-50 p-1.5 text-red-500 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-100">
               <Trash2 size={13}/>
             </button>
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600">
-              <CalendarDays size={18}/>
-            </div>
-            <p className="pr-6 text-sm font-bold text-text-primary">{ev.title}</p>
-            <p className="text-xs text-text-secondary">{ev.eventDate ? new Date(ev.eventDate).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}) : 'No date'}</p>
-            {ev.description && <p className="text-xs text-text-secondary line-clamp-2">{ev.description}</p>}
-            <p className="text-[10px] text-text-secondary/60">{ev.attendees?.length || 0} RSVPs</p>
-          </Card>
+            <EventCard
+              event={{
+                ...ev,
+                location: ev.location || 'Seminar Hall, MGM Campus',
+                eventTime: ev.eventTime || '10:30 AM · 2 hours',
+                category: ev.category || 'Alumni Event',
+              }}
+              onOpen={() => null}
+            />
+          </div>
         ))}
       </div>
     </div>
@@ -425,7 +452,7 @@ function EventsTab({ events, reload, success, error }) {
 
 /* ── JOBS ── */
 function JobsTab({ jobs, reload, success, error }) {
-  const [form, setForm] = useState({ title:'', company:'', description:'', link:'', closingDate:'' });
+  const [form, setForm] = useState({ title:'', company:'', description:'', link:'', closingDate:'', location:'Pune, India', salary:'₹ 3 - 6 LPA', skills:'React, Node.js, Communication' });
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -434,9 +461,18 @@ function JobsTab({ jobs, reload, success, error }) {
     if (!form.title || !form.company || !form.description) { error('Title, company, description required'); return; }
     setLoading(true);
     try {
-      await jobService.addJob({ ...form, closingDate: form.closingDate || null });
+      await jobService.addJob({
+        title: form.title.trim(),
+        company: form.company.trim(),
+        description: form.description.trim(),
+        link: form.link?.trim() || null,
+        closingDate: form.closingDate || null,
+        location: form.location?.trim() || null,
+        salary: form.salary?.trim() || null,
+        skills: form.skills?.trim() || null,
+      });
       success('Job posted!');
-      setForm({ title:'', company:'', description:'', link:'', closingDate:'' });
+      setForm({ title:'', company:'', description:'', link:'', closingDate:'', location:'Pune, India', salary:'₹ 3 - 6 LPA', skills:'React, Node.js, Communication' });
       setShowForm(false);
       reload();
     } catch { error('Failed to post job'); } finally { setLoading(false); }
@@ -464,8 +500,12 @@ function JobsTab({ jobs, reload, success, error }) {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div><label className="form-label">Job Title *</label><input className="text-sm form-input h-9" placeholder="e.g. Frontend Engineer" value={form.title} onChange={e=>setForm(p=>({...p,title:e.target.value}))} required/></div>
               <div><label className="form-label">Company *</label><input className="text-sm form-input h-9" placeholder="e.g. Google" value={form.company} onChange={e=>setForm(p=>({...p,company:e.target.value}))} required/></div>
+              <div><label className="form-label">Location</label><input className="text-sm form-input h-9" placeholder="Pune, India" value={form.location} onChange={e=>setForm(p=>({...p,location:e.target.value}))}/></div>
+              <div><label className="form-label">Salary</label><input className="text-sm form-input h-9" placeholder="₹ 3 - 6 LPA" value={form.salary} onChange={e=>setForm(p=>({...p,salary:e.target.value}))}/></div>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div><label className="form-label">Application Link</label><input className="text-sm form-input h-9" placeholder="https://..." value={form.link} onChange={e=>setForm(p=>({...p,link:e.target.value}))}/></div>
-              <div><label className="form-label">Closing Date</label><input type="date" className="text-sm form-input h-9" value={form.closingDate} onChange={e=>setForm(p=>({...p,closingDate:e.target.value}))}/></div>
+              <div><label className="form-label">Skills</label><input className="text-sm form-input h-9" placeholder="React, Node.js, Communication" value={form.skills} onChange={e=>setForm(p=>({...p,skills:e.target.value}))}/></div>
             </div>
             <div><label className="form-label">Description *</label><textarea className="text-sm resize-none form-input" rows={2} placeholder="Brief description..." value={form.description} onChange={e=>setForm(p=>({...p,description:e.target.value}))} required/></div>
             <div className="flex justify-end gap-2">
@@ -482,16 +522,21 @@ function JobsTab({ jobs, reload, success, error }) {
             <Briefcase size={36} className="mx-auto mb-2 opacity-20"/><p>No jobs posted yet.</p>
           </div>
         ) : jobs.map(j => (
-          <Card key={j._id} className="relative flex flex-col gap-2 p-4 group">
-            <button onClick={()=>del(j._id)} className="absolute top-3 right-3 p-1.5 rounded-lg text-red-500 bg-red-50 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-100">
+          <div key={j._id} className="relative group">
+            <button onClick={()=>del(j._id)} className="absolute right-3 top-3 z-10 rounded-lg bg-red-50 p-1.5 text-red-500 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-100">
               <Trash2 size={13}/>
             </button>
-            <div className="flex items-center justify-center w-10 h-10 text-purple-600 rounded-xl bg-purple-50 dark:bg-purple-500/10"><Briefcase size={18}/></div>
-            <p className="pr-6 text-sm font-bold text-text-primary">{j.title}</p>
-            <p className="text-xs font-medium text-text-secondary">{j.company}</p>
-            {j.description && <p className="text-xs text-text-secondary line-clamp-2">{j.description}</p>}
-            {j.closingDate && <p className="text-[10px] text-amber-600">Closes {new Date(j.closingDate).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</p>}
-          </Card>
+            <JobCard
+              job={{
+                ...j,
+                location: j.location || 'Pune, India',
+                salary: j.salary || '₹ 3 - 6 LPA',
+                postedDate: j.createdAt ? new Date(j.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'N/A',
+                skills: j.skills || ['React', 'Node.js', 'Communication'],
+              }}
+              onOpen={() => null}
+            />
+          </div>
         ))}
       </div>
     </div>

@@ -25,7 +25,15 @@ export default function AlumniPage() {
   const fetchAlumni = useCallback(async (page = 1) => {
     try {
       setLoading(true);
-      const res = await userService.getAlumni({ page, limit: 12, search: searchQuery.trim() });
+      const res = await userService.getAlumni({
+        page,
+        limit: 12,
+        search: searchQuery.trim(),
+        company: companyFilter.trim(),
+        location: locationFilter.trim(),
+        graduationYear: gradYear.trim(),
+        mentorsOnly: showMentorsOnly
+      });
       const list = (res.data || []).filter(a => a._id !== user?.id);
       setAlumni(list);
       setPagination(res.pagination || { page, limit: 12, total: 0, pages: 1 });
@@ -39,7 +47,7 @@ export default function AlumniPage() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, navigate, searchQuery]);
+  }, [user?.id, navigate, searchQuery, companyFilter, locationFilter, gradYear, showMentorsOnly]);
 
   useEffect(() => { fetchAlumni(1); }, [fetchAlumni]);
 
@@ -85,25 +93,20 @@ export default function AlumniPage() {
             <option value="2022">2022</option>
             <option value="2021">2021</option>
           </select>
-          <select value={companyFilter} onChange={(e) => setCompanyFilter(e.target.value)} className="h-10 rounded-xl border border-border bg-white px-3 text-sm outline-none focus:border-primary dark:bg-slate-900">
-            <option value="">Company</option>
-            <option value="TCS">TCS</option>
-            <option value="Infosys">Infosys</option>
-            <option value="Wipro">Wipro</option>
-            <option value="Accenture">Accenture</option>
-            <option value="Cognizant">Cognizant</option>
-            <option value="Capgemini">Capgemini</option>
-            <option value="Persistent">Persistent</option>
-            <option value="Tech Mahindra">Tech Mahindra</option>
-          </select>
-          <select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} className="h-10 rounded-xl border border-border bg-white px-3 text-sm outline-none focus:border-primary dark:bg-slate-900">
-            <option value="">Location</option>
-            <option value="Pune">Pune</option>
-            <option value="Hyderabad">Hyderabad</option>
-            <option value="Bengaluru">Bengaluru</option>
-            <option value="Mumbai">Mumbai</option>
-            <option value="Chennai">Chennai</option>
-          </select>
+          <input
+            type="text"
+            placeholder="Company"
+            value={companyFilter}
+            onChange={(e) => setCompanyFilter(e.target.value)}
+            className="h-10 rounded-xl border border-border bg-white px-3 text-sm outline-none focus:border-primary dark:bg-slate-900"
+          />
+          <input
+            type="text"
+            placeholder="Location"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+            className="h-10 rounded-xl border border-border bg-white px-3 text-sm outline-none focus:border-primary dark:bg-slate-900"
+          />
         </div>
         <Button variant="secondary" onClick={() => fetchAlumni(1)} className="h-10 shrink-0 border-border px-4">
           <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />

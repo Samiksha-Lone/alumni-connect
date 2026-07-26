@@ -11,6 +11,7 @@ async function registerUser(req, res, next) {
       company,
       graduationYear,
       yearOfStudying,
+      yearOfStudy,
       course,
     } = req.body;
     // If attempting to create an admin, allow only when requester is an authenticated admin
@@ -60,7 +61,7 @@ async function registerUser(req, res, next) {
       courseStudied: role === "alumni" ? courseStudied : undefined,
       company: role === "alumni" ? company : undefined,
       graduationYear: role === "alumni" ? graduationYear : undefined,
-      yearOfStudying: role === "student" ? yearOfStudying : undefined,
+      yearOfStudying: role === "student" ? (yearOfStudying ?? yearOfStudy) : undefined,
       course: role === "student" ? course : undefined,
       expertise: req.body.expertise || '',
       skills: Array.isArray(req.body.skills) ? req.body.skills : (req.body.skills ? req.body.skills.split(',').map((item) => item.trim()).filter(Boolean) : []),

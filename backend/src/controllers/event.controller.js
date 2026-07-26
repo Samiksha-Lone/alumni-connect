@@ -7,7 +7,7 @@ async function createEvent(req, res) {
       return res.status(403).json({ error: "Only admin has this privilege" });
     }
 
-    const { title, description, eventDate } = req.body;
+    const { title, description, eventDate, location, eventTime, category } = req.body;
 
     if (!title || !eventDate) {
       return res.status(400).json({ error: "Title and event date are required" });
@@ -38,6 +38,9 @@ async function createEvent(req, res) {
       title,
       description: description || '',
       eventDate: parsedDate,
+      location: location || 'Seminar Hall, MGM Campus',
+      eventTime: eventTime || '10:30 AM · 2 hours',
+      category: category || 'Alumni Event',
       createdBy: req.user._id
     });
 
@@ -53,7 +56,49 @@ async function createEvent(req, res) {
 async function getEvents(req, res) {
   try {
     const { page, limit } = parsePagination(req.query, { page: 1, limit: 12 });
+    const { search, category, location, createdBy } = req.query;
     const query = { markedForDeletion: false };
+
+    if (search) {
+      const esc = String(search).replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
+      const regex = new RegExp(esc, 'i');
+      query.$or = [
+        { title: regex },
+        { description: regex },
+        { category: regex },
+        { location: regex }
+      ];
+    }
+
+    if (category) {
+      const esc = String(category).replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
+      query.category = { $regex: esc, $options: 'i' };
+    }
+
+    if (location) {
+      const esc = String(location).replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
+      query.location = { $regex: esc, $options: 'i' };
+    }
+
+    if (createdBy) {
+      if (createdBy === 'me') {
+        if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+        query.createdBy = req.user._id;
+      } else {
+        query.createdBy = createdBy;
+      }
+    }
+
+    // Filter events the user registered for
+    if (req.query.registeredBy) {
+      const registeredBy = req.query.registeredBy;
+      if (registeredBy === 'me') {
+        if (!req.user) return res.status(401).json({ error: 'Authentication required' });
+        query.attendees = { $in: [req.user._id] };
+      } else {
+        query.attendees = { $in: [registeredBy] };
+      }
+    }
 
     const [events, total] = await Promise.all([
       eventModel.find(query)
@@ -76,7 +121,7 @@ async function updateEvent(req, res) {
     }
 
     const eventId = req.params.id;
-    const { title, description, eventDate } = req.body;
+    const { title, description, eventDate, location, eventTime, category } = req.body;
 
     const event = await eventModel.findById(eventId);
     if (!event) {
@@ -86,6 +131,9 @@ async function updateEvent(req, res) {
     if (title) event.title = title;
     if (description) event.description = description;
     if (eventDate) event.eventDate = eventDate;
+    if (location !== undefined) event.location = location;
+    if (eventTime !== undefined) event.eventTime = eventTime;
+    if (category !== undefined) event.category = category;
 
     const updatedEvent = await event.save();
 

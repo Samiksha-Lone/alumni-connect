@@ -4,7 +4,6 @@
 
 ## 🔗 Links
 - **Live Demo**: [https://alumni-connect-frontendd.vercel.app](https://alumni-connect-frontendd.vercel.app)
-- **GitHub Repository**: [https://github.com/Samiksha-Lone/alumni-connect](https://github.com/Samiksha-Lone/alumni-connect)
 
 ## Overview
 
@@ -47,6 +46,7 @@ Alumni Connect solves these challenges with a centralized directory, real-time c
 | **Auth & Security** | JWT, bcryptjs, Helmet, express-rate-limit |
 | **Email** | Nodemailer |
 | **Deployment** | Vercel (frontend), Render (backend) |
+| **Containerization** | Docker, Docker Compose |
 
 ## Architecture / Flow
 
@@ -93,6 +93,29 @@ API_URL=http://localhost:3000
 
 ```bash
 npm run dev   # http://localhost:3000
+```
+
+If you prefer Docker, the repository includes a `docker-compose.yml` that runs the frontend, backend and a MongoDB service locally (recommended for development and testing).
+
+### Run with Docker Compose (recommended)
+
+1. Copy or update the backend environment file at `backend/.env` — the compose file uses this file to set environment variables for the backend container. At minimum set your `MONGO_URI`, `JWT_SECRET`, and email credentials if you use email features.
+
+2. Start the stack:
+
+```bash
+docker-compose up --build -d
+```
+
+Services started by the compose file:
+- `backend` → http://localhost:3000
+- `frontend` → http://localhost:5173
+- `mongodb` → mongodb://localhost:27017 (data persisted under the `mongo_data` volume)
+
+To stop and remove containers:
+
+```bash
+docker-compose down
 ```
 
 ### 2. Frontend

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, X, Briefcase, GraduationCap, UserCheck, CalendarDays } from 'lucide-react';
 import { useToast } from '../context/useToast';
 import DashboardTopbar from '../components/common/DashboardTopbar';
@@ -11,6 +12,7 @@ import FormField from '../components/common/FormField';
 
 
 export default function AlumniDashboard({ user }) {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({ jobs: 0, internships: 0, requests: 0, events: 0 });
   const { success, error } = useToast();
   const [showForm, setShowForm] = useState(false);
@@ -18,6 +20,10 @@ export default function AlumniDashboard({ user }) {
   const [loading, setLoading] = useState(false);
   const [, setJobs] = useState([]);
   const [myJobs, setMyJobs] = useState([]);
+  const [conversations, setConversations] = useState([]);
+  const [mentorshipRequests, setMentorshipRequests] = useState([]);
+  const [myEvents, setMyEvents] = useState([]);
+  const [registeredEvents, setRegisteredEvents] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ title:'', company:'', description:'', link:'', closingDate:'' });
 
@@ -40,8 +46,7 @@ export default function AlumniDashboard({ user }) {
     let mounted = true;
     async function loadJobs(){
       try{
-        const response = await jobService.getJobs() || [];
-        const all = Array.isArray(response) ? response : response?.data || [];
+        const all = await jobService.getJobs() || [];
         if (!mounted) return;
         setJobs(all);
         const mine = all.filter(j => {
@@ -57,6 +62,51 @@ export default function AlumniDashboard({ user }) {
     loadJobs();
     return ()=>{ mounted = false; };
   }, [user]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadConversations() {
+      try {
+        const { data: conv = [] } = await (await import('../services/chat.service')).chatService.getConversations();
+        if (!mounted) return;
+        setConversations(conv.filter(c => c.partnerRole === 'student'));
+      } catch (e) {
+        // ignore
+      }
+    }
+    async function loadMentorship() {
+      try {
+        const reqs = await (await import('../services/chat.service')).chatService.getMentorshipRequests();
+        if (!mounted) return;
+        setMentorshipRequests(reqs || []);
+      } catch (e) {
+        // ignore
+      }
+    }
+    async function loadMyEvents() {
+      try {
+        const res = await (await import('../services/event.service')).eventService.getEventsPaged({ page: 1, limit: 5, createdBy: 'me' });
+        if (!mounted) return;
+        setMyEvents(res?.data || []);
+      } catch (e) {
+        // ignore
+      }
+    }
+    async function loadRegisteredEvents() {
+      try {
+        const res = await (await import('../services/event.service')).eventService.getEventsPaged({ page: 1, limit: 8, registeredBy: 'me' });
+        if (!mounted) return;
+        setRegisteredEvents(res?.data || []);
+      } catch (e) {
+        // ignore
+      }
+    }
+    loadConversations();
+    loadMentorship();
+    loadMyEvents();
+    loadRegisteredEvents();
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <div className="min-h-screen bg-transparent">
@@ -82,9 +132,9 @@ export default function AlumniDashboard({ user }) {
             className="inline-flex items-center justify-center w-full gap-2 px-4 py-3 text-sm font-semibold transition border shadow-sm rounded-2xl border-border bg-card text-text-primary hover:bg-gray-100">
             <Plus size={16} /> Create Job / Internship
           </button>
-          <button className="w-full px-4 py-3 text-sm font-medium transition border rounded-2xl border-border bg-card text-text-secondary hover:border-blue-300 hover:text-text-primary">View All Jobs</button>
-          <button className="w-full px-4 py-3 text-sm font-medium transition border rounded-2xl border-border bg-card text-text-secondary hover:border-blue-300 hover:text-text-primary">View Requests</button>
-          <button className="w-full px-4 py-3 text-sm font-medium transition border rounded-2xl border-border bg-card text-text-secondary hover:border-blue-300 hover:text-text-primary">Manage Events</button>
+          <button onClick={() => navigate('/opportunities')} className="w-full px-4 py-3 text-sm font-medium transition border rounded-2xl border-border bg-card text-text-secondary hover:border-blue-300 hover:text-text-primary">View All Jobs</button>
+          <button onClick={() => navigate('/chat')} className="w-full px-4 py-3 text-sm font-medium transition border rounded-2xl border-border bg-card text-text-secondary hover:border-blue-300 hover:text-text-primary">View Requests</button>
+          <button onClick={() => navigate('/events')} className="w-full px-4 py-3 text-sm font-medium transition border rounded-2xl border-border bg-card text-text-secondary hover:border-blue-300 hover:text-text-primary">Manage Events</button>
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -146,9 +196,19 @@ export default function AlumniDashboard({ user }) {
 
           <DashboardPanel title="Pending Mentorship Requests" subtitle="Requests from students" className="bg-slate-950">
             <div className="mt-5 space-y-4">
-              <div className="p-6 text-sm border border-dashed rounded-3xl border-border bg-slate-950 text-slate-400">
-                No new mentorship requests right now. Students will appear here when they request your guidance.
-              </div>
+              {mentorshipRequests.length === 0 ? (
+                <div className="p-6 text-sm border border-dashed rounded-3xl border-border bg-slate-950 text-slate-400">
+                  No new mentorship requests right now. Students will appear here when they request your guidance.
+                </div>
+              ) : (
+                mentorshipRequests.map(r => (
+                  <div key={r._id} className="p-4 border rounded-3xl border-border bg-slate-950">
+                    <p className="text-sm font-semibold text-white">{r.sender?.name || 'Student'}</p>
+                    <p className="mt-1 text-sm text-slate-400">{r.content}</p>
+                    <p className="mt-2 text-xs text-slate-400">{new Date(r.createdAt).toLocaleString()}</p>
+                  </div>
+                ))
+              )}
             </div>
           </DashboardPanel>
         </div>
@@ -156,43 +216,109 @@ export default function AlumniDashboard({ user }) {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <DashboardPanel title="Recent Student Messages" subtitle="Stay connected with mentorship chats" className="bg-slate-950">
             <div className="mt-5 space-y-3">
-              <div className="p-4 border rounded-3xl border-border bg-slate-950">
-                <p className="text-sm font-semibold text-white">Rahul Sharma</p>
-                <p className="mt-1 text-sm text-slate-400">"I would love your advice on interview preparation."</p>
-                <p className="mt-2 text-xs text-slate-400">Today · 09:12 AM</p>
-              </div>
-              <div className="p-4 border rounded-3xl border-border bg-slate-950">
-                <p className="text-sm font-semibold text-white">Sanya Patil</p>
-                <p className="mt-1 text-sm text-slate-400">"Can we schedule a campus talk next week?"</p>
-                <p className="mt-2 text-xs text-slate-400">Yesterday · 05:34 PM</p>
-              </div>
+              {conversations.length === 0 ? (
+                <div className="p-6 text-sm border border-dashed rounded-3xl border-border bg-slate-950 text-slate-400">No conversations yet.</div>
+              ) : (
+                conversations.slice(0,2).map(c => (
+                  <div key={c.partnerId} className="p-4 border rounded-3xl border-border bg-slate-950">
+                    <p className="text-sm font-semibold text-white">{c.partnerName}</p>
+                    <p className="mt-1 text-sm text-slate-400">{c.lastMessage}</p>
+                    <p className="mt-2 text-xs text-slate-400">{new Date(c.lastMessageTime).toLocaleString()}</p>
+                  </div>
+                ))
+              )}
             </div>
           </DashboardPanel>
 
           <DashboardPanel title="Alumni Event Invitations" subtitle="Campus and networking events" className="bg-slate-950">
             <div className="mt-5 space-y-3">
-              <div className="p-4 border rounded-3xl border-border bg-slate-950">
-                <p className="text-sm font-semibold text-white">MGM Alumni Meetup</p>
-                <p className="mt-1 text-sm text-slate-400">Invite sent for Aug 20 · Seminar Hall</p>
-              </div>
-              <div className="p-4 border rounded-3xl border-border bg-slate-950">
-                <p className="text-sm font-semibold text-white">Online Mentorship Session</p>
-                <p className="mt-1 text-sm text-slate-400">Invitation sent for Aug 26 · Zoom</p>
-              </div>
+              {myEvents.length === 0 ? (
+                <div className="p-6 text-sm border border-dashed rounded-3xl border-border bg-slate-950 text-slate-400">No events found.</div>
+              ) : (
+                myEvents.map(ev => (
+                  <div key={ev._id} className="p-4 border rounded-3xl border-border bg-slate-950">
+                    <p className="text-sm font-semibold text-white">{ev.title}</p>
+                    <p className="mt-1 text-sm text-slate-400">{new Date(ev.eventDate).toLocaleDateString()} · {ev.location}</p>
+                  </div>
+                ))
+              )}
             </div>
           </DashboardPanel>
         </div>
 
-<DashboardPanel title="Recent Activity" subtitle="What you did recently" className="bg-slate-950">
+        <DashboardPanel title="Recent Activity" subtitle="What you did recently" className="bg-slate-950">
           <div className="mt-5 space-y-4">
-            <div className="p-4 border rounded-3xl border-border bg-slate-950">
-              <p className="text-sm font-semibold text-white">Posted a new opportunity</p>
-              <p className="mt-1 text-sm text-slate-400">Your latest job is now visible to students.</p>
-            </div>
-            <div className="p-4 border rounded-3xl border-border bg-slate-950">
-              <p className="text-sm font-semibold text-white">Checked mentorship requests</p>
-              <p className="mt-1 text-sm text-slate-400">No new requests pending right now.</p>
-            </div>
+            {(() => {
+              const activities = [];
+              if (myJobs && myJobs.length > 0) {
+                const latestJob = myJobs.slice().sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt))[0];
+                activities.push({
+                  id: `job-${latestJob._id}`,
+                  title: 'Posted a new opportunity',
+                  detail: latestJob.title || latestJob.company || 'Your latest job is now visible to students.',
+                  date: latestJob.createdAt ? new Date(latestJob.createdAt) : new Date()
+                });
+              }
+
+              if (mentorshipRequests && mentorshipRequests.length > 0) {
+                const latestReq = mentorshipRequests.slice().sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt))[0];
+                activities.push({
+                  id: `req-${latestReq._id}`,
+                  title: 'New mentorship request',
+                  detail: `${latestReq.sender?.name || 'Student'}: ${latestReq.content}`,
+                  date: latestReq.createdAt ? new Date(latestReq.createdAt) : new Date()
+                });
+              }
+
+              if (conversations && conversations.length > 0) {
+                const latestConv = conversations.slice().sort((a,b)=> new Date(b.lastMessageTime) - new Date(a.lastMessageTime))[0];
+                activities.push({
+                  id: `conv-${latestConv.partnerId}`,
+                  title: 'Recent conversation',
+                  detail: `${latestConv.partnerName}: ${latestConv.lastMessage}`,
+                  date: latestConv.lastMessageTime ? new Date(latestConv.lastMessageTime) : new Date()
+                });
+              }
+
+              if (myEvents && myEvents.length > 0) {
+                const latestEvent = myEvents.slice().sort((a,b)=> new Date(b.eventDate || b.createdAt) - new Date(a.eventDate || a.createdAt))[0];
+                activities.push({
+                  id: `event-${latestEvent._id}`,
+                  title: 'Created an event',
+                  detail: `${latestEvent.title} · ${new Date(latestEvent.eventDate).toLocaleDateString()}`,
+                  date: latestEvent.createdAt ? new Date(latestEvent.createdAt) : (latestEvent.eventDate ? new Date(latestEvent.eventDate) : new Date())
+                });
+              }
+
+              if (registeredEvents && registeredEvents.length > 0) {
+                const latestReg = registeredEvents.slice().sort((a,b)=> new Date(b.eventDate || b.createdAt) - new Date(a.eventDate || a.createdAt))[0];
+                activities.push({
+                  id: `registered-${latestReg._id}`,
+                  title: 'Registered for an event',
+                  detail: `${latestReg.title} · ${new Date(latestReg.eventDate).toLocaleDateString()}`,
+                  date: latestReg.createdAt ? new Date(latestReg.createdAt) : (latestReg.eventDate ? new Date(latestReg.eventDate) : new Date())
+                });
+              }
+
+              if (activities.length === 0) {
+                return (
+                  <div className="p-6 text-sm border border-dashed rounded-3xl border-border bg-slate-950 text-slate-400">
+                    No recent activity yet.
+                  </div>
+                );
+              }
+
+              return activities
+                .sort((a,b) => b.date - a.date)
+                .slice(0,4)
+                .map(act => (
+                  <div key={act.id} className="p-4 border rounded-3xl border-border bg-slate-950">
+                    <p className="text-sm font-semibold text-white">{act.title}</p>
+                    <p className="mt-1 text-sm text-slate-400">{act.detail}</p>
+                    <p className="mt-2 text-xs text-slate-400">{act.date.toLocaleString()}</p>
+                  </div>
+                ));
+            })()}
           </div>
         </DashboardPanel>
 
@@ -227,8 +353,7 @@ export default function AlumniDashboard({ user }) {
                   await jobService.addJob({ ...payload, closingDate: payload.closingDate || null });
                   success('Job posted!');
                 }
-                const response = await jobService.getJobs() || [];
-                const all = Array.isArray(response) ? response : response?.data || [];
+                const all = await jobService.getJobs() || [];
                 setJobs(all);
                 setMyJobs(all.filter((j) => {
                   const aid = j.author?._id || j.author;

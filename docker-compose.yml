@@ -1,23 +1,37 @@
+version: "3.9"
+
 services:
+
   backend:
     build: ./backend
-    container_name: alumni-connect-backend
+    container_name: alumni-backend
     ports:
       - "3000:3000"
     env_file:
       - ./backend/.env
+    depends_on:
+      - mongodb
 
   frontend:
     build:
       context: ./frontend
       args:
-        VITE_API_BASE: http://localhost:3000/api
         VITE_API_URL: http://localhost:3000
-    container_name: alumni-connect-frontend
+        VITE_API_BASE: http://localhost:3000/api
+    container_name: alumni-frontend
     ports:
       - "5173:5173"
-    environment:
-      - VITE_API_BASE=http://localhost:3000/api
-      - VITE_API_URL=http://localhost:3000
     depends_on:
       - backend
+
+  mongodb:
+    image: mongo:7
+    container_name: alumni-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

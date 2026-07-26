@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { authService } from '../services/auth.service'
 import { userService } from '../services/user.service'
+import { setAuthToken, clearAuthToken } from '../services/apiClient'
 
 const AuthContext = createContext(null)
 
@@ -31,6 +32,11 @@ export function AuthProvider({ children }) {
           }
         }
 
+        const storedToken = localStorage.getItem('authToken')
+        if (storedToken) {
+          setAuthToken(storedToken)
+        }
+
         const res = await authService.me().catch(() => null)
         if (res) {
           const normalized = { ...res, _id: res._id || res.id }
@@ -42,6 +48,11 @@ export function AuthProvider({ children }) {
               setUsers(Array.isArray(usersRes) ? usersRes : usersRes?.data || [])
             }
           }
+        } else {
+          clearAuthToken()
+          localStorage.removeItem('authToken')
+          localStorage.removeItem('currentUser')
+          setUser(null)
         }
       } catch (err) {
         // ignore auth initialization errors
@@ -67,6 +78,10 @@ export function AuthProvider({ children }) {
       const res = await authService.login({ email, password })
       if (res?.user) {
         const normalized = { ...res.user, _id: res.user._id || res.user.id }
+        if (res.token) {
+          setAuthToken(res.token)
+          localStorage.setItem('authToken', res.token)
+        }
         setUser(normalized)
         return { ok: true }
       }
@@ -98,8 +113,10 @@ export function AuthProvider({ children }) {
     } catch {
       // ignore logout errors
     }
+    clearAuthToken()
     setUser(null)
     localStorage.removeItem('currentUser')
+    localStorage.removeItem('authToken')
   }, [])
 
   const value = {

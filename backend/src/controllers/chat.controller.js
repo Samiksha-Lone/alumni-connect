@@ -206,6 +206,26 @@ exports.getChatUsers = async (req, res) => {
   }
 };
 
+exports.getMentorshipRequests = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) return res.status(401).json({ error: 'Authentication required' });
+    const requests = await Message.find({ receiverId: req.user.id, isMentorshipRequest: true })
+      .populate('senderId', 'name email avatar')
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    res.json(requests.map(r => ({
+      _id: r._id,
+      sender: r.senderId,
+      content: r.content,
+      createdAt: r.createdAt
+    })));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.markAsRead = async (req, res) => {
   try {
     const { userId } = req.params;

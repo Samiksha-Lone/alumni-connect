@@ -3,6 +3,12 @@ import client from './apiClient';
 export const eventService = {
   getEvents: async (params = {}) => {
     const response = await client.get('/events', { params });
+    const data = response.data;
+    return Array.isArray(data) ? data : data?.data || [];
+  },
+
+  getEventsPaged: async (params = { page: 1, limit: 12 }) => {
+    const response = await client.get('/events', { params });
     return response.data;
   },
 

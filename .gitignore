@@ -92,6 +92,19 @@ desktop.ini
 *.pid.lock
 *.seed*
 
+# Ignore large seed output files and generated data
+/backend/seed/*.json
+/backend/seed/*.ndjson
+/backend/seed/*.dump
+/backend/seed/*.archive
+/backend/seed/data/
+/dev-seed/
+
+# Ignore any exported database dumps
+*.dump
+*.bson
+*.archive
+
 # ============================================
 # Certificates & Credentials (NEVER COMMIT)
 # ============================================

@@ -3,7 +3,7 @@ const { parsePagination, buildPaginationResponse } = require('../utils/paginatio
 
 exports.addJob = async (req, res) => {
   try {
-    const { title, company, description, link, closingDate } = req.body;
+    const { title, company, description, link, closingDate, location, salary, skills } = req.body;
 
     if (!title || !company || !description) {
       return res.status(400).json({ message: "Title, company and description are required" });
@@ -14,6 +14,9 @@ exports.addJob = async (req, res) => {
       company,
       description,
       link,
+      location,
+      salary,
+      skills: Array.isArray(skills) ? skills : (skills ? String(skills).split(',').map((item) => item.trim()).filter(Boolean) : []),
       closingDate,
       author: req.user ? req.user._id : undefined,
     });
@@ -28,14 +31,42 @@ exports.addJob = async (req, res) => {
 exports.getJobs = async (req, res) => {
   try {
     const { page, limit } = parsePagination(req.query, { page: 1, limit: 12 });
+    // Build server-side filters from query params
+    const { search, company, location, type } = req.query;
+    const query = {};
+
+    if (search) {
+      const esc = String(search).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(esc, 'i');
+      query.$or = [
+        { title: regex },
+        { company: regex },
+        { description: regex }
+      ];
+    }
+
+    if (company) {
+      const esc = String(company).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.company = { $regex: esc, $options: 'i' };
+    }
+
+    if (location) {
+      const esc = String(location).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.location = { $regex: esc, $options: 'i' };
+    }
+
+    if (type) {
+      const esc = String(type).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.type = { $regex: esc, $options: 'i' };
+    }
 
     const [jobs, total] = await Promise.all([
-      Job.find()
+      Job.find(query)
         .sort({ createdAt: -1 })
         .populate('author', 'name email')
         .skip((page - 1) * limit)
         .limit(limit),
-      Job.countDocuments()
+      Job.countDocuments(query)
     ]);
 
     res.status(200).json(buildPaginationResponse(jobs, page, limit, total));
@@ -63,6 +94,11 @@ exports.updateJob = async (req, res) => {
     if (company) job.company = company;
     if (description) job.description = description;
     if (link !== undefined) job.link = link;
+    if (location !== undefined) job.location = location;
+    if (salary !== undefined) job.salary = salary;
+    if (skills !== undefined) {
+      job.skills = Array.isArray(skills) ? skills : String(skills).split(',').map((item) => item.trim()).filter(Boolean);
+    }
     job.closingDate = closingDate || job.closingDate;
 
     const updatedJob = await job.save();

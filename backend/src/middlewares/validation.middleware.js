@@ -46,10 +46,17 @@ const validateRegister = [
     .if((value, { req }) => req.body.role === 'alumni')
     .isInt({ min: 1900, max: new Date().getFullYear() })
     .withMessage('Invalid graduation year'),
+  body('yearOfStudy')
+    .if((value, { req }) => req.body.role === 'student')
+    .notEmpty()
+    .withMessage('Year of admission is required for students')
+    .isInt({ min: 1900, max: new Date().getFullYear() + 1 })
+    .withMessage('Year of admission must be a valid year'),
   body('yearOfStudying')
     .if((value, { req }) => req.body.role === 'student')
-    .isInt({ min: 1, max: 5 })
-    .withMessage('Invalid year of studying'),
+    .optional({ nullable: true })
+    .isInt({ min: 1900, max: new Date().getFullYear() + 1 })
+    .withMessage('Year of admission must be a valid year'),
   body('course')
     .if((value, { req }) => req.body.role === 'student')
     .notEmpty()
@@ -171,18 +178,28 @@ const validateCreateEvent = [
     .isLength({ min: 3, max: 200 })
     .withMessage('Title must be between 3 and 200 characters'),
   body('description')
+    .optional({ nullable: true })
     .trim()
-    .notEmpty()
-    .withMessage('Description is required'),
+    .isLength({ max: 1000 })
+    .withMessage('Description cannot exceed 1000 characters'),
   body('eventDate')
     .isISO8601()
     .withMessage('Invalid event date format'),
   body('location')
     .optional()
-    .trim(),
+    .trim()
+    .isLength({ max: 200 })
+    .withMessage('Location cannot exceed 200 characters'),
+  body('eventTime')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Event time cannot exceed 100 characters'),
   body('category')
     .optional()
-    .trim(),
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Category cannot exceed 100 characters'),
   handleValidationErrors
 ];
 
@@ -210,11 +227,21 @@ const validateCreateJob = [
     .withMessage('Company is required'),
   body('location')
     .optional()
-    .trim(),
+    .trim()
+    .isLength({ max: 200 })
+    .withMessage('Location cannot exceed 200 characters'),
   body('salary')
     .optional()
-    .isInt({ min: 0 })
-    .withMessage('Salary must be a positive number'),
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Salary cannot exceed 100 characters'),
+  body('skills')
+    .optional()
+    .custom((value) => {
+      if (Array.isArray(value)) return true;
+      if (typeof value === 'string') return true;
+      throw new Error('Skills must be a comma-separated string or an array');
+    }),
   handleValidationErrors
 ];
 

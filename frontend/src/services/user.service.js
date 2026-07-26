@@ -11,16 +11,17 @@ export const userService = {
     return response.data;
   },
 
-  getAlumni: async ({ page = 1, limit = 12, search = '' } = {}) => {
+  getAlumni: async ({ page = 1, limit = 12, search = '', company = '', location = '', graduationYear = '', mentorsOnly = false } = {}) => {
     const response = await client.get('/users/alumni', {
-      params: { page, limit, search }
+      params: { page, limit, search, company, location, graduationYear, mentorsOnly }
     });
     return response.data;
   },
 
   getAllUsers: async (params = {}) => {
     const response = await client.get('/users', { params });
-    return response.data;
+    const data = response.data;
+    return Array.isArray(data) ? data : data?.data || [];
   },
 
   verifyUser: async (userId, isVerified) => {

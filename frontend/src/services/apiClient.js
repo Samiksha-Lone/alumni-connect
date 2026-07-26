@@ -11,6 +11,16 @@ const client = axios.create({
   }
 });
 
+export const setAuthToken = (token) => {
+  if (token) {
+    client.defaults.headers.common.Authorization = `Bearer ${token}`;
+  }
+};
+
+export const clearAuthToken = () => {
+  delete client.defaults.headers.common.Authorization;
+};
+
 export const normalizeApiError = (error) => {
   const response = error?.response;
   if (!response) {

@@ -39,6 +39,7 @@ export default function AuthPage() {
     if (!email.trim()) return showError('Please enter your email address');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('Please enter a valid email address');
     if (password.length < 6) return showError('Password must be at least 6 characters');
+    if (!/[A-Z]/.test(password)) return showError('Password must contain at least one uppercase letter');
     if (password.length > 72) return showError('Password is too long');
     if (role === 'student' && !yearOfStudy) return showError('Please enter your year of study');
     if (role === 'alumni' && !yearOfPassing) return showError('Please enter your year of passing');
@@ -48,7 +49,7 @@ export default function AuthPage() {
 
     const payload = { name, email, password, role };
     if (role === 'student') {
-      payload.yearOfStudy = yearOfStudy;
+      payload.yearOfStudying = Number(yearOfStudy);
       payload.course = branch;
     } else if (role === 'alumni') {
       payload.graduationYear = yearOfPassing;

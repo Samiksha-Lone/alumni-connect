@@ -41,13 +41,11 @@ export default function StudentDashboard({ user }) {
         }
 
         if (jobsRes.status === 'fulfilled') {
-          const jobsData = Array.isArray(jobsRes.value) ? jobsRes.value : jobsRes.value?.data || [];
-          setJobs(jobsData);
+          setJobs(jobsRes.value || []);
         }
 
         if (eventsRes.status === 'fulfilled') {
-          const eventsData = Array.isArray(eventsRes.value) ? eventsRes.value : eventsRes.value?.data || [];
-          setEvents(eventsData);
+          setEvents(eventsRes.value || []);
         }
 
         if (convRes.status === 'fulfilled') {

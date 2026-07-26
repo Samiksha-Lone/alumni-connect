@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Briefcase, AlertCircle, Search, X } from 'lucide-react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { Briefcase, AlertCircle, Search, X, RefreshCw } from 'lucide-react';
+import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import JobCard from '../components/jobs/JobCard';
@@ -18,26 +19,43 @@ export default function Opportunities() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [pagination, setPagination] = useState({ page: 1, limit: 12, total: 0, pages: 1 });
+  const [companyFilter, setCompanyFilter] = useState('');
+  const [locationFilter, setLocationFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const topRef = useRef(null);
 
-  const fetchOpportunities = useCallback(async () => {
+  const fetchOpportunities = useCallback(async (page = 1) => {
     try {
       setLoading(true);
-      const data = await jobService.getJobs();
-      const list = Array.isArray(data) ? data : data?.data || [];
+      const res = await jobService.getJobsPaged({
+        page,
+        limit: pagination.limit,
+        search: searchQuery.trim(),
+        company: companyFilter.trim(),
+        location: locationFilter.trim(),
+        type: typeFilter.trim()
+      });
+      const list = res?.data || [];
       setItems(list);
+      setPagination(res?.pagination || { page, limit: pagination.limit, total: 0, pages: 1 });
       setError('');
     } catch (err) {
       setError(err.message || 'Failed to load opportunities');
     } finally {
       setLoading(false);
+      // scroll to top of list after page load
+      try { topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { /* ignore */ }
     }
-  }, []);
+  }, [pagination.limit, searchQuery, companyFilter, locationFilter, typeFilter]);
 
-  useEffect(() => { fetchOpportunities(); }, [fetchOpportunities]);
+  useEffect(() => { fetchOpportunities(1); }, [fetchOpportunities]);
 
   const filteredItems = items.filter(o =>
-    o.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    o.company?.toLowerCase().includes(searchQuery.toLowerCase())
+    (o.title?.toLowerCase().includes(searchQuery.toLowerCase()) || o.company?.toLowerCase().includes(searchQuery.toLowerCase()))
+    && (companyFilter ? (o.company || '').toLowerCase() === companyFilter.toLowerCase() : true)
+    && (locationFilter ? (o.location || '').toLowerCase().includes(locationFilter.toLowerCase()) : true)
+    && (typeFilter ? (o.type || '').toLowerCase() === typeFilter.toLowerCase() : true)
   );
 
   return (
@@ -49,17 +67,48 @@ export default function Opportunities() {
         align="center"
       />
 
-      {/* Search */}
-      <div className="flex max-w-xl mx-auto mb-10">
-        <div className="relative flex-grow group">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors" size={15} />
+      {/* Search + Filters (aligned with Alumni page layout) */}
+      <div className="flex flex-col max-w-5xl gap-3 p-4 mx-auto mb-6 border shadow-sm rounded-2xl border-border bg-card sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary transition-colors" size={15} />
           <input
             type="text"
             placeholder="Search roles or companies..."
-            className="w-full h-10 pl-10 text-sm form-input"
+            className="w-full h-10 pl-10 text-sm bg-white border shadow-sm outline-none rounded-xl border-border focus:border-primary focus:ring-2 focus:ring-primary/10 dark:bg-slate-900"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') fetchOpportunities(1); }}
           />
+        </div>
+
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <input
+            type="text"
+            placeholder="Company"
+            value={companyFilter}
+            onChange={(e) => setCompanyFilter(e.target.value)}
+            className="h-10 px-3 text-sm bg-white border outline-none rounded-xl border-border focus:border-primary dark:bg-slate-900"
+          />
+
+          <input
+            type="text"
+            placeholder="Location"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+            className="h-10 px-3 text-sm bg-white border outline-none rounded-xl border-border focus:border-primary dark:bg-slate-900"
+          />
+
+          <input
+            type="text"
+            placeholder="Type (e.g. Internship)"
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="h-10 px-3 text-sm bg-white border outline-none rounded-xl border-border focus:border-primary dark:bg-slate-900"
+          />
+
+          <Button variant="secondary" onClick={() => fetchOpportunities(1)} className="h-10 px-4 shrink-0 border-border">
+            <RefreshCw size={15} className="mr-2" /> Refresh
+          </Button>
         </div>
       </div>
 
@@ -69,7 +118,32 @@ export default function Opportunities() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div className="text-sm text-text-secondary">
+          Showing {items.length} of {pagination.total} opportunities
+        </div>
+        {pagination.pages > 1 && (
+          <div className="flex items-center gap-2">
+            <button
+              disabled={pagination.page <= 1}
+              onClick={() => fetchOpportunities(pagination.page - 1)}
+              className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium transition-colors border rounded-xl border-border bg-card text-text-secondary disabled:cursor-not-allowed disabled:opacity-50 hover:border-primary hover:text-primary"
+            >
+              Previous
+            </button>
+            <span className="text-xs text-text-secondary">Page {pagination.page} of {pagination.pages}</span>
+            <button
+              disabled={pagination.page >= pagination.pages}
+              onClick={() => fetchOpportunities(pagination.page + 1)}
+              className="inline-flex items-center justify-center px-3 py-2 text-xs font-medium transition-colors border rounded-xl border-border bg-card text-text-secondary disabled:cursor-not-allowed disabled:opacity-50 hover:border-primary hover:text-primary"
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div ref={topRef} className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {loading && items.length === 0 ? (
           [1,2,3,4,5,6].map(i => <CardSkeleton key={i} />)
         ) : filteredItems.length === 0 ? (
@@ -151,6 +225,31 @@ export default function Opportunities() {
             </div>
           ))
         )}
+      </div>
+
+      {/* bottom pagination + about */}
+      <div className="mt-8">
+        {pagination.pages > 1 && (
+          <div className="flex items-center justify-center gap-3 mt-6">
+            <button
+              className="px-4 py-2 border rounded-lg border-border bg-card"
+              disabled={pagination.page <= 1}
+              onClick={() => fetchOpportunities(pagination.page - 1)}
+            >
+              Previous
+            </button>
+            <span className="text-sm text-text-secondary">Page {pagination.page} of {pagination.pages}</span>
+            <button
+              className="px-4 py-2 border rounded-lg border-border bg-card"
+              disabled={pagination.page >= pagination.pages}
+              onClick={() => fetchOpportunities(pagination.page + 1)}
+            >
+              Next
+            </button>
+          </div>
+        )}
+
+        
       </div>
     </div>
   );

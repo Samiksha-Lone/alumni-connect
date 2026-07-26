@@ -16,6 +16,11 @@ export const chatService = {
     return response.data;
   },
 
+  getMentorshipRequests: async () => {
+    const response = await client.get('/chat/mentorship/requests');
+    return response.data;
+  },
+
   sendMessage: async (payload) => {
     const response = await client.post('/chat/message', payload);
     return response.data;

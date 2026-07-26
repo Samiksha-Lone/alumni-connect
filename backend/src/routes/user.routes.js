@@ -19,15 +19,40 @@ router.get('/alumni', validateAlumniQuery, async (req, res) => {
         const page = Math.max(1, parseInt(req.query.page, 10) || 1);
         const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 12));
         const search = (req.query.search || '').trim();
+        const company = (req.query.company || '').trim();
+        const location = (req.query.location || '').trim();
+        const graduationYear = (req.query.graduationYear || '').trim();
+        const mentorsOnly = req.query.mentorsOnly === 'true' || req.query.mentorsOnly === '1';
 
         const query = { role: 'alumni' };
+
         if (search) {
+            const esc = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             query.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { company: { $regex: search, $options: 'i' } },
-                { courseStudied: { $regex: search, $options: 'i' } },
-                { location: { $regex: search, $options: 'i' } }
+                { name: { $regex: esc, $options: 'i' } },
+                { company: { $regex: esc, $options: 'i' } },
+                { courseStudied: { $regex: esc, $options: 'i' } },
+                { location: { $regex: esc, $options: 'i' } }
             ];
+        }
+
+        if (company) {
+            const esc = company.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            query.company = { $regex: esc, $options: 'i' };
+        }
+
+        if (location) {
+            const esc = location.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            query.location = { $regex: esc, $options: 'i' };
+        }
+
+        if (graduationYear) {
+            const yearNum = parseInt(graduationYear, 10);
+            if (!Number.isNaN(yearNum)) query.graduationYear = yearNum;
+        }
+
+        if (mentorsOnly) {
+            query.mentorAvailable = true;
         }
 
         const [alumni, total] = await Promise.all([

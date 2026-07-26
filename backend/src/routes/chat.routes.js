@@ -19,6 +19,8 @@ router.get('/users', verifyToken, chatController.getChatUsers);
 
 router.get('/mentorship-status/:mentorId', verifyToken, chatController.checkMentorshipStatus);
 
+router.get('/mentorship/requests', verifyToken, chatController.getMentorshipRequests);
+
 router.put('/read/:userId', verifyToken, validateUserId, chatController.markAsRead);
 router.delete('/conversation/:userId', verifyToken, validateUserId, chatController.deleteConversation);
 

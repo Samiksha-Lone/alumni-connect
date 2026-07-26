@@ -18,6 +18,9 @@ const eventSchema = new mongoose.Schema({
         ref: 'user'
     },
     attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'user' }],
+    location: { type: String, default: 'Seminar Hall, MGM Campus' },
+    eventTime: { type: String, default: '10:30 AM · 2 hours' },
+    category: { type: String, default: 'Alumni Event' },
     markedForDeletion: {
         type: Boolean,
         default: false
