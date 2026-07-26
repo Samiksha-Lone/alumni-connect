@@ -146,20 +146,10 @@ npm run dev   # http://localhost:5173
 ### Admin Dashboard
 ![Admin Dashboard](outputs/Admin-Dashboard.webp)
 
-## Recent Improvements
-
-- [x] Added server-side pagination for jobs, events, alumni, and user-list endpoints
-- [x] Standardized backend validation and response handling for list-based APIs
-- [x] Introduced reusable UI components for dashboard panels, section headers, stat cards, and form fields
-- [x] Added frontend regression tests for shared UI components and backend pagination behavior
-
 ## Future Improvements
 
 - [ ] Intelligent recommendation engine to match students with alumni mentors and opportunities
 - [ ] LinkedIn OAuth integration for faster profile setup
-- [ ] Add audit logging for admin operations and content moderation
-- [ ] Expand shared component usage across more pages and forms
-- [ ] Add clearer route naming and API documentation for future maintainers
 
 ## License
 

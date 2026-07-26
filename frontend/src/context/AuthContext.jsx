@@ -87,7 +87,16 @@ export function AuthProvider({ children }) {
       }
       throw new Error('Invalid response')
     } catch (err) {
+      // Normalize error object coming from apiClient.normalizeApiError
       const message = err?.message || 'Login failed'
+      const details = Array.isArray(err?.details) ? err.details : []
+      if (details.length > 0) {
+        const first = details[0]
+        const detailMsg = first.message || (first.msg || '')
+        console.warn('Login error details:', details)
+        return { ok: false, error: `${message}: ${detailMsg}` }
+      }
+      console.warn('Login error:', err)
       return { ok: false, error: message }
     } finally {
       setLoading(false)
@@ -101,6 +110,14 @@ export function AuthProvider({ children }) {
       return await login({ email: newUser.email, password: newUser.password })
     } catch (err) {
       const message = err?.message || 'Registration failed'
+      const details = Array.isArray(err?.details) ? err.details : []
+      if (details.length > 0) {
+        const first = details[0]
+        const detailMsg = first.message || (first.msg || '')
+        console.warn('Registration error details:', details)
+        return { ok: false, error: `${message}: ${detailMsg}` }
+      }
+      console.warn('Registration error:', err)
       return { ok: false, error: message }
     } finally {
       setLoading(false)

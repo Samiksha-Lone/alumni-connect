@@ -52,7 +52,26 @@ async function registerUser(req, res, next) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    
+
+    // Compute student "yearOfStudying" (1-5) when frontend provides a full admission year
+    let resolvedYearOfStudying = undefined;
+    if (role === 'student') {
+      if (typeof yearOfStudying === 'number' && !Number.isNaN(yearOfStudying)) {
+        resolvedYearOfStudying = yearOfStudying;
+      } else if (yearOfStudy) {
+        const admYear = Number(yearOfStudy);
+        if (!Number.isNaN(admYear)) {
+          const currentYear = new Date().getFullYear();
+          // Year in course: currentYear - admissionYear + 1
+          let calc = currentYear - admYear + 1;
+          if (calc < 1) calc = 1;
+          if (calc > 5) calc = 5;
+          resolvedYearOfStudying = calc;
+        }
+      }
+
+    }
+
     const user = await userModel.create({
       role,
       name,
@@ -61,7 +80,7 @@ async function registerUser(req, res, next) {
       courseStudied: role === "alumni" ? courseStudied : undefined,
       company: role === "alumni" ? company : undefined,
       graduationYear: role === "alumni" ? graduationYear : undefined,
-      yearOfStudying: role === "student" ? (yearOfStudying ?? yearOfStudy) : undefined,
+      yearOfStudying: role === "student" ? resolvedYearOfStudying : undefined,
       course: role === "student" ? course : undefined,
       expertise: req.body.expertise || '',
       skills: Array.isArray(req.body.skills) ? req.body.skills : (req.body.skills ? req.body.skills.split(',').map((item) => item.trim()).filter(Boolean) : []),

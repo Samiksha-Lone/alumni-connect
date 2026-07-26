@@ -49,10 +49,10 @@ export default function AuthPage() {
 
     const payload = { name, email, password, role };
     if (role === 'student') {
-      payload.yearOfStudying = Number(yearOfStudy);
+      payload.yearOfStudy = Number(yearOfStudy);
       payload.course = branch;
     } else if (role === 'alumni') {
-      payload.graduationYear = yearOfPassing;
+      payload.graduationYear = Number(yearOfPassing);
       payload.courseStudied = branch;
       payload.company = company;
       payload.jobRole = jobRole;
