@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import axios from 'axios';
 import { X, ChevronLeft, ChevronRight, Image as ImageIcon, Maximize2 } from 'lucide-react';
 import LazyImage from '../components/ui/LazyImage';
 import Skeleton from '../components/ui/Skeleton';
+import { getSocketBase } from '../utils/api';
+import { galleryService } from '../services/gallery.service';
 
 function ImageModal({ index, items = [], onClose, setIndex }) {
   if (index === null || index === undefined) return null;
@@ -33,7 +34,7 @@ function ImageModal({ index, items = [], onClose, setIndex }) {
       </button>
       <div className="flex flex-col items-center w-full max-w-5xl gap-6" onClick={e => e.stopPropagation()}>
         <img
-          src={item.imageUrl.startsWith('/uploads') ? `${axios.defaults.baseURL.replace('/api', '')}${item.imageUrl}` : item.imageUrl}
+          src={item.imageUrl.startsWith('/uploads') ? `${getSocketBase()}${item.imageUrl}` : item.imageUrl}
           alt={item.description || 'gallery'}
           className="max-h-[75vh] w-auto rounded-2xl shadow-3xl object-contain"
         />
@@ -68,23 +69,20 @@ export default function Gallery() {
       if (pageNum === 1) setLoading(true);
       else setIsLoadingMore(true);
 
-      const res = await axios.get('/gallery', {
-        params: { page: pageNum, limit: 12 }
-      });
-
-      const data = Array.isArray(res.data) ? res.data : res.data.images || [];
-      const hasMorePages = res.data.hasMore ?? (pageNum === 1 ? data.length > 0 : false);
+      const data = await galleryService.getGallery(pageNum, 12);
+      const result = Array.isArray(data) ? data : data.images || [];
+      const hasMorePages = data.hasMore ?? (pageNum === 1 ? result.length > 0 : false);
 
       if (pageNum === 1) {
-        setItems(data);
+        setItems(result);
       } else {
-        setItems(prev => [...prev, ...data]);
+        setItems(prev => [...prev, ...result]);
       }
 
       setHasMore(hasMorePages);
       setError('');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load gallery');
+      setError(err.message || 'Failed to load gallery');
     } finally {
       if (pageNum === 1) setLoading(false);
       else setIsLoadingMore(false);
@@ -160,7 +158,7 @@ export default function Gallery() {
               onClick={() => handleImageClick(idx)}
             >
               <LazyImage
-                src={it.imageUrl.startsWith('/uploads') ? `${axios.defaults.baseURL.replace('/api', '')}${it.imageUrl}` : it.imageUrl}
+                src={it.imageUrl.startsWith('/uploads') ? `${getSocketBase()}${it.imageUrl}` : it.imageUrl}
                 alt={it.description}
                 className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110"
               />

@@ -187,6 +187,25 @@ app.get('/api/debug/status', asyncHandler(async (req, res) => {
   });
 }));
 
+app.get('/api/dashboard/stats', asyncHandler(async (req, res) => {
+  const [alumniCount, jobCount, eventCount] = await Promise.all([
+    User.countDocuments({ role: 'alumni' }),
+    Job.countDocuments(),
+    Event.countDocuments()
+  ]);
+
+  res.json({
+    alumniCount,
+    jobCount,
+    eventCount,
+    summary: {
+      alumni: alumniCount,
+      jobs: jobCount,
+      events: eventCount
+    }
+  });
+}));
+
 app.use(notFoundHandler);
 app.use(errorHandler);
 

@@ -1,5 +1,6 @@
 const userModel = require("../models/user.model");
 const { createVerificationHash, calculateFakeProfileScore } = require('../services/moderation.service');
+const { parsePagination, buildPaginationResponse } = require('../utils/pagination');
 
 async function updateUser(req, res) {
   try {
@@ -34,12 +35,20 @@ async function updateUser(req, res) {
     const currentUserId = req.user.id || req.user._id;
     
     if (currentUserId.toString() !== userId && req.user.role !== "admin") {
-      return res.status(403).json({ message: "Unauthorized to update this user" });
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized to update this user",
+        error: { code: 'FORBIDDEN', message: 'Unauthorized to update this user', details: [] }
+      });
     }
 
     const user = await userModel.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+        error: { code: 'NOT_FOUND', message: 'User not found', details: [] }
+      });
     }
 
     if (name) user.name = name;
@@ -86,35 +95,42 @@ async function updateUser(req, res) {
     const updatedUser = await user.save();
 
     res.status(200).json({
-      _id: updatedUser._id,
-      role: updatedUser.role,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      courseStudied: updatedUser.courseStudied,
-      company: updatedUser.company,
-      graduationYear: updatedUser.graduationYear,
-      yearOfStudying: updatedUser.yearOfStudying,
-      course: updatedUser.course,
-      // Return student job profile fields
-      experience: updatedUser.experience,
-      languages: updatedUser.languages,
-      portfolioLinks: updatedUser.portfolioLinks,
-      certifications: updatedUser.certifications,
-      achievements: updatedUser.achievements,
-      location: updatedUser.location,
-      availabilityStatus: updatedUser.availabilityStatus,
-      desiredRoles: updatedUser.desiredRoles,
-      openToRemote: updatedUser.openToRemote,
-      gpa: updatedUser.gpa,
-      projects: updatedUser.projects,
-      socialLinks: updatedUser.socialLinks,
-      skills: updatedUser.skills,
-      bio: updatedUser.bio,
-      createdAt: updatedUser.createdAt,
-      updatedAt: updatedUser.updatedAt
+      success: true,
+      message: 'User updated successfully',
+      data: {
+        _id: updatedUser._id,
+        role: updatedUser.role,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        courseStudied: updatedUser.courseStudied,
+        company: updatedUser.company,
+        graduationYear: updatedUser.graduationYear,
+        yearOfStudying: updatedUser.yearOfStudying,
+        course: updatedUser.course,
+        experience: updatedUser.experience,
+        languages: updatedUser.languages,
+        portfolioLinks: updatedUser.portfolioLinks,
+        certifications: updatedUser.certifications,
+        achievements: updatedUser.achievements,
+        location: updatedUser.location,
+        availabilityStatus: updatedUser.availabilityStatus,
+        desiredRoles: updatedUser.desiredRoles,
+        openToRemote: updatedUser.openToRemote,
+        gpa: updatedUser.gpa,
+        projects: updatedUser.projects,
+        socialLinks: updatedUser.socialLinks,
+        skills: updatedUser.skills,
+        bio: updatedUser.bio,
+        createdAt: updatedUser.createdAt,
+        updatedAt: updatedUser.updatedAt
+      }
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error updating user", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Server error updating user',
+      error: { code: 'SERVER_ERROR', message: error.message, details: [] }
+    });
   }
 }
 
@@ -123,30 +139,55 @@ async function deleteUser(req, res) {
     const userId = req.params.id;
 
     if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Only admin can delete users" });
+      return res.status(403).json({
+        success: false,
+        message: "Only admin can delete users",
+        error: { code: 'FORBIDDEN', message: 'Only admin can delete users', details: [] }
+      });
     }
 
     const user = await userModel.findByIdAndDelete(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+        error: { code: 'NOT_FOUND', message: 'User not found', details: [] }
+      });
     }
 
-    res.status(200).json({ message: "User deleted successfully" });
+    res.status(200).json({ success: true, message: "User deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Server error deleting user", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Server error deleting user",
+      error: { code: 'SERVER_ERROR', message: error.message, details: [] }
+    });
   }
 }
 
 async function getAllUsers(req, res) {
   try {
     if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Only admin can view all users" });
+      return res.status(403).json({
+        success: false,
+        message: "Only admin can view all users",
+        error: { code: 'FORBIDDEN', message: 'Only admin can view all users', details: [] }
+      });
     }
 
-    const users = await userModel.find().select("-password");
-    res.status(200).json(users);
+    const { page, limit } = parsePagination(req.query, { page: 1, limit: 12 });
+    const [users, total] = await Promise.all([
+      userModel.find().select("-password").sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit),
+      userModel.countDocuments()
+    ]);
+
+    res.status(200).json(buildPaginationResponse(users, page, limit, total));
   } catch (error) {
-    res.status(500).json({ message: "Server error fetching users", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Server error fetching users",
+      error: { code: 'SERVER_ERROR', message: error.message, details: [] }
+    });
   }
 }
 
@@ -156,12 +197,20 @@ async function getUserById(req, res) {
     const user = await userModel.findById(userId).select("-password");
     
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+        error: { code: 'NOT_FOUND', message: 'User not found', details: [] }
+      });
     }
 
-    res.status(200).json(user);
+    res.status(200).json({ success: true, data: user });
   } catch (error) {
-    res.status(500).json({ message: "Server error fetching user", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Server error fetching user",
+      error: { code: 'SERVER_ERROR', message: error.message, details: [] }
+    });
   }
 }
 
@@ -172,7 +221,11 @@ async function verifyUserProfile(req, res) {
     const isVerified = req.body.isVerified !== undefined ? Boolean(req.body.isVerified) : true;
     
     const user = await userModel.findById(userId);
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) return res.status(404).json({
+      success: false,
+      message: 'User not found',
+      error: { code: 'NOT_FOUND', message: 'User not found', details: [] }
+    });
 
     user.isVerified = isVerified;
     user.profileStatus = isVerified ? 'verified' : 'pending';
@@ -188,12 +241,17 @@ async function verifyUserProfile(req, res) {
     
     await user.save();
 
-    res.json({ 
-      message: `User ${isVerified ? 'verified' : 'unverified'} successfully`, 
-      isVerified: user.isVerified 
+    res.json({
+      success: true,
+      message: `User ${isVerified ? 'verified' : 'unverified'} successfully`,
+      data: { isVerified: user.isVerified }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error verifying user', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Server error verifying user',
+      error: { code: 'SERVER_ERROR', message: error.message, details: [] }
+    });
   }
 }
 

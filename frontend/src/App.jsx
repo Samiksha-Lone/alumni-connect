@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import axios from 'axios';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { SocketProvider } from './context/SocketContext';
@@ -20,11 +19,6 @@ import ChatPage from './pages/ChatPage';
 import AdminDashboard from './pages/AdminDashboard';
 
 import './styles/common.css';
-
-const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? '/api' : 'https://alumni-connect-backend-hrsc.onrender.com/api');
-
-axios.defaults.baseURL = API_BASE;
-axios.defaults.withCredentials = true;
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();

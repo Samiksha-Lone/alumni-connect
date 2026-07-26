@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../context/useToast';
-import axios from 'axios';
+import { authService } from '../services/auth.service';
 import PasswordInput from '../components/ui/PasswordInput';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -37,9 +37,14 @@ export default function AuthPage() {
 
     if (!name.trim()) return showError('Please enter your full name');
     if (!email.trim()) return showError('Please enter your email address');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('Please enter a valid email address');
     if (password.length < 6) return showError('Password must be at least 6 characters');
+    if (password.length > 72) return showError('Password is too long');
     if (role === 'student' && !yearOfStudy) return showError('Please enter your year of study');
     if (role === 'alumni' && !yearOfPassing) return showError('Please enter your year of passing');
+    if (role === 'student' && !branch.trim()) return showError('Please enter your branch or course');
+    if (role === 'alumni' && !branch.trim()) return showError('Please enter your course or specialization');
+    if (role === 'alumni' && !company.trim()) return showError('Please enter your company name');
 
     const payload = { name, email, password, role };
     if (role === 'student') {
@@ -64,6 +69,7 @@ export default function AuthPage() {
   async function handleLogin(e) {
     e.preventDefault();
     if (!email.trim()) return showError('Please enter your email address');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showError('Please enter a valid email address');
     if (!password) return showError('Please enter your password');
 
     const res = await login({ email, password });
@@ -80,11 +86,11 @@ export default function AuthPage() {
     setForgotLoading(true);
     setResetToken(''); // Clear any previous or stale code
     try {
-      const response = await axios.post('/auth/forgot-password', { email: forgotEmail });
-      showSuccess(response.data.message);
+      const response = await authService.forgotPassword(forgotEmail);
+      showSuccess(response.message);
       setShowResetForm(true);
     } catch (err) {
-      showError(err.response?.data?.message || 'Failed to request reset.');
+      showError(err.message || 'Failed to request reset.');
     } finally {
       setForgotLoading(false);
     }
@@ -95,11 +101,7 @@ export default function AuthPage() {
     if (newPassword !== confirmPassword) return showError('Passwords do not match');
     setForgotLoading(true);
     try {
-      await axios.post('/auth/reset-password', { 
-        email: forgotEmail, 
-        resetCode: resetToken, 
-        newPassword 
-      });
+      await authService.resetPassword({ email: forgotEmail, resetCode: resetToken, newPassword });
       showSuccess('Password reset successful! Please login.');
       setTimeout(() => {
         setShowForgotModal(false);
@@ -107,7 +109,7 @@ export default function AuthPage() {
         setMode('login');
       }, 1500);
     } catch (err) {
-      showError(err.response?.data?.message || 'Invalid code or password reset failed.');
+      showError(err.message || 'Invalid code or password reset failed.');
     } finally {
       setForgotLoading(false);
     }
@@ -116,11 +118,11 @@ export default function AuthPage() {
   return (
     <div className="section-container min-h-[80vh] flex items-center justify-center py-16">
       <div className="w-full max-w-md animate-slide-up">
-        <div className="text-center mb-6">
+        <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold mb-1.5">
             {mode === 'login' ? 'Welcome back' : 'Create your account'}
           </h1>
-          <p className="text-text-secondary text-sm">
+          <p className="text-sm text-text-secondary">
             {mode === 'login'
               ? 'Sign in to access alumni, opportunities, and events'
               : 'Join the network of students and alumni from your institution'}
@@ -129,7 +131,7 @@ export default function AuthPage() {
 
         <Card className="p-6 md:p-8">
           {/* Mode Switcher */}
-          <div className="flex p-1 mb-6 rounded-xl bg-gray-100 dark:bg-gray-800/60 border border-border">
+          <div className="flex p-1 mb-6 bg-gray-100 border rounded-xl dark:bg-gray-800/60 border-border">
             <button
               onClick={() => setMode('login')}
               className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all ${
@@ -156,7 +158,7 @@ export default function AuthPage() {
             {mode === 'register' && (
               <>
                 <div>
-                  <label className="form-label text-xs text-text-secondary mb-2 block">I am a...</label>
+                  <label className="block mb-2 text-xs form-label text-text-secondary">I am a...</label>
                   <div className="grid grid-cols-2 gap-3">
                     {['student', 'alumni'].map((r) => (
                       <button
@@ -179,12 +181,12 @@ export default function AuthPage() {
                 <div>
                   <label className="form-label">Full Name</label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
+                    <User className="absolute -translate-y-1/2 left-3 top-1/2 text-text-secondary" size={18} />
                     <input
                       type="text"
                       value={name}
                       onChange={e => setName(e.target.value)}
-                      className="form-input pl-10"
+                      className="pl-10 form-input"
                       placeholder="Jane Doe"
                     />
                   </div>
@@ -195,20 +197,20 @@ export default function AuthPage() {
             <div>
               <label className="form-label">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
+                <Mail className="absolute -translate-y-1/2 left-3 top-1/2 text-text-secondary" size={18} />
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="form-input pl-10"
+                  className="pl-10 form-input"
                   placeholder="jane@college.edu"
                 />
               </div>
             </div>
 
             <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="form-label mb-0">Password</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="mb-0 form-label">Password</label>
                 {mode === 'login' && (
                   <button
                     type="button"
@@ -220,7 +222,7 @@ export default function AuthPage() {
                 )}
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary z-10" size={18} />
+                <Lock className="absolute z-10 -translate-y-1/2 left-3 top-1/2 text-text-secondary" size={18} />
                 <PasswordInput
                   value={password}
                   onChange={e => setPassword(e.target.value)}
@@ -232,7 +234,7 @@ export default function AuthPage() {
 
             {/* Role-specific fields */}
             {mode === 'register' && (
-              <div className="animate-fade-in space-y-4">
+              <div className="space-y-4 animate-fade-in">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="form-label">
@@ -262,13 +264,13 @@ export default function AuthPage() {
                   <div>
                     <label className="form-label">Current Company</label>
                     <div className="relative">
-                       <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" size={18} />
+                       <Building2 className="absolute -translate-y-1/2 left-3 top-1/2 text-text-secondary" size={18} />
                        <input
                           type="text"
                           placeholder="e.g. Google"
                           value={company}
                           onChange={e => setCompany(e.target.value)}
-                          className="form-input pl-10"
+                          className="pl-10 form-input"
                        />
                     </div>
                   </div>
@@ -279,13 +281,13 @@ export default function AuthPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-11 justify-between group mt-2"
+              className="justify-between w-full mt-2 h-11 group"
             >
               <span>{loading ? 'Processing...' : (mode === 'login' ? 'Sign In' : 'Create Account')}</span>
-              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
             </Button>
 
-            <p className="text-center text-xs text-text-secondary pt-1">
+            <p className="pt-1 text-xs text-center text-text-secondary">
               {mode === 'login' ? (
                 <>New here?{' '}<button type="button" onClick={() => setMode('register')} className="font-semibold text-primary hover:underline">Create an account</button></>
               ) : (
@@ -299,16 +301,16 @@ export default function AuthPage() {
       {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <Card className="w-full max-w-sm p-8 animate-zoom-in relative">
+          <Card className="relative w-full max-w-sm p-8 animate-zoom-in">
             <button 
               onClick={() => setShowForgotModal(false)}
-              className="absolute top-4 right-4 text-text-secondary hover:text-text-primary p-2"
+              className="absolute p-2 top-4 right-4 text-text-secondary hover:text-text-primary"
             >
               <X size={20} />
             </button>
 
             <div className="mb-6">
-              <h3 className="heading-md mb-2">Reset Password</h3>
+              <h3 className="mb-2 heading-md">Reset Password</h3>
               <p className="text-sm text-text-secondary">
                 We'll send a secure link to your email to reset your password.
               </p>
@@ -352,7 +354,7 @@ export default function AuthPage() {
                   />
                 </div>
                 <div>
-                  <label className="form-label text-xs">New Password</label>
+                  <label className="text-xs form-label">New Password</label>
                   <PasswordInput
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}

@@ -54,7 +54,13 @@ const errorHandler = (err, req, res, next) => {
   }
 
   res.status(statusCode).json({
+    success: false,
     message: message,
+    error: {
+      code: err.code || 'INTERNAL_SERVER_ERROR',
+      message: message,
+      details: []
+    },
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };
@@ -67,7 +73,13 @@ const notFoundHandler = (req, res) => {
   });
   
   res.status(404).json({
+    success: false,
     message: 'Route not found',
+    error: {
+      code: 'NOT_FOUND',
+      message: 'Route not found',
+      details: [{ field: 'path', message: req.path }]
+    },
     path: req.path,
   });
 };

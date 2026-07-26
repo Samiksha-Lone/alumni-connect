@@ -5,11 +5,10 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="py-5 border-t bg-card border-border mt-auto">
-      <div className="flex flex-col items-center justify-center px-4 mx-auto max-w-7xl gap-3">
-        <div className="text-xs text-text-secondary">
-          © {currentYear} Alumni Connect. All rights reserved.
-        </div>
+    <footer className="py-6 mt-auto border-t border-border bg-card">
+      <div className="px-4 mx-auto text-xs text-center max-w-7xl text-text-secondary">
+        <div>© {currentYear} MGM Alumni Portal</div>
+        <div className="mt-1">Built for community connections and career growth.</div>
       </div>
     </footer>
   );

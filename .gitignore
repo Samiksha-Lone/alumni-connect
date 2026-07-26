@@ -22,8 +22,6 @@ lerna-debug.log*
 .env.test
 .env.production
 .env.production.local
-.env.production
-.env.production.local
 
 # ============================================
 # Build & Dist Outputs
@@ -33,13 +31,10 @@ build/
 .out/
 .vite/
 .cache/
-
-# Frontend (Vite)
+outputs/
 /frontend/dist/
 /frontend/.vite/
 /frontend/.cache/
-
-# Backend
 /backend/dist/
 /backend/build/
 /backend/.cache/
@@ -80,16 +75,12 @@ temp/
 .project
 .classpath
 .c9/
-.DS_Store
 .AppleDouble
 .LSOverride
 
 # ============================================
 # OS-Specific Files
 # ============================================
-.DS_Store
-.AppleDouble
-.LSOverride
 Thumbs.db
 ehthumbs.db
 desktop.ini
@@ -127,25 +118,3 @@ dist-ssr/
 .sass-cache
 .cacache/
 .next/
-
-# ============================================
-# Socket.IO & Real-time
-# ============================================
-.io/
-
-# ============================================
-# Backend Specific
-# ============================================
-backend/logs/
-backend/.env.local
-backend/.env.production
-backend/uploads/
-backend/temp/
-backend/seed/
-
-# ============================================
-# Frontend Specific
-# ============================================
-frontend/.env.local
-frontend/.env.production
-frontend/.eslintcache

@@ -1,11 +1,19 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
-import { Briefcase, ExternalLink, AlertCircle, Search, Clock } from 'lucide-react';
+import { Briefcase, AlertCircle, Search, X } from 'lucide-react';
 import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
 import { CardSkeleton } from '../components/ui/Skeleton';
+import JobCard from '../components/jobs/JobCard';
+import { useToast } from '../context/useToast';
+import { useAuth } from '../context/AuthContext';
+import DetailModal from '../components/ui/DetailModal';
+import SectionHeader from '../components/common/SectionHeader';
+import EmptyState from '../components/ui/EmptyState';
+import { jobService } from '../services/job.service';
 
 export default function Opportunities() {
+  const { success, error: showError } = useToast();
+  const { user } = useAuth();
+  const [selectedJob, setSelectedJob] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -14,11 +22,12 @@ export default function Opportunities() {
   const fetchOpportunities = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/jobs');
-      setItems(res.data || []);
+      const data = await jobService.getJobs();
+      const list = Array.isArray(data) ? data : data?.data || [];
+      setItems(list);
       setError('');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load opportunities');
+      setError(err.message || 'Failed to load opportunities');
     } finally {
       setLoading(false);
     }
@@ -33,22 +42,21 @@ export default function Opportunities() {
 
   return (
     <div className="section-container">
-      {/* Page Header */}
-      <div className="flex flex-col items-center text-center mb-10 animate-slide-up">
-        <h1 className="text-3xl font-bold mb-2">Career Opportunities</h1>
-        <p className="text-text-secondary text-sm max-w-md">
-          Exclusive job openings and internships shared by our alumni network.
-        </p>
-      </div>
+      <SectionHeader
+        eyebrow="MGM Opportunities"
+        title="Career openings shared by alumni"
+        description="Browse internships and full-time roles posted by graduates who want to support the next batch."
+        align="center"
+      />
 
       {/* Search */}
       <div className="flex max-w-xl mx-auto mb-10">
-        <div className="relative group flex-grow">
+        <div className="relative flex-grow group">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors" size={15} />
           <input
             type="text"
             placeholder="Search roles or companies..."
-            className="form-input pl-10 h-10 text-sm w-full"
+            className="w-full h-10 pl-10 text-sm form-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -61,49 +69,86 @@ export default function Opportunities() {
         </Card>
       )}
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {loading && items.length === 0 ? (
           [1,2,3,4,5,6].map(i => <CardSkeleton key={i} />)
         ) : filteredItems.length === 0 ? (
-          <div className="py-20 text-center border-2 border-dashed col-span-full border-border rounded-2xl bg-gray-50/50 dark:bg-gray-900/10">
-            <Briefcase size={40} className="mx-auto text-text-secondary/20 mb-3" />
-            <p className="text-lg font-medium text-text-secondary">No opportunities found.</p>
-            <p className="text-xs text-text-secondary/60">Try clearing your filters or check back later.</p>
+          <div className="col-span-full">
+            <EmptyState
+              icon={Briefcase}
+              title="No opportunities found"
+              description={searchQuery ? 'Try a different keyword or clear the search.' : 'There are no opportunities to show right now. Please check back later.'}
+            />
           </div>
         ) : (
           filteredItems.map((o) => (
-            <Card key={o._id} className="flex flex-col h-full group overflow-hidden !p-0">
-              <div className="p-4 flex-grow">
-                <div className="mb-3">
-                  <h3 className="text-base font-bold text-text-primary group-hover:text-primary transition-colors leading-snug mb-0.5">
-                    {o.title}
-                  </h3>
-                  <div className="flex items-center gap-1.5 text-sm text-text-secondary font-medium">
-                    <Briefcase size={12} className="text-primary/60 shrink-0" />
-                    {o.company}
-                  </div>
-                </div>
-                <p className="text-xs text-text-secondary leading-relaxed line-clamp-3">{o.description}</p>
-              </div>
+            <div key={o._id}>
+              <JobCard
+                job={{
+                  ...o,
+                  location: o.location || 'Pune, India',
+                  salary: o.salary || '₹ 3 - 6 LPA',
+                  postedDate: o.createdAt ? new Date(o.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '2 days ago',
+                  skills: o.skills || ['React', 'Node.js', 'Communication'],
+                }}
+                onOpen={() => setSelectedJob(o)}
+              />
 
-              <div className="px-4 py-3 border-t border-border mt-auto flex items-center justify-between bg-gray-50/30 dark:bg-gray-800/10 gap-3">
-                {o.closingDate ? (
-                  <div className="flex items-center gap-1.5 text-xs text-text-secondary">
-                    <Clock size={11} className="text-amber-500 shrink-0" />
-                    <span>Closes {new Date(o.closingDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+              {selectedJob && selectedJob._id === o._id && (
+                <DetailModal
+                  open={true}
+                  onClose={() => setSelectedJob(null)}
+                  title={selectedJob.title}
+                  subtitle={selectedJob.company}
+                >
+                  <p>{selectedJob.description}</p>
+                  <div className="mt-4 space-y-2">
+                    <div>Location: {selectedJob.location || 'Pune, India'}</div>
+                    <div>Salary: {selectedJob.salary || '₹ 3 - 6 LPA'}</div>
+                    <div>Posted: {selectedJob.postedDate}</div>
                   </div>
-                ) : <div />}
 
-                {o.link ? (
-                  <a href={o.link} target="_blank" rel="noopener noreferrer">
-                    <Button variant="primary" className="h-8 px-4 text-xs font-semibold gap-1.5">
-                      Apply Now <ExternalLink size={11} />
-                    </Button>
-                  </a>
-                ) : null}
-              </div>
-            </Card>
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={async () => {
+                        if (!user) {
+                          showError('Please sign in to apply');
+                          return;
+                        }
+                        try {
+                          window.open(selectedJob.link || '#', '_blank', 'noopener,noreferrer');
+                          success('Opened application link');
+                          setSelectedJob(null);
+                        } catch (err) {
+                          showError('Failed to open link');
+                        }
+                      }}
+                      className="px-4 py-2 text-sm font-semibold text-white rounded-xl bg-primary"
+                    >
+                      Apply
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (!user) {
+                          showError('Please sign in to save this job');
+                          return;
+                        }
+                        try {
+                          await jobService.saveJob(selectedJob._id);
+                          success('Job saved');
+                          setSelectedJob(null);
+                        } catch (err) {
+                          showError(err.message || 'Failed to save job');
+                        }
+                      }}
+                      className="px-4 py-2 text-sm font-semibold border rounded-xl border-border"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </DetailModal>
+              )}
+            </div>
           ))
         )}
       </div>

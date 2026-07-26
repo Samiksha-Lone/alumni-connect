@@ -172,6 +172,10 @@ const userSchema = new mongoose.Schema(
         portfolio: String,
         twitter: String
     }
+    ,
+    // Saved jobs and registered events for users
+    savedJobs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'job' }],
+    registeredEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'event' }]
   },
   { timestamps: true }
 );

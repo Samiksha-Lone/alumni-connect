@@ -1,1 +1,17 @@
+# Frontend-specific ignore patterns
+node_modules/
+.env
+.env.local
+.env.*.local
+/.vite/
+/.cache/
+dist/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+
+# Vercel metadata
 .vercel

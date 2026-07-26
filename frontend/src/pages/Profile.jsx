@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/useToast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { userService } from '../services/user.service';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import PasswordInput from '../components/ui/PasswordInput';
 import {
   User, GraduationCap, Building2, BookOpen,
   LogOut,
-  RefreshCw, X, AlertCircle, Pencil, Link as LinkIcon
+  RefreshCw, X, AlertCircle, Pencil, Link as LinkIcon,
+  Briefcase, CalendarDays, MessageSquare, Sparkles, Users
 } from 'lucide-react';
+
+import StudentDashboard from './StudentDashboard';
+import AlumniDashboard from './AlumniDashboard';
 
 /* ─────────────────────────────────────────
    MAIN PAGE
@@ -19,9 +23,18 @@ export default function Profile() {
   const { user, logout } = useAuth();
   const { success, error } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const [editing, setEditing]   = useState(false);
   const [form, setForm]         = useState({});
   const [updating, setUpdating] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+
+  const params = new URLSearchParams(location.search);
+  const isEditMode = params.get('edit') === '1' || params.get('edit') === 'true';
+
+  useEffect(() => {
+    setEditing(isEditMode);
+  }, [isEditMode]);
 
   // Redirect admin to their dedicated dashboard
   useEffect(() => {
@@ -33,32 +46,26 @@ export default function Profile() {
   useEffect(() => {
     const load = async () => {
       if (!user?._id) return;
+      setLoadingProfile(true);
       try {
-        const res = await axios.get(`/users/${user._id}`);
-        const data = res.data || {};
-        const socialLinks = { ...(data.socialLinks || {}) };
-
-        if (data.portfolioLinks) {
-          data.portfolioLinks.split('\n').forEach((line) => {
-            const [label, ...rest] = line.split(':');
-            if (!rest.length) return;
-            const url = rest.join(':').trim();
-            const key = label?.trim().toLowerCase();
-            if (key.includes('github') && !socialLinks.github) socialLinks.github = url;
-            if (key.includes('portfolio') && !socialLinks.portfolio) socialLinks.portfolio = url;
-            if (key.includes('linkedin') && !socialLinks.linkedin) socialLinks.linkedin = url;
-          });
-        }
-
-        data.socialLinks = socialLinks;
-        data.portfolioLinks = '';
-        setForm(data);
+        const data = await userService.getUser(user._id);
+        setForm({
+          ...data,
+          socialLinks: data.socialLinks || {},
+          portfolioLinks: data.portfolioLinks || ''
+        });
       } catch (err) {
-        if (err.response?.status === 401) logout();
+        if (err?.response?.status === 401 || err?.status === 401) logout();
+      } finally {
+        setLoadingProfile(false);
       }
     };
     load();
   }, [user?._id, logout]);
+
+  // If user is a student or alumni, show their dashboard at /profile unless edit mode is requested
+  if (user?.role === 'student' && !isEditMode) return <StudentDashboard user={user} />;
+  if (user?.role === 'alumni' && !isEditMode) return <AlumniDashboard user={user} />;
 
   if (!user) return (
     <div className="flex flex-col items-center justify-center py-28 text-text-secondary animate-fade-in">
@@ -77,13 +84,13 @@ export default function Profile() {
       } else {
         delete payload.yearOfStudying;
       }
-      const res = await axios.put(`/users/${user._id}`, payload);
-      setForm(res.data);
+      const data = await userService.updateUser(user._id, payload);
+      setForm(data);
       success('Profile updated successfully!');
       setEditing(false);
     } catch (err) {
-      if (err.response?.status === 401) { error('Session expired.'); logout(); }
-      else error(err.response?.data?.message || 'Update failed');
+      if (err.status === 401) { error('Session expired.'); logout(); }
+      else error(err.message || 'Update failed');
     } finally {
       setUpdating(false);
     }
@@ -112,6 +119,34 @@ export default function Profile() {
   const desiredRolesArr = form.desiredRoles
     ? (Array.isArray(form.desiredRoles) ? form.desiredRoles : form.desiredRoles.split(',').map(r => r.trim())).filter(Boolean)
     : [];
+
+  if (loadingProfile) {
+    return (
+      <div className="max-w-5xl section-container animate-slide-up">
+        <div className="mb-6 grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[1,2,3,4].map((item) => (
+              <div key={item} className="animate-pulse rounded-2xl border border-border bg-card p-4">
+                <div className="mb-3 h-10 w-10 rounded-xl bg-gray-200 dark:bg-gray-800" />
+                <div className="h-4 w-24 rounded bg-gray-200 dark:bg-gray-800" />
+                <div className="mt-2 h-3 w-16 rounded bg-gray-100 dark:bg-gray-700" />
+              </div>
+            ))}
+          </div>
+          <div className="animate-pulse rounded-2xl border border-border bg-card p-5">
+            <div className="h-4 w-28 rounded bg-gray-200 dark:bg-gray-800" />
+            <div className="mt-4 h-3 w-full rounded bg-gray-200 dark:bg-gray-800" />
+            <div className="mt-2 h-3 w-5/6 rounded bg-gray-200 dark:bg-gray-800" />
+            <div className="mt-6 h-2 rounded-full bg-gray-200 dark:bg-gray-800" />
+          </div>
+        </div>
+        <div className="space-y-6">
+          <div className="h-32 animate-pulse rounded-2xl border border-border bg-card" />
+          <div className="h-48 animate-pulse rounded-2xl border border-border bg-card" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl section-container animate-slide-up">
@@ -161,6 +196,39 @@ export default function Profile() {
             <LogOut size={14} className="mr-1" /> Sign out
           </Button>
         </div>
+      </div>
+
+      <div className="mb-8 grid gap-4 xl:grid-cols-[1.3fr_0.7fr]">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {[
+            { label: 'Jobs Available', value: '12', icon: <Briefcase size={16} />, accent: 'blue' },
+            { label: 'Upcoming Events', value: '8', icon: <CalendarDays size={16} />, accent: 'emerald' },
+            { label: 'Alumni Connections', value: '24', icon: <Users size={16} />, accent: 'amber' },
+            { label: 'Unread Messages', value: '3', icon: <MessageSquare size={16} />, accent: 'purple' },
+          ].map((item) => (
+            <div key={item.label} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+              <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${item.accent === 'blue' ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300' : item.accent === 'emerald' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' : item.accent === 'amber' ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300' : 'bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300'}`}>
+                {item.icon}
+              </div>
+              <p className="text-lg font-bold text-text-primary">{item.value}</p>
+              <p className="text-sm text-text-secondary">{item.label}</p>
+            </div>
+          ))}
+        </div>
+
+        <Card className="p-5">
+          <div className="flex items-center gap-2 text-sm font-semibold text-text-primary">
+            <Sparkles size={15} className="text-primary" /> Profile Completion
+          </div>
+          <p className="mt-3 text-sm text-text-secondary">Add LinkedIn, skills, and work experience to complete your profile.</p>
+          <div className="mt-4 h-2 rounded-full bg-gray-200 dark:bg-gray-800">
+            <div className="h-2 w-[70%] rounded-full bg-primary" />
+          </div>
+          <div className="mt-2 flex items-center justify-between text-xs font-semibold text-text-secondary">
+            <span>70% complete</span>
+            <span>Next step</span>
+          </div>
+        </Card>
       </div>
 
       {/* ── MAIN LAYOUT ── */}

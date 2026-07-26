@@ -1,12 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import axios from 'axios'
+import { authService } from '../services/auth.service'
+import { userService } from '../services/user.service'
 
 const AuthContext = createContext(null)
-
-const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? '/api' : 'https://alumni-connect-backend-hrsc.onrender.com/api')
-
-axios.defaults.baseURL = API_BASE
-axios.defaults.withCredentials = true
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -15,11 +11,11 @@ export function AuthProvider({ children }) {
 
   const fetchAllUsers = useCallback(async () => {
     try {
-      const res = await axios.get('/users')
-      setUsers(res.data || [])
-    // eslint-disable-next-line no-unused-vars
+      const response = await userService.getAllUsers()
+      const allUsers = Array.isArray(response) ? response : response?.data || []
+      setUsers(allUsers)
     } catch (err) {
-      //
+      // ignore fetch errors
     }
   }, [])
 
@@ -35,23 +31,20 @@ export function AuthProvider({ children }) {
           }
         }
 
-        const res = await axios.get('/auth/me').catch(() => null)
-
-        if (res?.data) {
-          const normalized = { ...res.data, _id: res.data._id || res.data.id };
+        const res = await authService.me().catch(() => null)
+        if (res) {
+          const normalized = { ...res, _id: res._id || res.id }
           setUser(normalized)
-          
+
           if (normalized.role === 'admin') {
-            const usersRes = await axios.get('/users').catch(() => null)
-            if (usersRes?.data) setUsers(usersRes.data)
+            const usersRes = await userService.getAllUsers().catch(() => null)
+            if (usersRes) {
+              setUsers(Array.isArray(usersRes) ? usersRes : usersRes?.data || [])
+            }
           }
-        } else {
-          setUser(null)
-          localStorage.removeItem('currentUser')
         }
       } catch (err) {
-        setUser(null)
-        localStorage.removeItem('currentUser')
+        // ignore auth initialization errors
       } finally {
         setLoading(false)
       }
@@ -68,20 +61,19 @@ export function AuthProvider({ children }) {
     }
   }, [user])
 
-  const login = useCallback(async ({ email, password}) => {
+  const login = useCallback(async ({ email, password }) => {
     try {
       setLoading(true)
-      const res = await axios.post('/auth/login', { email, password })
-      
-      if (res.data?.user) {
-        const normalized = { ...res.data.user, _id: res.data.user._id || res.data.user.id };
+      const res = await authService.login({ email, password })
+      if (res?.user) {
+        const normalized = { ...res.user, _id: res.user._id || res.user.id }
         setUser(normalized)
         return { ok: true }
       }
       throw new Error('Invalid response')
     } catch (err) {
-      const message = err.response?.data?.message || 'Login failed';
-      return { ok: false, error: message };
+      const message = err?.message || 'Login failed'
+      return { ok: false, error: message }
     } finally {
       setLoading(false)
     }
@@ -90,11 +82,11 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (newUser) => {
     try {
       setLoading(true)
-      await axios.post('/auth/register', newUser)
-      return await login({ email: newUser.email, password: newUser.password, role: newUser.role })
+      await authService.register(newUser)
+      return await login({ email: newUser.email, password: newUser.password })
     } catch (err) {
-      const message = err.response?.data?.message || 'Registration failed';
-      return { ok: false, error: message };
+      const message = err?.message || 'Registration failed'
+      return { ok: false, error: message }
     } finally {
       setLoading(false)
     }
@@ -102,24 +94,24 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     try {
-      await axios.get('/auth/logout')
+      await authService.logout()
     } catch {
-      //
+      // ignore logout errors
     }
     setUser(null)
     localStorage.removeItem('currentUser')
   }, [])
 
-  const value = { 
-    user, 
+  const value = {
+    user,
     setUser,
-    loading, 
-    users, 
-    setUsers, 
+    loading,
+    users,
+    setUsers,
     fetchAllUsers,
-    login, 
-    register, 
-    logout 
+    login,
+    register,
+    logout,
   }
 
   return (

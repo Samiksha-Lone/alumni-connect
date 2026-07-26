@@ -1,6 +1,6 @@
 # Alumni Connect — Student and Alumni Networking Platform
 
-> A full-stack MERN application built to strengthen connections between alumni and current students through mentorship and opportunities.
+> A full-stack Node + React application built to strengthen connections between alumni and current students through mentorship and opportunities.
 
 ## 🔗 Links
 - **Live Demo**: [https://alumni-connect-frontendd.vercel.app](https://alumni-connect-frontendd.vercel.app)
@@ -8,39 +8,44 @@
 
 ## Overview
 
-Alumni Connect is a centralized platform designed to bridge the gap between educational institutions, current students, and alumni. It facilitates networking, career guidance, and campus engagement through a unified and interactive portal.
+Alumni Connect is a centralized platform built to bridge the gap between educational institutions, current students, and alumni. It enables networking, mentorship, career guidance, and campus engagement through a polished full-stack portal.
 
 ## Problem Statement
 
-- **Fragmented Communication**: Lack of a centralized system for students and alumni to interact and share opportunities.
-- **Limited Mentorship Access**: Students struggle to find structured guidance from experienced alumni in their respective fields.
-- **Outdated Alumni Records**: Institutions face challenges in tracking alumni career progression and achievements.
+- **Fragmented communication**: Students and alumni lack a single place to connect, share updates, and support careers.
+- **Limited mentorship access**: Learners struggle to find structured guidance from experienced alumni in their field.
+- **Outdated alumni records**: Institutions struggle to keep alumni profiles current and useful for networking.
 
 ## Solution
 
-Alumni Connect solves these challenges by offering a centralized directory, real-time messaging, and an opportunities board. It enables students to easily seek mentorship and apply for jobs, while allowing institutions to efficiently manage alumni data and organize events.
+Alumni Connect solves these challenges with a centralized directory, real-time chat, a job board, and event management. Students can discover mentorship, apply to roles, register for campus events, and stay engaged while admins manage users, content, and gallery updates from a single dashboard.
 
 ## Key Features
 
-- 🔐 **Role-Based Authentication** — Secure, specialized access for Students, Alumni, and Admins
-- 👥 **Dynamic Alumni Directory** — Searchable profiles with advanced filtering by course and company
-- 💬 **Real-Time Chat** — Instant messaging via Socket.IO for immediate networking and mentorship
-- 💼 **Opportunities Board** — Dedicated section for posting and applying to jobs and internships
-- 📅 **Event Management** — Built-in RSVP system to track campus events and attendance
-- 🖼️ **Campus Gallery** — A centralized repository for sharing and viewing photos from campus life and alumni events
-- ⚙️ **Admin Dashboard** — Comprehensive moderation tools for managing users, events, and opportunities
-- 📱 **Responsive UI** — Mobile-optimized layout with a modern design system
+- 🔐 **Role-Based Authentication** — Secure login for Students, Alumni, and Admins with JWT-backed sessions
+- 👥 **Dynamic Alumni Directory** — Searchable alumni profiles with filtering and mentorship indicators
+- 💬 **Real-Time Chat** — Instant messaging powered by Socket.IO, including file attachments and conversation history
+- 💼 **Opportunities Board** — Browse jobs and internships, save opportunities, and open application links
+- 📅 **Event Management** — Admins can publish events and users can register for upcoming sessions
+- 🖼️ **Campus Gallery** — Admin-managed gallery with paginated image browsing and upload support
+- 🧑‍💼 **Admin Dashboard** — Content management, user verification, and platform oversight tools
+- 📝 **Profile Management** — Student and alumni profile editing with skills, experience, mentorship preferences, and social links
+- 🧾 **Saved Opportunities** — Save jobs for later and open application links directly from the platform
+- 🔐 **Password Reset** — Email-based reset flow for account recovery
+- ⚙️ **Service Layer** — Dedicated frontend services folder with centralized API client and API error normalization
+- 📱 **Responsive UI** — Modern Tailwind-powered interface designed for desktop and mobile devices
+- ♻️ **Reusable UI Foundations** — Shared dashboard panels, stat cards, section headers, and form fields for consistent layouts across the app
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| **Frontend** | React.js, Vite, Tailwind CSS, React Router |
-| **Backend** | Node.js, Express.js |
+| **Frontend** | React, Vite, Tailwind CSS, React Router |
+| **Backend** | Node.js, Express |
 | **Database** | MongoDB Atlas |
 | **Real-time** | Socket.IO |
-| **Auth & Security** | JWT, bcryptjs, Helmet.js, express-rate-limit |
-| **Email** | Nodemailer (SMTP) |
+| **Auth & Security** | JWT, bcryptjs, Helmet, express-rate-limit |
+| **Email** | Nodemailer |
 | **Deployment** | Vercel (frontend), Render (backend) |
 
 ## Architecture / Flow
@@ -56,16 +61,17 @@ User → React Frontend → Axios → Express API → MongoDB
 
 **I independently designed and built this entire project from scratch**, including:
 
-- 🖥️ **Frontend** — All React components, routing, state management, and responsive UI
-- ⚙️ **Backend** — Express server, RESTful APIs, MongoDB schemas, and business logic
-- 💬 **Real-time System** — Architecting and implementing WebSocket communication for the chat feature
-- 🔐 **Authentication** — Secure user authentication flows and role-based access control
-- 🚀 **Deployment** — Environment setup, MongoDB Atlas integration, and full-stack deployment
+- 🖥️ **Frontend** — React components, routes, state management, and responsive interface
+- ⚙️ **Backend** — Express APIs, MongoDB schemas, authentication, and business logic
+- 💬 **Real-time System** — WebSocket chat implementation for instant messaging
+- 🔐 **Authentication** — Secure login flows with role-based authorization
+- 🚀 **Deployment** — Full-stack deployment and environment configuration
+- 🧪 **Quality Improvements** — Added regression tests for pagination and UI components, plus stronger validation and API consistency
 
 ## Setup
 
 ### Prerequisites
-Node.js 18+, npm, MongoDB Atlas account
+Node.js 18+, npm, MongoDB Atlas or local MongoDB
 
 ### 1. Backend
 
@@ -111,25 +117,27 @@ npm run dev   # http://localhost:5173
 ### Home Page
 ![Home Page](outputs/Home.webp)
 
-### Chat Interface
-![Chat Interface](outputs/Chat.webp)
-
 ### Opportunities
 ![Opportunities](outputs/Opportunities.webp)
 
 ### Admin Dashboard
 ![Admin Dashboard](outputs/Admin-Dashboard.webp)
 
+## Recent Improvements
+
+- [x] Added server-side pagination for jobs, events, alumni, and user-list endpoints
+- [x] Standardized backend validation and response handling for list-based APIs
+- [x] Introduced reusable UI components for dashboard panels, section headers, stat cards, and form fields
+- [x] Added frontend regression tests for shared UI components and backend pagination behavior
+
 ## Future Improvements
 
-- [ ] Video calling feature for direct 1-on-1 mentorship sessions
-- [ ] Intelligent recommendation system to match students with relevant alumni
+- [ ] Intelligent recommendation engine to match students with alumni mentors and opportunities
 - [ ] LinkedIn OAuth integration for faster profile setup
+- [ ] Add audit logging for admin operations and content moderation
+- [ ] Expand shared component usage across more pages and forms
+- [ ] Add clearer route naming and API documentation for future maintainers
 
 ## License
 
 ISC License — see [LICENSE](LICENSE) for details.
-
-## Credits
-
-**Developed by [Samiksha Lone](https://github.com/Samiksha-Lone)**

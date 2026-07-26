@@ -6,8 +6,9 @@ const handleValidationErrors = (req, res, next) => {
     return res.status(400).json({
       message: 'Validation error',
       errors: errors.array().map(err => ({
-        field: err.param,
+        field: err.path || err.param || 'unknown',
         message: err.msg,
+        location: err.location,
       }))
     });
   }
@@ -34,25 +35,23 @@ const validateRegister = [
     .isIn(['student', 'alumni', 'admin'])
     .withMessage('Invalid role'),
   body('courseStudied')
-    .if(() => {
-      return (req.body.role === 'alumni');
-    })
+    .if((value, { req }) => req.body.role === 'alumni')
     .notEmpty()
     .withMessage('Course studied is required for alumni'),
   body('company')
-    .if(() => req.body.role === 'alumni')
+    .if((value, { req }) => req.body.role === 'alumni')
     .notEmpty()
     .withMessage('Company is required for alumni'),
   body('graduationYear')
-    .if(() => req.body.role === 'alumni')
+    .if((value, { req }) => req.body.role === 'alumni')
     .isInt({ min: 1900, max: new Date().getFullYear() })
     .withMessage('Invalid graduation year'),
   body('yearOfStudying')
-    .if(() => req.body.role === 'student')
+    .if((value, { req }) => req.body.role === 'student')
     .isInt({ min: 1, max: 5 })
     .withMessage('Invalid year of studying'),
   body('course')
-    .if(() => req.body.role === 'student')
+    .if((value, { req }) => req.body.role === 'student')
     .notEmpty()
     .withMessage('Course is required for students'),
   handleValidationErrors
@@ -66,6 +65,42 @@ const validateLogin = [
   body('password')
     .notEmpty()
     .withMessage('Password is required'),
+  handleValidationErrors
+];
+
+const validateForgotPassword = [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Invalid email format'),
+  handleValidationErrors
+];
+
+const validateResetPassword = [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Invalid email format'),
+  body('resetCode')
+    .matches(/^\d{6}$/)
+    .withMessage('Reset code must be a 6-digit number'),
+  body('newPassword')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters')
+    .matches(/[A-Z]/)
+    .withMessage('Password must contain at least one uppercase letter'),
+  handleValidationErrors
+];
+
+const validateAlumniQuery = [
+  query('page')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Page must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 50 })
+    .withMessage('Limit must be between 1 and 50'),
   handleValidationErrors
 ];
 
@@ -94,7 +129,7 @@ const validateUserUpdate = [
 ];
 
 const validateUserId = [
-  param('userId')
+  param('id')
     .isMongoId()
     .withMessage('Invalid user ID'),
   handleValidationErrors
@@ -139,9 +174,9 @@ const validateCreateEvent = [
     .trim()
     .notEmpty()
     .withMessage('Description is required'),
-  body('date')
+  body('eventDate')
     .isISO8601()
-    .withMessage('Invalid date format'),
+    .withMessage('Invalid event date format'),
   body('location')
     .optional()
     .trim(),
@@ -152,7 +187,7 @@ const validateCreateEvent = [
 ];
 
 const validateEventId = [
-  param('eventId')
+  param('id')
     .isMongoId()
     .withMessage('Invalid event ID'),
   handleValidationErrors
@@ -184,7 +219,7 @@ const validateCreateJob = [
 ];
 
 const validateJobId = [
-  param('jobId')
+  param('id')
     .isMongoId()
     .withMessage('Invalid job ID'),
   handleValidationErrors
@@ -205,7 +240,7 @@ const validateUploadGallery = [
 ];
 
 const validateGalleryId = [
-  param('galleryId')
+  param('id')
     .isMongoId()
     .withMessage('Invalid gallery ID'),
   handleValidationErrors
@@ -214,6 +249,9 @@ const validateGalleryId = [
 module.exports = {
   validateRegister,
   validateLogin,
+  validateForgotPassword,
+  validateResetPassword,
+  validateAlumniQuery,
   validateUserUpdate,
   validateUserId,
   validateSendMessage,

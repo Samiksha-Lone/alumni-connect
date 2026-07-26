@@ -5,6 +5,7 @@ const jobSchema = new mongoose.Schema({
   company: { type: String, required: true },
   description: { type: String, required: true },
   link: String,
+  author: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
   closingDate: { type: Date },
 }, { timestamps: true });
 

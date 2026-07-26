@@ -17,6 +17,7 @@ const eventSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
     },
+    attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'user' }],
     markedForDeletion: {
         type: Boolean,
         default: false

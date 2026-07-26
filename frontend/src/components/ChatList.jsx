@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { Search, MessageSquare } from 'lucide-react';
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? '/api' : 'https://alumni-connect-backend-hrsc.onrender.com/api'),
-  withCredentials: true,
-});
+import { chatService } from '../services/chat.service';
 
 const ChatList = ({ onSelectChat, activeChatId, initialPartnerId }) => {
   const [conversations, setConversations] = useState([]);
@@ -14,10 +9,10 @@ const ChatList = ({ onSelectChat, activeChatId, initialPartnerId }) => {
   useEffect(() => {
     const fetchConversations = async () => {
       try {
-        const res = await api.get('/chat/conversations');
-        let data = res.data;
-        if (!Array.isArray(data)) data = data.conversations || [];
-        setConversations(data);
+        const data = await chatService.getConversations();
+        let conversationsData = data;
+        if (!Array.isArray(conversationsData)) conversationsData = conversationsData.conversations || [];
+        setConversations(conversationsData);
 
         if (initialPartnerId && data.length) {
           const existing = data.find(c => String(c.partnerId) === String(initialPartnerId));

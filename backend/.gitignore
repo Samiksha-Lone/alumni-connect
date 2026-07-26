@@ -26,3 +26,8 @@ coverage/
 
 # OS
 Thumbs.db
+
+# Backend-specific
+uploads/
+temp/
+seed/

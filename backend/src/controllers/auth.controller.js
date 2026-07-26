@@ -78,8 +78,6 @@ async function registerUser(req, res, next) {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-
-    logger.info(`User registered successfully: ${user._id}`);
     
     // IF an admin is creating this account, DO NOT issue a new token/cookie
     // This prevents the current admin from being logged out
@@ -116,19 +114,27 @@ async function loginUser(req, res, next) {
 
     const user = await userModel.findOne({ email });
     if (!user) {
-      logger.warn(`Login attempt with non-existent email: ${email}`);
       return res.status(401).json({
-        message: "Invalid credentials",
-        errors: [{ field: "email", message: "Invalid email or password" }]
+        success: false,
+        message: "Invalid email or password",
+        error: {
+          code: "INVALID_CREDENTIALS",
+          message: "Invalid email or password",
+          details: [{ field: "email", message: "Invalid email or password" }]
+        }
       });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      logger.warn(`Failed login attempt for user: ${user._id}`);
       return res.status(401).json({
-        message: "Invalid credentials",
-        errors: [{ field: "password", message: "Invalid email or password" }]
+        success: false,
+        message: "Invalid email or password",
+        error: {
+          code: "INVALID_CREDENTIALS",
+          message: "Invalid email or password",
+          details: [{ field: "password", message: "Invalid email or password" }]
+        }
       });
     }
 
@@ -142,8 +148,6 @@ async function loginUser(req, res, next) {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }  
     );
-
-    logger.info(`User logged in: ${user._id}`);
     
     res.cookie("token", token, {
       httpOnly: true,

@@ -1,87 +1,130 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { Search, Briefcase, GraduationCap, MessageSquare, RefreshCw, ShieldCheck } from 'lucide-react';
-import { FaLinkedin } from 'react-icons/fa6';
+import { Search, RefreshCw, Filter } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
 import { CardSkeleton } from '../components/ui/Skeleton';
+import AlumniCard from '../components/alumni/AlumniCard';
+import SectionHeader from '../components/common/SectionHeader';
+import { userService } from '../services/user.service';
 
 export default function AlumniPage() {
   const [alumni, setAlumni] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pagination, setPagination] = useState({ page: 1, limit: 12, total: 0, pages: 1 });
   const [searchQuery, setSearchQuery] = useState('');
   const [showMentorsOnly, setShowMentorsOnly] = useState(false);
+  const [gradYear, setGradYear] = useState('');
+  const [companyFilter, setCompanyFilter] = useState('');
+  const [locationFilter, setLocationFilter] = useState('');
   const { user } = useAuth();
+  const navigate = useNavigate();
 
-  const fetchAlumni = useCallback(async () => {
+  const fetchAlumni = useCallback(async (page = 1) => {
     try {
       setLoading(true);
-      const res = await axios.get('/users/alumni', { withCredentials: true });
+      const res = await userService.getAlumni({ page, limit: 12, search: searchQuery.trim() });
       const list = (res.data || []).filter(a => a._id !== user?.id);
       setAlumni(list);
+      setPagination(res.pagination || { page, limit: 12, total: 0, pages: 1 });
       setError('');
     } catch (err) {
-      if (err.response?.status === 401) {
-        setError('Please login to view the alumni directory');
-      } else {
-        setError(err.response?.data?.message || 'Failed to load alumni');
+      if (err.status === 401) {
+        navigate('/auth');
+        return;
       }
+      setError(err.message || 'Failed to load alumni');
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, navigate, searchQuery]);
 
-  useEffect(() => { fetchAlumni(); }, [fetchAlumni]);
+  useEffect(() => { fetchAlumni(1); }, [fetchAlumni]);
 
-  const filteredAlumni = alumni.filter(a => {
-    const matchesSearch =
-      (a.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (a.company || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (a.courseStudied || '').toLowerCase().includes(searchQuery.toLowerCase());
-    return showMentorsOnly ? matchesSearch && a.mentorAvailable : matchesSearch;
+  const filteredAlumni = alumni.filter((a) => {
+    const matchesYear = gradYear ? String(a.graduationYear || '') === gradYear : true;
+    const matchesCompany = companyFilter ? (a.company || '').toLowerCase().includes(companyFilter.toLowerCase()) : true;
+    const matchesLocation = locationFilter ? (a.location || '').toLowerCase().includes(locationFilter.toLowerCase()) : true;
+    const matchesMentor = showMentorsOnly ? a.mentorAvailable : true;
+
+    return matchesYear && matchesCompany && matchesLocation && matchesMentor;
   });
 
   return (
     <div className="section-container">
-      {/* Header */}
-      <div className="flex flex-col items-center mb-10 text-center animate-slide-up">
-        <h1 className="mb-2 text-3xl font-bold">Alumni Directory</h1>
-        <p className="max-w-md text-sm text-text-secondary">
-          Connect with our global network of professional graduates.
-        </p>
-      </div>
+      <SectionHeader
+        eyebrow="MGM Alumni Directory"
+        title="Find the right alumni connection"
+        description="Search by name, company, batch, or location to discover professionals who can guide you next."
+        align="center"
+      />
 
-      {/* Search + Refresh */}
-      <div className="flex flex-col items-center max-w-xl gap-3 mx-auto mb-6 sm:flex-row">
-        <div className="relative flex-grow w-full group">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary group-focus-within:text-primary transition-colors" size={15} />
+      <div className="mx-auto mb-6 flex max-w-5xl flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary transition-colors" size={15} />
           <input
             type="text"
-            placeholder="Search by name, company or course..."
-            className="w-full h-10 pl-10 text-sm form-input"
+            placeholder="Search by name or company..."
+            className="h-10 w-full rounded-xl border border-border bg-white pl-10 text-sm shadow-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 dark:bg-slate-900"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                fetchAlumni(1);
+              }
+            }}
           />
         </div>
-        <Button variant="secondary" onClick={fetchAlumni} className="h-10 px-4 shrink-0 border-border">
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <select value={gradYear} onChange={(e) => setGradYear(e.target.value)} className="h-10 rounded-xl border border-border bg-white px-3 text-sm outline-none focus:border-primary dark:bg-slate-900">
+            <option value="">Graduation Year</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+            <option value="2022">2022</option>
+            <option value="2021">2021</option>
+          </select>
+          <select value={companyFilter} onChange={(e) => setCompanyFilter(e.target.value)} className="h-10 rounded-xl border border-border bg-white px-3 text-sm outline-none focus:border-primary dark:bg-slate-900">
+            <option value="">Company</option>
+            <option value="TCS">TCS</option>
+            <option value="Infosys">Infosys</option>
+            <option value="Wipro">Wipro</option>
+            <option value="Accenture">Accenture</option>
+            <option value="Cognizant">Cognizant</option>
+            <option value="Capgemini">Capgemini</option>
+            <option value="Persistent">Persistent</option>
+            <option value="Tech Mahindra">Tech Mahindra</option>
+          </select>
+          <select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} className="h-10 rounded-xl border border-border bg-white px-3 text-sm outline-none focus:border-primary dark:bg-slate-900">
+            <option value="">Location</option>
+            <option value="Pune">Pune</option>
+            <option value="Hyderabad">Hyderabad</option>
+            <option value="Bengaluru">Bengaluru</option>
+            <option value="Mumbai">Mumbai</option>
+            <option value="Chennai">Chennai</option>
+          </select>
+        </div>
+        <Button variant="secondary" onClick={() => fetchAlumni(1)} className="h-10 shrink-0 border-border px-4">
           <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
         </Button>
       </div>
 
-      {/* Mentor Filter */}
-      <div className="flex justify-center mb-10">
-        <label className="inline-flex items-center gap-2.5 text-sm text-text-secondary cursor-pointer hover:text-text-primary transition-colors select-none">
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+        <label className="inline-flex items-center gap-2.5 text-sm text-text-secondary transition-colors hover:text-text-primary">
           <input
             type="checkbox"
             checked={showMentorsOnly}
             onChange={(e) => setShowMentorsOnly(e.target.checked)}
-            className="w-4 h-4 rounded border-border text-primary focus:ring-primary/20 accent-primary"
+            className="h-4 w-4 rounded border-border text-primary accent-primary"
           />
           Show available mentors only
         </label>
+        <div className="flex items-center gap-2 text-sm text-text-secondary">
+          <Filter size={14} />
+          <span>{filteredAlumni.length} profiles shown</span>
+          {pagination.pages > 1 && <span>• Page {pagination.page} of {pagination.pages}</span>}
+        </div>
       </div>
 
       {/* Grid */}
@@ -95,11 +138,39 @@ export default function AlumniPage() {
           <Button variant="primary" onClick={fetchAlumni} className="px-6 text-sm h-9">Try Again</Button>
         </Card>
       ) : filteredAlumni.length > 0 ? (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {filteredAlumni.map((a) => (
-            <AlumniCard key={a._id} alumni={a} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredAlumni.map((a) => (
+              <AlumniCard
+                key={a._id}
+                alumni={a}
+                onMessage={() => navigate('/chat', { state: { partnerId: a._id, partnerName: a.name } })}
+                onMentor={() => navigate('/chat', { state: { partnerId: a._id, partnerName: a.name, initialMessage: `Hi ${a.name.split(' ')[0]},\n\nI would love to connect for guidance and mentorship. Could we talk about career opportunities and your experience in ${a.company || 'your field'}?` } })}
+              />
+            ))}
+          </div>
+          {pagination.pages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-3">
+              <Button
+                variant="secondary"
+                className="px-4"
+                disabled={pagination.page <= 1}
+                onClick={() => fetchAlumni(pagination.page - 1)}
+              >
+                Previous
+              </Button>
+              <span className="text-sm text-text-secondary">Page {pagination.page} of {pagination.pages}</span>
+              <Button
+                variant="secondary"
+                className="px-4"
+                disabled={pagination.page >= pagination.pages}
+                onClick={() => fetchAlumni(pagination.page + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          )}
+        </>
       ) : (
         <div className="max-w-sm py-16 mx-auto text-center border border-dashed border-border rounded-2xl bg-gray-50/50 dark:bg-gray-900/10">
           <div className="flex items-center justify-center w-12 h-12 mx-auto mb-3 border rounded-xl bg-card border-border text-text-secondary">
@@ -110,111 +181,5 @@ export default function AlumniPage() {
         </div>
       )}
     </div>
-  );
-}
-
-function AlumniCard({ alumni }) {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  const handleMentorshipClick = () => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-
-    const templateMessage = `Hi ${alumni.name.split(' ')[0]},\n\nI hope you are doing well. I would love to connect with you for mentorship and learn more about your experience in ${alumni.company || 'your field'}.\n\nCould we chat about career guidance, skills I should focus on, and how to approach similar opportunities?\n\nThank you!`;
-
-    navigate('/chat', {
-      state: {
-        partnerId: alumni._id,
-        partnerName: alumni.name,
-        initialMessage: templateMessage
-      }
-    });
-  };
-
-  const handleMessageClick = () => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-    navigate('/chat', { state: { partnerId: alumni._id, partnerName: alumni.name } });
-  };
-
-  return (
-    <>
-      <Card className="flex flex-col h-full group hover:border-primary/30 transition-all duration-200 !p-0 overflow-hidden bg-card">
-        {/* Body */}
-        <div className="flex-1 p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center justify-center text-base font-bold transition-transform border w-11 h-11 rounded-xl bg-primary-soft text-primary border-primary/10 group-hover:scale-105">
-              {alumni.name?.charAt(0)}
-            </div>
-            <div className="flex items-center gap-1.5">
-              {alumni.mentorAvailable && (
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase tracking-wide">
-                  Mentor
-                </span>
-              )}
-              {alumni.linkedin && (
-                <a
-                  href={alumni.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1.5 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-text-secondary hover:text-blue-600 transition-colors border border-border"
-                >
-                  <FaLinkedin size={13} />
-                </a>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 mb-3">
-            <h3 className="text-sm font-bold leading-tight truncate transition-colors group-hover:text-primary">
-              {alumni.name}
-            </h3>
-            {alumni.isVerified && (
-              <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2 text-xs text-text-secondary">
-              <Briefcase size={12} className="shrink-0 text-primary/60" />
-              <span className="font-medium truncate">{alumni.company || 'Professional Member'}</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-text-secondary">
-              <GraduationCap size={12} className="shrink-0 text-primary/60" />
-              <span className="truncate">Class of {alumni.graduationYear || 'N/A'} · {alumni.courseStudied || 'Member'}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="px-4 py-3 border-t border-border bg-gray-50/50 dark:bg-gray-800/10">
-          {alumni.mentorAvailable ? (
-            <Button
-              onClick={handleMentorshipClick}
-              variant="primary"
-              className="w-full text-xs font-semibold h-9"
-            >
-              <MessageSquare size={12} className="mr-1.5 shrink-0" />
-              Request Mentorship
-            </Button>
-          ) : (
-            <Button
-              onClick={handleMessageClick}
-              variant="secondary"
-              className="w-full text-xs font-semibold h-9 border-border"
-            >
-              <MessageSquare size={12} className="mr-1.5 shrink-0" />
-              Message
-            </Button>
-          )}
-        </div>
-      </Card>
-
-    </>
   );
 }

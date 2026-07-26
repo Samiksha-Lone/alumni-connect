@@ -1,0 +1,23 @@
+services:
+  backend:
+    build: ./backend
+    container_name: alumni-connect-backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE: http://localhost:3000/api
+        VITE_API_URL: http://localhost:3000
+    container_name: alumni-connect-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE=http://localhost:3000/api
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - backend

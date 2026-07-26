@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Sun, Moon, LogIn, MessageSquare, LayoutDashboard, LogOut } from 'lucide-react';
+import { Menu, X, Sun, Moon, LogIn, MessageSquare, LogOut } from 'lucide-react';
 import UiNavLink from './ui/UiNavLink';
 import { useAuth } from '../context/AuthContext';
 import useTheme from '../context/useTheme';
@@ -19,15 +19,13 @@ export default function NavBar() {
   ];
 
   return (
-    <header className="glass-header">
-      <nav className="flex items-center justify-between h-14 px-4 mx-auto max-w-7xl">
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:bg-slate-950/80">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
 
         {/* Logo */}
-        <Link
-          to="/"
-          className="text-base font-bold tracking-tight text-primary flex-shrink-0"
-        >
-          Alumni<span className="text-text-primary"> Connect</span>
+        <Link to="/" className="flex flex-shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-primary sm:text-base">
+          <img src="/MGM-logo.jpg" alt="MGM College of Engineering logo" className="h-8 w-8 rounded-lg object-cover" />
+          <span className="text-text-primary">MGM Alumni Portal</span>
         </Link>
 
         {/* Desktop Nav */}
@@ -54,7 +52,7 @@ export default function NavBar() {
           {user && (
             <Link
               to="/chat"
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:bg-primary-soft hover:text-primary transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-primary-soft hover:text-primary"
               title="Messages"
             >
               <MessageSquare size={16} />
@@ -85,7 +83,7 @@ export default function NavBar() {
             ) : (
               <Link
                 to="/auth"
-                className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white rounded-lg bg-primary hover:bg-primary-hover transition-colors"
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
               >
                 <LogIn size={14} />
                 <span>Sign In</span>
@@ -96,7 +94,7 @@ export default function NavBar() {
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="w-8 h-8 flex items-center justify-center md:hidden text-text-secondary hover:text-primary transition-colors"
+            className="flex h-9 w-9 items-center justify-center text-text-secondary transition-colors hover:text-primary md:hidden"
             aria-label="Toggle menu"
           >
             {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -106,7 +104,7 @@ export default function NavBar() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="absolute top-14 left-0 right-0 z-40 md:hidden bg-card border-b border-border shadow-lg">
+        <div className="absolute left-0 right-0 top-16 z-40 border-b border-border bg-card shadow-lg md:hidden">
           <div className="px-4 py-3 flex flex-col gap-0.5">
             {navItems.map((item) => (
               <UiNavLink

@@ -1,4 +1,5 @@
 const eventModel = require('../models/event.model');
+const { parsePagination, buildPaginationResponse } = require('../utils/pagination');
 
 async function createEvent(req, res) {
   try {
@@ -8,14 +9,35 @@ async function createEvent(req, res) {
 
     const { title, description, eventDate } = req.body;
 
-    if (!title || !description || !eventDate) {
-      return res.status(400).json({ error: "Missing required fields" });
+    if (!title || !eventDate) {
+      return res.status(400).json({ error: "Title and event date are required" });
+    }
+
+    const normalizeDate = (value) => {
+      if (!value) return null;
+      if (value instanceof Date) return value;
+      if (typeof value !== 'string') {
+        return new Date(value);
+      }
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return new Date(value);
+      }
+      const dmy = /^(\d{2})[-\/](\d{2})[-\/](\d{4})$/.exec(value);
+      if (dmy) {
+        return new Date(`${dmy[3]}-${dmy[2]}-${dmy[1]}`);
+      }
+      return new Date(value);
+    };
+
+    const parsedDate = normalizeDate(eventDate);
+    if (!parsedDate || Number.isNaN(parsedDate.getTime())) {
+      return res.status(400).json({ error: 'Invalid event date format' });
     }
 
     const event = await eventModel.create({
       title,
-      description,
-      eventDate,
+      description: description || '',
+      eventDate: parsedDate,
       createdBy: req.user._id
     });
 
@@ -30,9 +52,18 @@ async function createEvent(req, res) {
 
 async function getEvents(req, res) {
   try {
-    // Get only events not marked for deletion and sort by date
-    const events = await eventModel.find({ markedForDeletion: false }).sort({ eventDate: 1 });
-    res.status(200).json(events);
+    const { page, limit } = parsePagination(req.query, { page: 1, limit: 12 });
+    const query = { markedForDeletion: false };
+
+    const [events, total] = await Promise.all([
+      eventModel.find(query)
+        .sort({ eventDate: 1 })
+        .skip((page - 1) * limit)
+        .limit(limit),
+      eventModel.countDocuments(query)
+    ]);
+
+    res.status(200).json(buildPaginationResponse(events, page, limit, total));
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch events" });
   }
@@ -90,6 +121,39 @@ async function deleteEvent(req, res) {
   }
 }
 
+async function registerForEvent(req, res) {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Not authenticated' });
+    const eventId = req.params.id;
+    const User = require('../models/user.model');
+    const event = await eventModel.findById(eventId);
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+
+    // Add user to attendees if not already present
+    const userId = req.user._id;
+    event.attendees = event.attendees || [];
+    if (event.attendees.some(a => String(a) === String(userId))) {
+      return res.json({ message: 'Already registered' });
+    }
+    event.attendees.push(userId);
+    await event.save();
+
+    // Add event to user's registeredEvents
+    const user = await User.findById(userId);
+    if (user) {
+      user.registeredEvents = user.registeredEvents || [];
+      if (!user.registeredEvents.some(e => String(e) === String(eventId))) {
+        user.registeredEvents.push(eventId);
+        await user.save();
+      }
+    }
+
+    return res.json({ message: 'Registered for event' });
+  } catch (err) {
+    return res.status(500).json({ error: 'Server error registering for event' });
+  }
+}
+
 // Mark past events for deletion (1-2 days after event date)
 async function markPastEventsForDeletion(req, res) {
   try {
@@ -137,6 +201,7 @@ module.exports = {
   getEvents,
   updateEvent,
   deleteEvent,
+  registerForEvent,
   markPastEventsForDeletion,
   cleanupMarkedEvents
 };

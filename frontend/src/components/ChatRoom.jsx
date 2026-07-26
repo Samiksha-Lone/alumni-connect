@@ -1,16 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
 import { SendHorizontal, User, ShieldCheck, Clock, Paperclip, FileText, Download, X, Check, CheckCheck } from 'lucide-react';
 import { useSocket } from '../context/SocketContext';
 import { useToast } from '../context/useToast';
 import Button from './ui/Button';
+import { getSocketBase } from '../utils/api';
+import { chatService } from '../services/chat.service';
+import { userService } from '../services/user.service';
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? '/api' : 'https://alumni-connect-backend-hrsc.onrender.com/api'),
-  withCredentials: true,
-});
-
-const FILE_BASE = import.meta.env.VITE_API_BASE ? import.meta.env.VITE_API_BASE.replace(/\/api$/, '') : (import.meta.env.DEV ? '' : 'https://alumni-connect-backend-hrsc.onrender.com');
+const FILE_BASE = getSocketBase();
 
 const ChatRoom = ({ partnerId, initialMessage }) => {
   const socket = useSocket();
@@ -32,8 +29,8 @@ const ChatRoom = ({ partnerId, initialMessage }) => {
   useEffect(() => {
     const loadPartner = async () => {
       try {
-        const res = await api.get(`/users/${partnerId}`);
-        if (res.data && typeof res.data === 'object') setPartner(res.data);
+        const partnerData = await userService.getUser(partnerId);
+        if (partnerData && typeof partnerData === 'object') setPartner(partnerData);
       } catch (e) { console.error('loadPartner error', e); }
     };
     if (partnerId) loadPartner();
@@ -42,10 +39,10 @@ const ChatRoom = ({ partnerId, initialMessage }) => {
   useEffect(() => {
     const loadMessages = async () => {
       try {
-        const res = await api.get(`/chat/messages/${partnerId}`);
-        let data = res.data;
-        if (!Array.isArray(data)) data = data.messages || [];
-        setMessages(data);
+        const data = await chatService.getMessages(partnerId);
+        let messagesData = data;
+        if (!Array.isArray(messagesData)) messagesData = messagesData.messages || [];
+        setMessages(messagesData);
       } catch (e) { console.error('loadMessages error', e); }
     };
     if (partnerId) loadMessages();
@@ -83,8 +80,8 @@ const ChatRoom = ({ partnerId, initialMessage }) => {
         const formData = new FormData();
         formData.append('receiverId', partnerId);
         formData.append('file', file);
-        const res = await api.post('/chat/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-        setMessages(prev => [...prev, res.data]);
+        const msg = await chatService.uploadFile(formData);
+        setMessages(prev => [...prev, msg]);
         setFile(null);
         setUploading(false);
       } else {
@@ -105,11 +102,11 @@ const ChatRoom = ({ partnerId, initialMessage }) => {
         setMessages(prev => [...prev, optimisticMsg]);
         
         // Send to server
-        const res = await api.post('/chat/message', { receiverId: partnerId, content: messageText, tempId });
+        const sentMessage = await chatService.sendMessage({ receiverId: partnerId, content: messageText, tempId });
         
         // Replace optimistic message with real message
         setMessages(prev => 
-          prev.map(m => (m.tempId === tempId ? { ...res.data, status: 'sent' } : m))
+          prev.map(m => (m.tempId === tempId ? { ...sentMessage, status: 'sent' } : m))
         );
       }
       setText('');

@@ -2,11 +2,12 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react'
 import io from 'socket.io-client'
 import { useAuth } from './AuthContext'
+import { getSocketBase } from '../utils/api'
 
 const SocketContext = createContext(null)
 export const useSocket = () => useContext(SocketContext)
 
-const SOCKET_URL = import.meta.env.VITE_API_BASE ? import.meta.env.VITE_API_BASE.replace(/\/api$/, '') : (import.meta.env.DEV ? 'http://localhost:3000' : 'https://alumni-connect-backend-hrsc.onrender.com')
+const SOCKET_URL = getSocketBase()
 
 export function SocketProvider({ children }) {
   const [socket, setSocket] = useState(null)
